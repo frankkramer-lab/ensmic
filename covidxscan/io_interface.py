@@ -1,0 +1,123 @@
+#==============================================================================#
+#  Author:       Dominik Müller                                                #
+#  Copyright:    2020 IT-Infrastructure for Translational Medical Research,    #
+#                University of Augsburg                                        #
+#                                                                              #
+#  This program is free software: you can redistribute it and/or modify        #
+#  it under the terms of the GNU General Public License as published by        #
+#  the Free Software Foundation, either version 3 of the License, or           #
+#  (at your option) any later version.                                         #
+#                                                                              #
+#  This program is distributed in the hope that it will be useful,             #
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of              #
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the               #
+#  GNU General Public License for more details.                                #
+#                                                                              #
+#  You should have received a copy of the GNU General Public License           #
+#  along with this program.  If not, see <http://www.gnu.org/licenses/>.       #
+#==============================================================================#
+#-----------------------------------------------------#
+#                   Library imports                   #
+#-----------------------------------------------------#
+# External libraries
+import os
+import matplotlib.pyplot as plt
+import pandas as pd
+import numpy as np
+from miscnn.data_loading.interfaces.abstract_io import Abstract_IO
+
+#-----------------------------------------------------#
+#                 COVID I/O Interface                 #
+#-----------------------------------------------------#
+""" Data I/O Interface for COVID-19 JPEG, PNG or other 2D image files.
+    Images are read by calling the imread function from the matplotlib module.
+
+Methods:
+    __init__                Object creation function
+    initialize:             Prepare the data set and create indices list
+    load_image:             Load an image
+    load_segmentation:      Load a segmentation
+    load_prediction:        Load a prediction from file
+    load_details:           Load optional information
+    save_prediction:        Save a prediction to file
+"""
+class COVID_interface(Abstract_IO):
+    #---------------------------------------------#
+    #                   __init__                  #
+    #---------------------------------------------#
+    def __init__(self, classes=2, grayscale=True,
+                 img_types=["png", "jpeg", "jpg"]):
+        if grayscale : self.channels = 1
+        else : self.channels = 3
+        self.classes = classes
+        self.three_dim = False
+        self.img_types = tuple(img_types)
+
+    #---------------------------------------------#
+    #                  initialize                 #
+    #---------------------------------------------#
+    def initialize(self, input_path):
+        # Resolve location where covid data set is located
+        if not os.path.exists(input_path):
+            raise IOError(
+                "Data path, {}, could not be resolved".format(str(input_path))
+            )
+        # Cache data directory
+        self.data_directory = input_path
+        # Identify samples
+        sample_list = os.listdir(input_path)
+        # Remove every file which does not match image typ
+        for i in reversed(range(0, len(sample_list))):
+            if not sample_list[i].endswith(self.img_types):
+                del sample_list[i]
+        # Return sample list
+        return sample_list
+
+    #---------------------------------------------#
+    #                  load_image                 #
+    #---------------------------------------------#
+    def load_image(self, index):
+        # Make sure that the image file exists in the data set directory
+        img_path = os.path.join(self.data_directory, index)
+        if not os.path.exists(img_path):
+            raise ValueError(
+                "Image could not be found \"{}\"".format(img_path)
+            )
+        # Load image from file
+        img = plt.imread(img_path)
+        # Convert to grayscale if required
+        if self.channels == 1 : img = img.mean(axis=-1)
+        # Return image
+        return img
+
+    #---------------------------------------------#
+    #              load_segmentation              #
+    #---------------------------------------------#
+    def load_segmentation(self, index):
+        # Make sure that the classification file exists in the data set directory
+        class_path = os.path.join(self.data_directory, "metadata.csv")
+        if not os.path.exists(class_path):
+            raise ValueError(
+                "metadata.csv could not be found \"{}\"".format(class_path)
+            )
+        # Load classification from metadata.csv
+        metadata = pd.read_csv(class_path)
+        classification = metadata.loc[metadata["filename"]==index]["finding"]
+        # Return classification
+        return list(classification)
+
+    #---------------------------------------------#
+    #               load_prediction               #
+    #---------------------------------------------#
+    def load_prediction(self, i, output_path):
+        pass
+    #---------------------------------------------#
+    #                 load_details                #
+    #---------------------------------------------#
+    def load_details(self, i):
+        pass
+    #---------------------------------------------#
+    #               save_prediction               #
+    #---------------------------------------------#
+    def save_prediction(self, pred, i, output_path):
+        pass
