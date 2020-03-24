@@ -83,11 +83,10 @@ interface = COVID_interface(classes=2, img_types=["png", "jpeg", "jpg"])
 path = "covidxscan.data"
 sample_list = interface.initialize(path)
 
-img = interface.load_image(sample_list[0])
-print(img.shape)
-
-seg = interface.load_segmentation(sample_list[0])
-print(seg)
+for i in range(0, len(sample_list)):
+    image = interface.load_image(sample_list[i])
+    diagnosis = interface.load_segmentation(sample_list[i])
+    # print(sample_list[i] + "\t" + str(image.shape) + "\t" + str(diagnosis))
 
 # # Specify the kits19 data directory ('kits19/data' was renamed to 'kits19/data.original')
 # data_path = "../kits19/data.original/"

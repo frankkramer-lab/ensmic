@@ -21,7 +21,7 @@
 #-----------------------------------------------------#
 # External libraries
 import os
-import matplotlib.pyplot as plt
+from PIL import Image
 import pandas as pd
 import numpy as np
 from miscnn.data_loading.interfaces.abstract_io import Abstract_IO
@@ -30,7 +30,7 @@ from miscnn.data_loading.interfaces.abstract_io import Abstract_IO
 #                 COVID I/O Interface                 #
 #-----------------------------------------------------#
 """ Data I/O Interface for COVID-19 JPEG, PNG or other 2D image files.
-    Images are read by calling the imread function from the matplotlib module.
+    Images are read by calling the imread function from the Pillow module.
 
 Methods:
     __init__                Object creation function
@@ -45,10 +45,8 @@ class COVID_interface(Abstract_IO):
     #---------------------------------------------#
     #                   __init__                  #
     #---------------------------------------------#
-    def __init__(self, classes=2, grayscale=True,
-                 img_types=["png", "jpeg", "jpg"]):
-        if grayscale : self.channels = 1
-        else : self.channels = 3
+    def __init__(self, classes=2, img_types=["png", "jpeg", "jpg"]):
+        self.channels = 1
         self.classes = classes
         self.three_dim = False
         self.img_types = tuple(img_types)
@@ -84,9 +82,13 @@ class COVID_interface(Abstract_IO):
                 "Image could not be found \"{}\"".format(img_path)
             )
         # Load image from file
-        img = plt.imread(img_path)
-        # Convert to grayscale if required
-        if self.channels == 1 : img = img.mean(axis=-1)
+        img_raw = Image.open(img_path)
+        # Convert image to grayscale
+        img_grayscale = img_raw.convert('LA')
+        # Convert Pillow image to numpy matrix
+        img = np.array(img_grayscale)
+        # Remove maximum value and keep only intensity
+        img = img[:,:,0]
         # Return image
         return img
 
