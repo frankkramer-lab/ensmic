@@ -27,7 +27,7 @@ from shutil import copyfile
 from io_interface import COVID_interface
 
 #-----------------------------------------------------#
-#               File Structure Generator              #
+#        File Structure Generator: COVID-19 DS        #
 #-----------------------------------------------------#
 def fs_generator(input_path, target_path, multiple_files=True,
                  covid_ds=True, covid_ds_filter={}):
@@ -68,27 +68,53 @@ def fs_generator(input_path, target_path, multiple_files=True,
     else:
         copyfile(os.path.join(images_path), os.path.join(fs_main, images_path))
 
-
+#-----------------------------------------------------#
+#                      DEBUGGING                      #
+#-----------------------------------------------------#
 input = "covid-chestxray-dataset"
 target = "covidxscan.data"
 covid_ds_filter = {"view":"PA",
                    "modality":"X-ray"}
 fs_generator(input, target, covid_ds=True, covid_ds_filter=covid_ds_filter)
 
+# Adjust possible classes
+class_dict = {'No Finding': 0,
+              'COVID-19': 1,
+              'ARDS': 2,
+              'MERS': 3,
+              'Pneumocystis': 4,
+              'SARS': 5,
+              'Streptococcus': 6}
 
+# Initialize the Image I/O interface
+interface = COVID_interface(class_dict=class_dict, img_types=["png", "jpeg", "jpg"])
 
-# Initialize the Image I/O interface and configure the images as one channel (grayscale) and three segmentation classes (background, kidney, tumor)
-interface = COVID_interface(classes=2, img_types=["png", "jpeg", "jpg"])
+# Specify the COVID-19 data directory
+data_path = "covidxscan.data"
+# Create the Data I/O object
+from miscnn import Data_IO
+data_io = Data_IO(interface, data_path)
 
-path = "covidxscan.data"
-sample_list = interface.initialize(path)
+sample_list = data_io.get_indiceslist()
+sample_list.sort()
+print("All samples: " + str(sample_list))
 
-for i in range(0, len(sample_list)):
-    image = interface.load_image(sample_list[i])
-    diagnosis = interface.load_segmentation(sample_list[i])
-    # print(sample_list[i] + "\t" + str(image.shape) + "\t" + str(diagnosis))
+# Library import
+from miscnn import Preprocessor
 
-# # Specify the kits19 data directory ('kits19/data' was renamed to 'kits19/data.original')
-# data_path = "../kits19/data.original/"
-# # Create the Data I/O object
-# data_io = Data_IO(interface, data_path)
+# Create and configure the Preprocessor class
+pp = Preprocessor(data_io, data_aug=None, batch_size=1, prepare_subfunctions=True,
+                  prepare_batches=False, analysis="fullimage")
+
+# Library import
+from miscnn.neural_network.model import Neural_Network
+from keras.metrics import sparse_categorical_accuracy
+
+from model import Architecture
+
+# Create the Neural Network model
+model = Neural_Network(preprocessor=pp, loss=sparse_categorical_accuracy,
+                       architecture=Architecture(), metrics=[])
+
+# Train
+model.train(sample_list[:50], epochs=5)

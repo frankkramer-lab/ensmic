@@ -45,9 +45,10 @@ class COVID_interface(Abstract_IO):
     #---------------------------------------------#
     #                   __init__                  #
     #---------------------------------------------#
-    def __init__(self, classes=2, img_types=["png", "jpeg", "jpg"]):
+    def __init__(self, class_dict, img_types=["png", "jpeg", "jpg"]):
         self.channels = 1
-        self.classes = classes
+        self.class_dict = class_dict
+        self.classes = len(class_dict)
         self.three_dim = False
         self.img_types = tuple(img_types)
 
@@ -105,8 +106,11 @@ class COVID_interface(Abstract_IO):
         # Load classification from metadata.csv
         metadata = pd.read_csv(class_path)
         classification = metadata.loc[metadata["filename"]==index]["finding"]
+        # Transform classes from strings to integers
+        classification = classification.to_string(header=False, index=False)
+        diagnosis = self.class_dict[classification.lstrip()]
         # Return classification
-        return list(classification)
+        return np.array([diagnosis])
 
     #---------------------------------------------#
     #               load_prediction               #
@@ -122,4 +126,5 @@ class COVID_interface(Abstract_IO):
     #               save_prediction               #
     #---------------------------------------------#
     def save_prediction(self, pred, i, output_path):
-        pass
+        # Debugging
+        print(i, pred)
