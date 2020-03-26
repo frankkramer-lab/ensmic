@@ -1,6 +1,6 @@
 #==============================================================================#
 #  Author:       Dominik Müller                                                #
-#  Copyright:    2019 IT-Infrastructure for Translational Medical Research,    #
+#  Copyright:    2020 IT-Infrastructure for Translational Medical Research,    #
 #                University of Augsburg                                        #
 #                                                                              #
 #  This program is free software: you can redistribute it and/or modify        #
@@ -17,8 +17,14 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.       #
 #==============================================================================#
 #-----------------------------------------------------#
-#                     Reference:                      #
-#   Olaf Ronneberger, Philipp Fischer, Thomas Brox.   #
+#                     Reference Implementation:                      #
+# https://github.com/keras-team/keras-applications/blob/master/keras_applications/densenet.py
+
+#   Reference Paper:   #
+#[Densely Connected Convolutional Networks]
+#  (https://arxiv.org/abs/1608.06993) (CVPR 2017 Best Paper Award)
+
+
 #                    18 May 2015.                     #
 #          U-Net: Convolutional Networks for          #
 #            Biomedical Image Segmentation.           #
@@ -28,86 +34,110 @@
 #-----------------------------------------------------#
 # External libraries
 from keras.models import Model
-from keras.layers import Input, concatenate
-from keras.layers import Conv3D, MaxPooling3D, Conv3DTranspose
-from keras.layers import Conv2D, MaxPooling2D, Conv2DTranspose
-from keras.layers import BatchNormalization
+from keras import layers
 # Internal libraries/scripts
 from miscnn.neural_network.architecture.abstract_architecture import Abstract_Architecture
 
 #-----------------------------------------------------#
 #         Architecture class: U-Net Standard          #
 #-----------------------------------------------------#
-""" The classification variant of the popular U-Net architecture.
+""" The classification variant of the VGG16 architecture.
 
 Methods:
     __init__                Object creation function
-    create_model_2D:        Creating the 2D U-Net model for classification
-    create_model_3D:        Creating the 3D U-Net model for classification
+    create_model_2D:        Creating the 2D VGG16 model for classification
+    create_model_3D:        Creating the 3D VGG16 model for classification
 """
 class Architecture(Abstract_Architecture):
     #---------------------------------------------#
     #                Initialization               #
     #---------------------------------------------#
-    def __init__(self, n_filters=32, depth=4, activation='sigmoid',
-                 batch_normalization=True):
+    def __init__(self, fixed_input_shape):
         # Parse parameter
-        self.n_filters = n_filters
-        self.depth = depth
-        self.activation = activation
-        # Batch normalization settings
-        self.ba_norm = batch_normalization
-        self.ba_norm_momentum = 0.99
+        self.fixed_input_shape = fixed_input_shape
 
     #---------------------------------------------#
     #               Create 2D Model               #
     #---------------------------------------------#
     def create_model_2D(self, input_shape, n_labels=2):
-        # # Input layer
-        # inputs = Input(input_shape)
-        # # Start the CNN Model chain with adding the inputs as first tensor
-        # cnn_chain = inputs
-        # # Cache contracting normalized conv layers
-        # # for later copy & concatenate links
-        # contracting_convs = []
-        #
-        # # Contracting Layers
-        # for i in range(0, self.depth):
-        #     neurons = self.n_filters * 2**i
-        #     cnn_chain, last_conv = contracting_layer_2D(cnn_chain, neurons,
-        #                                                 self.ba_norm,
-        #                                                 self.ba_norm_momentum)
-        #     contracting_convs.append(last_conv)
-        #
-        # # Middle Layer
-        # neurons = self.n_filters * 2**self.depth
-        # cnn_chain = middle_layer_2D(cnn_chain, neurons, self.ba_norm,
-        #                             self.ba_norm_momentum)
-        #
-        # # Expanding Layers
-        # for i in reversed(range(0, self.depth)):
-        #     neurons = self.n_filters * 2**i
-        #     cnn_chain = expanding_layer_2D(cnn_chain, neurons,
-        #                                    contracting_convs[i], self.ba_norm,
-        #                                    self.ba_norm_momentum)
-        #
-        # # Output Layer
-        # conv_out = Conv2D(n_labels, (1, 1),
-        #            activation=self.activation)(cnn_chain)
-        # # Create Model with associated input and output layers
-        # model = Model(inputs=[inputs], outputs=[conv_out])
+        # Create Input Layer
+        img_input = layers.Input(self.fixed_input_shape)
 
-        import keras
-        from keras.models import Sequential
-        from keras.layers import Dropout, Flatten, Dense
-        model = Sequential()
-        print(input_shape)
-        model.add(Flatten(input_shape=(512,512,1)))
-        model.add(Dense(100, activation=keras.layers.LeakyReLU(alpha=0.3)))
-        model.add(Dropout(0.5))
-        model.add(Dense(50, activation=keras.layers.LeakyReLU(alpha=0.3)))
-        model.add(Dropout(0.3))
-        model.add(Dense(n_labels, activation='softmax'))
+        # Block 1
+        x = layers.Conv2D(64, (3, 3),
+                          activation='relu',
+                          padding='same',
+                          name='block1_conv1')(img_input)
+        x = layers.Conv2D(64, (3, 3),
+                          activation='relu',
+                          padding='same',
+                          name='block1_conv2')(x)
+        x = layers.MaxPooling2D((2, 2), strides=(2, 2), name='block1_pool')(x)
+
+        # Block 2
+        x = layers.Conv2D(128, (3, 3),
+                          activation='relu',
+                          padding='same',
+                          name='block2_conv1')(x)
+        x = layers.Conv2D(128, (3, 3),
+                          activation='relu',
+                          padding='same',
+                          name='block2_conv2')(x)
+        x = layers.MaxPooling2D((2, 2), strides=(2, 2), name='block2_pool')(x)
+
+        # Block 3
+        x = layers.Conv2D(256, (3, 3),
+                          activation='relu',
+                          padding='same',
+                          name='block3_conv1')(x)
+        x = layers.Conv2D(256, (3, 3),
+                          activation='relu',
+                          padding='same',
+                          name='block3_conv2')(x)
+        x = layers.Conv2D(256, (3, 3),
+                          activation='relu',
+                          padding='same',
+                          name='block3_conv3')(x)
+        x = layers.MaxPooling2D((2, 2), strides=(2, 2), name='block3_pool')(x)
+
+        # Block 4
+        x = layers.Conv2D(512, (3, 3),
+                          activation='relu',
+                          padding='same',
+                          name='block4_conv1')(x)
+        x = layers.Conv2D(512, (3, 3),
+                          activation='relu',
+                          padding='same',
+                          name='block4_conv2')(x)
+        x = layers.Conv2D(512, (3, 3),
+                          activation='relu',
+                          padding='same',
+                          name='block4_conv3')(x)
+        x = layers.MaxPooling2D((2, 2), strides=(2, 2), name='block4_pool')(x)
+
+        # Block 5
+        x = layers.Conv2D(512, (3, 3),
+                          activation='relu',
+                          padding='same',
+                          name='block5_conv1')(x)
+        x = layers.Conv2D(512, (3, 3),
+                          activation='relu',
+                          padding='same',
+                          name='block5_conv2')(x)
+        x = layers.Conv2D(512, (3, 3),
+                          activation='relu',
+                          padding='same',
+                          name='block5_conv3')(x)
+        x = layers.MaxPooling2D((2, 2), strides=(2, 2), name='block5_pool')(x)
+
+        # Classification block
+        x = layers.Flatten(name='flatten')(x)
+        x = layers.Dense(4096, activation='relu', name='fc1')(x)
+        x = layers.Dense(4096, activation='relu', name='fc2')(x)
+        x = layers.Dense(n_labels, activation='softmax', name='predictions')(x)
+
+        # Create model.
+        model = Model(img_input, x, name='vgg16')
 
         # Return model
         return model
