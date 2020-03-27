@@ -13,7 +13,7 @@ setup(
    long_description_content_type="text/markdown",
    packages=find_packages(),
    install_requires=['pandas',
-                     'miscnn',
+                     #'miscnn',
                      'Pillow'],
    classifiers=["Programming Language :: Python :: 3",
                 "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
