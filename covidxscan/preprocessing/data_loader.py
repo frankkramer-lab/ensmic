@@ -23,8 +23,6 @@
 import os
 import pandas as pd
 from shutil import copyfile
-# Internal libraries/scripts
-from io_interface import COVID_interface
 
 #-----------------------------------------------------#
 #        File Structure Generator: COVID-19 DS        #
