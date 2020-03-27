@@ -21,7 +21,6 @@
 #-----------------------------------------------------#
 # External libraries
 import numpy as np
-# Internal libraries/scripts
 from miscnn.processing.subfunctions.abstract_subfunction import Abstract_Subfunction
 
 #-----------------------------------------------------#

@@ -23,7 +23,6 @@
 from batchgenerators.augmentations.spatial_transformations import augment_resize
 from batchgenerators.augmentations.utils import resize_segmentation
 import numpy as np
-# Internal libraries/scripts
 from miscnn.processing.subfunctions.abstract_subfunction import Abstract_Subfunction
 
 #-----------------------------------------------------#
@@ -40,8 +39,8 @@ class Resize(Abstract_Subfunction):
     #---------------------------------------------#
     #                Initialization               #
     #---------------------------------------------#
-    def __init__(self, new_shape=(224,224)):
-        self.new_shape = new_shape
+    def __init__(self, new_shape):
+        self.new_shape = new_shape[0:-1]    # remove last axis
         self.original_shape = None
 
     #---------------------------------------------#
