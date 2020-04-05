@@ -61,10 +61,11 @@ class COVID_interface(Abstract_IO):
             raise IOError(
                 "Data path, {}, could not be resolved".format(str(input_path))
             )
-        # Cache data directory
+        # Cache data and image directory
         self.data_directory = input_path
+        self.img_directory = os.path.join(input_path, "images")
         # Identify samples
-        sample_list = os.listdir(input_path)
+        sample_list = os.listdir(self.img_directory)
         # Remove every file which does not match image typ
         for i in reversed(range(0, len(sample_list))):
             if not sample_list[i].endswith(self.img_types):
@@ -77,7 +78,7 @@ class COVID_interface(Abstract_IO):
     #---------------------------------------------#
     def load_image(self, index):
         # Make sure that the image file exists in the data set directory
-        img_path = os.path.join(self.data_directory, index)
+        img_path = os.path.join(self.img_directory, index)
         if not os.path.exists(img_path):
             raise ValueError(
                 "Image could not be found \"{}\"".format(img_path)
@@ -98,17 +99,17 @@ class COVID_interface(Abstract_IO):
     #---------------------------------------------#
     def load_segmentation(self, index):
         # Make sure that the classification file exists in the data set directory
-        class_path = os.path.join(self.data_directory, "metadata.csv")
-        if not os.path.exists(class_path):
+        path_metadata = os.path.join(self.data_directory, "metadata.csv")
+        if not os.path.exists(path_metadata):
             raise ValueError(
                 "metadata.csv could not be found \"{}\"".format(class_path)
             )
         # Load classification from metadata.csv
-        metadata = pd.read_csv(class_path)
-        classification = metadata.loc[metadata["filename"]==index]["finding"]
+        metadata = pd.read_csv(path_metadata)
+        classification = metadata.loc[metadata["filename"]==index]["class"]
         # Transform classes from strings to integers
-        classification = classification.to_string(header=False, index=False)
-        diagnosis = self.class_dict[classification.lstrip()]
+        class_string = classification.to_string(header=False, index=False)
+        diagnosis = self.class_dict[class_string.lstrip()]
         # Return classification
         return np.array([diagnosis])
 
