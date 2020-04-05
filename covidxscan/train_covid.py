@@ -21,7 +21,7 @@
 #-----------------------------------------------------#
 # External libraries
 import os
-from miscnn import Preprocessor, Data_IO, Neural_Network
+from miscnn import Preprocessor, Data_IO, Neural_Network, Data_Augmentation
 # Internal libraries/scripts
 from covidxscan.preprocessing import dataloading_covid
 from covidxscan.preprocessing.io_interface import COVID_interface
@@ -32,7 +32,7 @@ from covidxscan.architectures import *
 #                    Configurations                   #
 #-----------------------------------------------------#
 # File structure
-path_input = "covid-chestxray-dataset"
+path_input = "../data/covid-chestxray-dataset"
 path_target = "covidxscan.data"
 # Data set filter
 covid_ds_filter = {"view":"PA",
@@ -45,7 +45,7 @@ class_dict = {'Other pneumonia': 0,
 ## Options: ["VGG16", "InceptionResNetV2", "Xception", "DenseNet"]
 architecture = "DenseNet"
 # Batch size
-batch_size = 1
+batch_size = 10
 # Image shape in which images should be resized
 ## If None then default patch shapes for specific architecture will be used
 input_shape = None
@@ -81,9 +81,19 @@ sample_list.sort()
 if input_shape == None : input_shape = input_shape_default[architecture]
 input_shape = tuple(int(i) for i in input_shape.split("x") + [1])
 
+# Create and configure the Data Augmentation class
+data_aug = Data_Augmentation(cycles=1, scaling=True, rotations=True,
+                             elastic_deform=True, mirror=True,
+                             brightness=True, contrast=True,
+                             gamma=True, gaussian_noise=True)
+data_aug.seg_augmentation = False
+
+# Specify subfunctions for preprocessing
+sf = [SegFix(), Resize(new_shape=input_shape)]
+
 # Create and configure the MIScnn Preprocessor class
-pp = Preprocessor(data_io, data_aug=None, batch_size=batch_size,
-                  subfunctions=[SegFix(), Resize(new_shape=input_shape)],
+pp = Preprocessor(data_io, data_aug=data_aug, batch_size=batch_size,
+                  subfunctions=sf,
                   prepare_subfunctions=True,
                   prepare_batches=False,
                   analysis="fullimage")
