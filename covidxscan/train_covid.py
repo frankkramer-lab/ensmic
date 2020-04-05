@@ -24,7 +24,7 @@ import os
 from miscnn import Preprocessor, Data_IO, Neural_Network, Data_Augmentation
 # Internal libraries/scripts
 from covidxscan.preprocessing import dataloading_covid
-from covidxscan.preprocessing.io_interface import COVID_interface
+from covidxscan.preprocessing.io_interface import COVIDXSCAN_interface
 from covidxscan.subfunctions import Resize, SegFix
 from covidxscan.architectures import *
 
@@ -45,7 +45,7 @@ class_dict = {'Other pneumonia': 0,
 ## Options: ["VGG16", "InceptionResNetV2", "Xception", "DenseNet"]
 architecture = "DenseNet"
 # Batch size
-batch_size = 10
+batch_size = 1
 # Image shape in which images should be resized
 ## If None then default patch shapes for specific architecture will be used
 input_shape = None
@@ -64,8 +64,8 @@ dataloading_covid(path_input, path_target,
 path_covid = os.path.join("covidxscan.data", "covid")
 
 # Initialize the Image I/O interface based on the covidxscan file structure
-interface = COVID_interface(class_dict=class_dict,
-                            img_types=["png", "jpeg", "jpg"])
+interface = COVIDXSCAN_interface(class_dict=class_dict,
+                                 img_types=["png", "jpeg", "jpg"])
 
 # Create the MIScnn Data I/O object
 data_io = Data_IO(interface, path_covid)

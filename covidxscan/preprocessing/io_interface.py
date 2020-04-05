@@ -27,9 +27,9 @@ import numpy as np
 from miscnn.data_loading.interfaces.abstract_io import Abstract_IO
 
 #-----------------------------------------------------#
-#                 COVID I/O Interface                 #
+#               covidxscan I/O Interface              #
 #-----------------------------------------------------#
-""" Data I/O Interface for COVID-19 JPEG, PNG or other 2D image files.
+""" Data I/O Interface for JPEG, PNG or other 2D image files.
     Images are read by calling the imread function from the Pillow module.
 
 Methods:
@@ -41,7 +41,7 @@ Methods:
     load_details:           Load optional information
     save_prediction:        Save a prediction to file
 """
-class COVID_interface(Abstract_IO):
+class COVIDXSCAN_interface(Abstract_IO):
     #---------------------------------------------#
     #                   __init__                  #
     #---------------------------------------------#
@@ -56,7 +56,7 @@ class COVID_interface(Abstract_IO):
     #                  initialize                 #
     #---------------------------------------------#
     def initialize(self, input_path):
-        # Resolve location where covid data set is located
+        # Resolve location where covidxscan data set is located
         if not os.path.exists(input_path):
             raise IOError(
                 "Data path, {}, could not be resolved".format(str(input_path))
