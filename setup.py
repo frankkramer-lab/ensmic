@@ -13,6 +13,7 @@ setup(
    long_description_content_type="text/markdown",
    packages=find_packages(),
    install_requires=['pandas',
+                     'tensorflow==2.1.0',
                      'miscnn',
                      'Pillow',
                      'pydicom'],

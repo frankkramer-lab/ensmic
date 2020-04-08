@@ -30,9 +30,9 @@
 #                   Library imports                   #
 #-----------------------------------------------------#
 # External libraries
-from keras.models import Model
-import keras.layers as layers
-from keras.applications.densenet import DenseNet121
+from tensorflow.keras.models import Model
+import tensorflow.keras.layers as layers
+from tensorflow.keras.applications.densenet import DenseNet121
 from miscnn.neural_network.architecture.abstract_architecture import Abstract_Architecture
 
 #-----------------------------------------------------#
