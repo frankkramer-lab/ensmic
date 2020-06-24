@@ -23,7 +23,7 @@
 import os
 from miscnn import Preprocessor, Data_IO, Neural_Network, Data_Augmentation
 # Internal libraries/scripts
-from covidxscan.preprocessing import dataloading_screening
+from covidxscan.preprocessing import setup_screening
 from covidxscan.preprocessing.io_screening import COVIDXSCAN_interface
 from covidxscan.subfunctions import Resize, SegFix
 from covidxscan.architectures import *
@@ -58,7 +58,7 @@ input_shape_default = {"VGG16": "224x224",
 #           Data Loading and File Structure           #
 #-----------------------------------------------------#
 # Initialize file structure for covidxscan
-dataloading_screening(path_input, path_target, classes=class_dict, seed=seed)
+setup_screening(path_input, path_target, classes=class_dict, seed=seed)
 
 # Initialize the Image I/O interface based on the covidxscan file structure
 interface = COVIDXSCAN_interface(class_dict=class_dict, seed=seed)
