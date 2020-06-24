@@ -58,7 +58,7 @@ def fs_generator(input_path, target_path, classes,
             name = str(seed) + "." + "img_" + str(i)
             # Store image in file structure
             path_img_in = os.path.join(path_class, img)
-            path_img_out = os.path.join(target_path, name)
+            path_img_out = os.path.join(target_path, name + ".png")
             if not os.path.exists(path_img_out):
                 copyfile(path_img_in, path_img_out)
             class_dict[name] = classes[c]
