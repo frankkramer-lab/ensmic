@@ -22,7 +22,7 @@
 # External libraries
 import os
 from PIL import Image
-import pandas as pd
+import pickle
 import numpy as np
 from miscnn.data_loading.interfaces.abstract_io import Abstract_IO
 
@@ -31,6 +31,9 @@ from miscnn.data_loading.interfaces.abstract_io import Abstract_IO
 #-----------------------------------------------------#
 """ Data I/O Interface for JPEG, PNG or other 2D image files.
     Images are read by calling the imread function from the Pillow module.
+    Classification data is load from a class.pickle.
+
+    Image types: ["png", "tif", "jpg"]
 
 Methods:
     __init__                Object creation function
@@ -45,13 +48,14 @@ class COVIDXSCAN_interface(Abstract_IO):
     #---------------------------------------------#
     #                   __init__                  #
     #---------------------------------------------#
-    def __init__(self, class_dict, seed, img_types=["png", "jpeg", "jpg"]):
+    def __init__(self, class_dict, seed, img_type="png"):
         self.channels = 1
         self.class_dict = class_dict
         self.seed = seed
         self.classes = len(class_dict)
         self.three_dim = False
-        self.img_types = tuple(img_types)
+        self.img_type = img_type
+        self.classifications = None
 
     #---------------------------------------------#
     #                  initialize                 #
@@ -64,13 +68,26 @@ class COVIDXSCAN_interface(Abstract_IO):
             )
         # Cache data and image directory
         self.data_directory = input_path
-        self.img_directory = os.path.join(input_path, "images")
         # Identify samples
-        sample_list = os.listdir(self.img_directory)
-        # Remove every file which does not match image typ
+        sample_list = os.listdir(input_path)
+        # Sanity check all samples
         for i in reversed(range(0, len(sample_list))):
-            if not sample_list[i].endswith(self.img_types):
+            # Remove every sample which does not match image typ
+            if not sample_list[i].endswith(self.img_type):
                 del sample_list[i]
+                continue
+            # Remove every sample which does not start with correct seed
+            if not sample_list[i].startswith(str(self.seed)):
+                del sample_list[i]
+                continue
+            # Remove image type tag from index name
+            sample_list[i] = sample_list[i][:-(len(self.img_type)+1)]
+        # Load classification file if existent in the data set directory
+        path_classes = os.path.join(self.data_directory,
+                                    str(self.seed) + ".classes.pickle")
+        if os.path.exists(path_classes):
+            with open(path_classes, "rb") as pickle_reader:
+                self.classifications = pickle.load(pickle_reader)
         # Return sample list
         return sample_list
 
@@ -79,7 +96,8 @@ class COVIDXSCAN_interface(Abstract_IO):
     #---------------------------------------------#
     def load_image(self, index):
         # Make sure that the image file exists in the data set directory
-        img_path = os.path.join(self.img_directory, index)
+        img_path = os.path.join(self.data_directory, index + "." + \
+                                self.img_type)
         if not os.path.exists(img_path):
             raise ValueError(
                 "Image could not be found \"{}\"".format(img_path)
@@ -99,24 +117,15 @@ class COVIDXSCAN_interface(Abstract_IO):
     #              load_segmentation              #
     #---------------------------------------------#
     def load_segmentation(self, index):
-        # # Make sure that the classification file exists in the data set directory
-        # path_metadata = os.path.join(self.data_directory, "metadata.csv")
-        # if not os.path.exists(path_metadata):
-        #     raise ValueError(
-        #         "metadata.csv could not be found \"{}\"".format(class_path)
-        #     )
-        # # Load classification from metadata.csv
-        # metadata = pd.read_csv(path_metadata)
-        # classification = metadata.loc[metadata["filename"]==index]["class"]
-        # # Transform classes from strings to integers
-        # class_string = classification.to_string(header=False, index=False)
-        # diagnosis = self.class_dict[class_string.lstrip()]
-        # # Return classification
-        # return np.array([diagnosis])
-
-        # with open('filename.pickle', 'rb') as handle:
-        #     b = pickle.load(handle)
-        pass
+        # Check if classification file was available during initialization
+        if self.classifications is None:
+            raise ValueError("No classification is available")
+        # Check if classification for given index is available
+        if index not in self.classifications:
+            raise ValueError("Classification for index does NOT exist: ",
+                             str(index))
+        # Load classification for given index
+        return self.classifications[index]
 
     #---------------------------------------------#
     #               load_prediction               #
