@@ -16,5 +16,4 @@
 #  You should have received a copy of the GNU General Public License           #
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.       #
 #==============================================================================#
-from covidxscan.preprocessing.dl_covid import fs_generator as dataloading_covid
-from covidxscan.preprocessing.dl_rsna import fs_generator as dataloading_pneumonia
+from covidxscan.preprocessing.dl_screening import fs_generator as dataloading_screening

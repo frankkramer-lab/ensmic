@@ -45,9 +45,10 @@ class COVIDXSCAN_interface(Abstract_IO):
     #---------------------------------------------#
     #                   __init__                  #
     #---------------------------------------------#
-    def __init__(self, class_dict, img_types=["png", "jpeg", "jpg"]):
+    def __init__(self, class_dict, seed, img_types=["png", "jpeg", "jpg"]):
         self.channels = 1
         self.class_dict = class_dict
+        self.seed = seed
         self.classes = len(class_dict)
         self.three_dim = False
         self.img_types = tuple(img_types)
@@ -98,20 +99,24 @@ class COVIDXSCAN_interface(Abstract_IO):
     #              load_segmentation              #
     #---------------------------------------------#
     def load_segmentation(self, index):
-        # Make sure that the classification file exists in the data set directory
-        path_metadata = os.path.join(self.data_directory, "metadata.csv")
-        if not os.path.exists(path_metadata):
-            raise ValueError(
-                "metadata.csv could not be found \"{}\"".format(class_path)
-            )
-        # Load classification from metadata.csv
-        metadata = pd.read_csv(path_metadata)
-        classification = metadata.loc[metadata["filename"]==index]["class"]
-        # Transform classes from strings to integers
-        class_string = classification.to_string(header=False, index=False)
-        diagnosis = self.class_dict[class_string.lstrip()]
-        # Return classification
-        return np.array([diagnosis])
+        # # Make sure that the classification file exists in the data set directory
+        # path_metadata = os.path.join(self.data_directory, "metadata.csv")
+        # if not os.path.exists(path_metadata):
+        #     raise ValueError(
+        #         "metadata.csv could not be found \"{}\"".format(class_path)
+        #     )
+        # # Load classification from metadata.csv
+        # metadata = pd.read_csv(path_metadata)
+        # classification = metadata.loc[metadata["filename"]==index]["class"]
+        # # Transform classes from strings to integers
+        # class_string = classification.to_string(header=False, index=False)
+        # diagnosis = self.class_dict[class_string.lstrip()]
+        # # Return classification
+        # return np.array([diagnosis])
+
+        # with open('filename.pickle', 'rb') as handle:
+        #     b = pickle.load(handle)
+        pass
 
     #---------------------------------------------#
     #               load_prediction               #
