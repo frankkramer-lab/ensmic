@@ -1,0 +1,15 @@
+# Byte-compiled Python
+__pycache__/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+
+# covid-xscan
+batches/
+predictions/
+data/
+
+# Testing
+debug.sh
