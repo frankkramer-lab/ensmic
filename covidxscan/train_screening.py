@@ -24,7 +24,7 @@ import os
 from miscnn import Preprocessor, Data_IO, Neural_Network, Data_Augmentation
 # Internal libraries/scripts
 from covidxscan.preprocessing import setup_screening
-from covidxscan.preprocessing.io_screening import COVIDXSCAN_interface
+from covidxscan.data_loading.io_screening import COVIDXSCAN_interface
 from covidxscan.subfunctions import Resize, SegFix
 from covidxscan.architectures import *
 
