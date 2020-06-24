@@ -32,7 +32,7 @@ from covidxscan.architectures import *
 #                    Configurations                   #
 #-----------------------------------------------------#
 # File structure
-path_input = "../data/rsna-pneumonia-detection-challenge"
+path_input = "/home/mudomini/data/rsna-pneumonia-detection-challenge"
 path_target = "covidxscan.data"
 # Adjust possible classes
 class_dict = {'Pneumonia': 0,
@@ -55,20 +55,20 @@ input_shape_default = {"VGG16": "224x224",
 #           Data Loading and File Structure           #
 #-----------------------------------------------------#
 # Initialize file structure for covidxscan
-dataloading_pneumonia(path_input, path_target)
+# dataloading_pneumonia(path_input, path_target)
 path_covid = os.path.join("covidxscan.data", "pneumonia")
 
-# # Initialize the Image I/O interface based on the covidxscan file structure
-# interface = COVIDXSCAN_interface(class_dict=class_dict,
-#                                  img_types=["png", "jpeg", "jpg"])
-#
-# # Create the MIScnn Data I/O object
-# data_io = Data_IO(interface, path_covid)
-#
-# # Get sample list
-# sample_list = data_io.get_indiceslist()
-# sample_list.sort()
-#
+# Initialize the Image I/O interface based on the covidxscan file structure
+interface = COVIDXSCAN_interface(class_dict=class_dict,
+                                 img_types=["jpg"])
+
+# Create the MIScnn Data I/O object
+data_io = Data_IO(interface, path_covid)
+
+# Get sample list
+sample_list = data_io.get_indiceslist()
+sample_list.sort()
+
 # #-----------------------------------------------------#
 # #          Preprocessing and Neural Network           #
 # #-----------------------------------------------------#
