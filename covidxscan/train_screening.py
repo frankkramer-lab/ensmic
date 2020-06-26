@@ -37,7 +37,7 @@ from covidxscan.architectures import *
 #                    Configurations                   #
 #-----------------------------------------------------#
 # File structure
-path_input = "/home/mudomini/projects/covid-xscan/data.screening"
+path_input = "data.screening"
 path_target = "data"
 # Adjust possible classes
 class_dict = {'NORMAL': 0,
@@ -66,6 +66,16 @@ input_shape_default = {"VGG16": "224x224",
                        "InceptionResNetV2": "299x299",
                        "Xception": "299x299",
                        "DenseNet": "224x224"}
+
+#-----------------------------------------------------#
+#              TensorFlow Configurations              #
+#-----------------------------------------------------#
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+
+import tensorflow as tf
+physical_devices = tf.config.list_physical_devices('GPU')
+tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
 #-----------------------------------------------------#
 #           Data Loading and File Structure           #
