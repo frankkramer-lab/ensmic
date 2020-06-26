@@ -21,7 +21,12 @@
 #-----------------------------------------------------#
 # External libraries
 import os
+import pickle
+import numpy as np
 from miscnn import Preprocessor, Data_IO, Neural_Network, Data_Augmentation
+from miscnn.evaluation.cross_validation import write_fold2csv, load_csv2fold
+from miscnn.data_loading.data_io import create_directories
+from tensorflow.keras.callbacks import ModelCheckpoint, CSVLogger, EarlyStopping
 # Internal libraries/scripts
 from covidxscan.preprocessing import setup_screening
 from covidxscan.data_loading.io_screening import COVIDXSCAN_interface
@@ -43,8 +48,16 @@ class_dict = {'NORMAL': 0,
 architecture = "DenseNet"
 # Batch size
 batch_size = 1
-# Seed
-seed = 1234
+# Number of epochs
+epochs = 50
+# Number of iterations
+iterations = None
+# Number of folds
+n_folds = 5
+# path to validation directory
+path_val = "validation"
+# Seed (if training multiple runs)
+seed = 42
 # Image shape in which images should be resized
 ## If None then default patch shapes for specific architecture will be used
 input_shape = None
@@ -63,77 +76,119 @@ setup_screening(path_input, path_target, classes=class_dict, seed=seed)
 # Initialize the Image I/O interface based on the covidxscan file structure
 interface = COVIDXSCAN_interface(class_dict=class_dict, seed=seed)
 
-# # Create the MIScnn Data I/O object
-# path_covid = os.path.join("covidxscan.data", "covid")
-# data_io = Data_IO(interface, path_covid)
-#
-# # Get sample list
-# sample_list = data_io.get_indiceslist()
-# sample_list.sort()
-#
-# #-----------------------------------------------------#
-# #          Preprocessing and Neural Network           #
-# #-----------------------------------------------------#
-# # Identify input shape by parsing SizeAxSizeB as string to tuple shape
-# if input_shape == None : input_shape = input_shape_default[architecture]
-# input_shape = tuple(int(i) for i in input_shape.split("x") + [1])
-#
-# # Create and configure the Data Augmentation class
-# data_aug = Data_Augmentation(cycles=1, scaling=True, rotations=True,
-#                              elastic_deform=True, mirror=True,
-#                              brightness=True, contrast=True,
-#                              gamma=True, gaussian_noise=True)
-# data_aug.seg_augmentation = False
-#
-# # Specify subfunctions for preprocessing
-# sf = [SegFix(), Resize(new_shape=input_shape)]
-#
-# # Create and configure the MIScnn Preprocessor class
-# pp = Preprocessor(data_io, data_aug=data_aug, batch_size=batch_size,
-#                   subfunctions=sf,
-#                   prepare_subfunctions=True,
-#                   prepare_batches=False,
-#                   analysis="fullimage")
-#
-# # Initialize architecture of the neural network
-# if architecture == "VGG16":
-#     architecture = Architecture_VGG16(input_shape)
-# elif architecture == "InceptionResNetV2":
-#     architecture = Architecture_InceptionResNetV2(input_shape)
-# elif architecture == "Xception":
-#     architecture = Architecture_Xception(input_shape)
-# elif architecture == "DenseNet":
-#     architecture = Architecture_DenseNet(input_shape)
-# else : raise ValueError("Called architecture is unknown.")
-#
-# # Create the Neural Network model
-# model = Neural_Network(preprocessor=pp, loss="categorical_crossentropy",
-#                        architecture=architecture,
-#                        metrics=["categorical_accuracy"])
-#
-# #-----------------------------------------------------#
-# #                     Run Training                    #
-# #-----------------------------------------------------#
-# # Fit model on the COVID-19 data set
-# model.train(sample_list[:50], epochs=5)
-#
-#
-#
-# #-----------------------------------------------------#
-# #                      Debugging                      #
-# #-----------------------------------------------------#
-#
-# # model.model.summary()
-# #
-# # # testing data generator
-# # from miscnn.neural_network.data_generator import DataGenerator
-# # dataGen = DataGenerator(sample_list[0:10], pp, training=True,
-# #                         validation=False, shuffle=False)
-# #
-# # for img,seg in dataGen:
-# #     print(img.shape)
-# #     print(seg, seg.shape)
-#
-#
-# # lol = model.model.predict(img)
-# # print(lol, lol.shape)
+# Create the MIScnn Data I/O object
+data_io = Data_IO(interface, path_target)
+
+# Get sample list
+sample_list = data_io.get_indiceslist()
+
+#-----------------------------------------------------#
+#          Preprocessing and Neural Network           #
+#-----------------------------------------------------#
+# Identify input shape by parsing SizeAxSizeB as string to tuple shape
+if input_shape == None : input_shape = input_shape_default[architecture]
+input_shape = tuple(int(i) for i in input_shape.split("x") + [1])
+
+# Create and configure the Data Augmentation class
+data_aug = Data_Augmentation(cycles=1, scaling=True, rotations=True,
+                             elastic_deform=True, mirror=True,
+                             brightness=True, contrast=True,
+                             gamma=True, gaussian_noise=True)
+data_aug.seg_augmentation = False
+
+# Specify subfunctions for preprocessing
+sf = [SegFix(), Resize(new_shape=input_shape)]
+
+# Create and configure the MIScnn Preprocessor class
+pp = Preprocessor(data_io, data_aug=data_aug, batch_size=batch_size,
+                  subfunctions=sf,
+                  prepare_subfunctions=True,
+                  prepare_batches=False,
+                  analysis="fullimage")
+
+# Initialize architecture of the neural network
+if architecture == "VGG16":
+    architecture = Architecture_VGG16(input_shape)
+elif architecture == "InceptionResNetV2":
+    architecture = Architecture_InceptionResNetV2(input_shape)
+elif architecture == "Xception":
+    architecture = Architecture_Xception(input_shape)
+elif architecture == "DenseNet":
+    architecture = Architecture_DenseNet(input_shape)
+else : raise ValueError("Called architecture is unknown.")
+
+# Create the Neural Network model
+model = Neural_Network(preprocessor=pp, loss="categorical_crossentropy",
+                       architecture=architecture,
+                       metrics=["categorical_accuracy"])
+
+#-----------------------------------------------------#
+#               Prepare Cross-Validation              #
+#-----------------------------------------------------#
+#               Sample images into folds              #
+# Load class dictionary
+path_classdict = os.path.join(path_target, str(seed) + ".classes.pickle")
+with open(path_classdict, "rb") as pickle_reader:
+    class_dict = pickle.load(pickle_reader)
+# Transform class dictionary
+samples_classified = ([], [], [])
+for index in class_dict:
+    classification = class_dict[index]
+    samples_classified[classification].append(index)
+
+# Split COVID-19 samples into folds
+samples_covid19_all = np.random.permutation(samples_classified[2])
+samples_covid19_cv = np.array_split(samples_covid19_all, n_folds)
+# Split Viral Pneumonia samples into folds
+samples_vp_all = np.random.permutation(samples_classified[1])
+samples_vp_cv = np.array_split(samples_vp_all, n_folds)
+# Split NORMAL samples into folds
+samples_normal_all = np.random.permutation(samples_classified[0])
+samples_normal_cv = np.array_split(samples_normal_all, n_folds)
+# Combine all samples from all classes
+samples_combined = np.concatenate((samples_normal_all,
+                                   samples_vp_all,
+                                   samples_covid19_all),
+                                  axis=0)
+
+#                 Create filestructure                #
+# For each fold in the CV
+folds = list(range(n_folds))
+for fold in folds:
+    # Initialize evaluation subdirectory for current fold
+    subdir = create_directories(path_val, "fold_" + str(fold))
+    # Create validation set for current fold
+    validation = np.concatenate((samples_normal_cv[fold],
+                                 samples_vp_cv[fold],
+                                 samples_covid19_cv[fold]),
+                                axis=0)
+    # Create training set for current fold
+    training = [x for x in samples_combined if x not in validation]
+    # Store fold sampling on disk
+    fold_cache = os.path.join(subdir, "sample_list.csv")
+    write_fold2csv(fold_cache, training, validation)
+
+#-----------------------------------------------------#
+#                 Run Cross-Validation                #
+#-----------------------------------------------------#
+for fold in folds:
+    print("Processing fold:", fold)
+    # Obtain subdirectory
+    subdir = os.path.join(path_val, "fold_" + str(fold))
+    # Load sampling fold from disk
+    fold_path = os.path.join(subdir, "sample_list.csv")
+    training, validation = load_csv2fold(fold_path)
+    # Reset Neural Network model weights
+    model.reset_weights()
+    # Define callbacks
+    cb_model = ModelCheckpoint(os.path.join(subdir, "model.hdf5"),
+                               monitor="val_loss", verbose=1,
+                               save_best_only=True, mode="min")
+    cb_cl = CSVLogger(os.path.join(subdir, "logs.csv"), separator=',',
+                      append=False)
+    callbacks = [cb_model]
+    # Run training & validation
+    history = model.evaluate(training, validation, epochs=epochs,
+                             iterations=iterations, callbacks=callbacks)
+    # Compute predictions
+    model.predict(validation, direct_output=False)

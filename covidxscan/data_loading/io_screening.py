@@ -125,7 +125,9 @@ class COVIDXSCAN_interface(Abstract_IO):
             raise ValueError("Classification for index does NOT exist: ",
                              str(index))
         # Load classification for given index
-        return self.classifications[index]
+        sample_class = self.classifications[index]
+        # Return classification
+        return np.array([sample_class])
 
     #---------------------------------------------#
     #               load_prediction               #
