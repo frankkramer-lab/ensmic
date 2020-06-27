@@ -26,7 +26,9 @@ import numpy as np
 from miscnn import Preprocessor, Data_IO, Neural_Network, Data_Augmentation
 from miscnn.evaluation.cross_validation import write_fold2csv, load_csv2fold
 from miscnn.data_loading.data_io import create_directories
-from tensorflow.keras.callbacks import ModelCheckpoint, CSVLogger, EarlyStopping
+from miscnn.utils.plotting import plot_validation
+from tensorflow.keras.callbacks import ModelCheckpoint, CSVLogger, EarlyStopping, \
+                                       ReduceLROnPlateau
 # Internal libraries/scripts
 from covidxscan.preprocessing import setup_screening
 from covidxscan.data_loading.io_screening import COVIDXSCAN_interface
@@ -47,11 +49,11 @@ class_dict = {'NORMAL': 0,
 ## Options: ["VGG16", "InceptionResNetV2", "Xception", "DenseNet"]
 architecture = "DenseNet"
 # Batch size
-batch_size = 1
+batch_size = 48
 # Number of epochs
-epochs = 50
+epochs = 500
 # Number of iterations
-iterations = None
+iterations = 150
 # Number of folds
 n_folds = 5
 # path to validation directory
@@ -129,8 +131,8 @@ else : raise ValueError("Called architecture is unknown.")
 
 # Create the Neural Network model
 model = Neural_Network(preprocessor=pp, loss="categorical_crossentropy",
-                       architecture=architecture,
-                       metrics=["categorical_accuracy"])
+                       architecture=architecture, metrics=["categorical_accuracy"],
+                       batch_queue_size=2, workers=2, learninig_rate=0.001)
 
 #-----------------------------------------------------#
 #               Prepare Cross-Validation              #
@@ -191,14 +193,18 @@ for fold in folds:
     # Reset Neural Network model weights
     model.reset_weights()
     # Define callbacks
-    cb_model = ModelCheckpoint(os.path.join(subdir, "model.hdf5"),
+    cb_mc = ModelCheckpoint(os.path.join(subdir, "model.best.hdf5"),
                                monitor="val_loss", verbose=1,
                                save_best_only=True, mode="min")
-    cb_cl = CSVLogger(os.path.join(subdir, "logs.csv"), separator=',',
-                      append=False)
-    callbacks = [cb_model]
-    # Run training & validation
+    cb_cl = CSVLogger(os.path.join(subdir, "logs.csv"), separator=',', append=False)
+    cb_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=20, verbose=1, 
+                              mode='min', min_delta=0.0001, cooldown=1, min_lr=0.00001)
+    cb_es = EarlyStopping(monitor="val_loss", patience=100)
+    callbacks = [cb_mc, cb_cl, cb_lr, cb_es]
+    # Run validation
     history = model.evaluate(training, validation, epochs=epochs,
                              iterations=iterations, callbacks=callbacks)
-    # Compute predictions
-    model.predict(validation, direct_output=False)
+    # Dump latest model
+    model.dump(os.path.join(subdir, "model.latest.hdf5"))
+    # Plot visualizations
+    plot_validation(history.history, model.metrics, subdir)
