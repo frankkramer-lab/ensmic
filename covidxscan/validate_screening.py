@@ -45,9 +45,8 @@ path_target = "data"
 class_dict = {'NORMAL': 0,
               'Viral Pneumonia': 1,
               'COVID-19': 2}
-# Architecture for Neural Network
-## Options: ["VGG16", "InceptionResNetV2", "Xception", "DenseNet"]
-architecture = "DenseNet"
+# Architectures for Neural Network
+architectures = ["VGG16", "InceptionResNetV2", "Xception", "DenseNet", "ResNeSt"]
 # Batch size
 batch_size = 48
 # Number of epochs
@@ -55,9 +54,9 @@ epochs = 500
 # Number of iterations
 iterations = 150
 # Number of folds
-n_folds = 5
-# path to model directory
-path_val = "training"
+k_folds = 5
+# path to result directory
+path_val = "validation.screening"
 # Seed (if training multiple runs)
 seed = 42
 # Image shape in which images should be resized
@@ -67,17 +66,18 @@ input_shape = None
 input_shape_default = {"VGG16": "224x224",
                        "InceptionResNetV2": "299x299",
                        "Xception": "299x299",
-                       "DenseNet": "224x224"}
+                       "DenseNet": "224x224",
+                       "ResNeSt": "224x224"}
 
 #-----------------------------------------------------#
 #              TensorFlow Configurations              #
 #-----------------------------------------------------#
-import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
-
-import tensorflow as tf
-physical_devices = tf.config.list_physical_devices('GPU')
-tf.config.experimental.set_memory_growth(physical_devices[0], True)
+# import os
+# os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+#
+# import tensorflow as tf
+# physical_devices = tf.config.list_physical_devices('GPU')
+# tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
 #-----------------------------------------------------#
 #           Data Loading and File Structure           #
@@ -94,6 +94,10 @@ data_io = Data_IO(interface, path_target)
 # Get sample list
 sample_list = data_io.get_indiceslist()
 
+#-----------------------------------------------------#
+#          Run for each            #
+#-----------------------------------------------------#
+architecture = "ResNeSt"
 #-----------------------------------------------------#
 #          Preprocessing and Neural Network           #
 #-----------------------------------------------------#
@@ -127,6 +131,8 @@ elif architecture == "Xception":
     architecture = Architecture_Xception(input_shape)
 elif architecture == "DenseNet":
     architecture = Architecture_DenseNet(input_shape)
+elif architecture == "ResNeSt":
+    architecture = Architecture_ResNeSt(input_shape)
 else : raise ValueError("Called architecture is unknown.")
 
 # Create the Neural Network model
@@ -134,77 +140,79 @@ model = Neural_Network(preprocessor=pp, loss="categorical_crossentropy",
                        architecture=architecture, metrics=["categorical_accuracy"],
                        batch_queue_size=2, workers=2, learninig_rate=0.001)
 
-#-----------------------------------------------------#
-#               Prepare Cross-Validation              #
-#-----------------------------------------------------#
-#               Sample images into folds              #
-# Load class dictionary
-path_classdict = os.path.join(path_target, str(seed) + ".classes.pickle")
-with open(path_classdict, "rb") as pickle_reader:
-    class_dict = pickle.load(pickle_reader)
-# Transform class dictionary
-samples_classified = ([], [], [])
-for index in class_dict:
-    classification = class_dict[index]
-    samples_classified[classification].append(index)
+model.model.summary()
 
-# Split COVID-19 samples into folds
-samples_covid19_all = np.random.permutation(samples_classified[2])
-samples_covid19_cv = np.array_split(samples_covid19_all, n_folds)
-# Split Viral Pneumonia samples into folds
-samples_vp_all = np.random.permutation(samples_classified[1])
-samples_vp_cv = np.array_split(samples_vp_all, n_folds)
-# Split NORMAL samples into folds
-samples_normal_all = np.random.permutation(samples_classified[0])
-samples_normal_cv = np.array_split(samples_normal_all, n_folds)
-# Combine all samples from all classes
-samples_combined = np.concatenate((samples_normal_all,
-                                   samples_vp_all,
-                                   samples_covid19_all),
-                                  axis=0)
-
-#                 Create filestructure                #
-# For each fold in the CV
-folds = list(range(n_folds))
-for fold in folds:
-    # Initialize evaluation subdirectory for current fold
-    subdir = create_directories(path_val, "fold_" + str(fold))
-    # Create validation set for current fold
-    validation = np.concatenate((samples_normal_cv[fold],
-                                 samples_vp_cv[fold],
-                                 samples_covid19_cv[fold]),
-                                axis=0)
-    # Create training set for current fold
-    training = [x for x in samples_combined if x not in validation]
-    # Store fold sampling on disk
-    fold_cache = os.path.join(subdir, "sample_list.csv")
-    write_fold2csv(fold_cache, training, validation)
-
-#-----------------------------------------------------#
-#                 Run Cross-Validation                #
-#-----------------------------------------------------#
-for fold in folds:
-    print("Processing fold:", fold)
-    # Obtain subdirectory
-    subdir = os.path.join(path_val, "fold_" + str(fold))
-    # Load sampling fold from disk
-    fold_path = os.path.join(subdir, "sample_list.csv")
-    training, validation = load_csv2fold(fold_path)
-    # Reset Neural Network model weights
-    model.reset_weights()
-    # Define callbacks
-    cb_mc = ModelCheckpoint(os.path.join(subdir, "model.best.hdf5"),
-                               monitor="val_loss", verbose=1,
-                               save_best_only=True, mode="min")
-    cb_cl = CSVLogger(os.path.join(subdir, "logs.csv"), separator=',', append=False)
-    cb_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=20, verbose=1,
-                              mode='min', min_delta=0.0001, cooldown=1, min_lr=0.00001)
-    cb_es = EarlyStopping(monitor="val_loss", patience=100)
-    callbacks = [cb_mc, cb_cl, cb_lr, cb_es]
-    # Run validation
-    history = model.evaluate(training, validation, epochs=epochs,
-                             iterations=iterations, callbacks=callbacks)
-    # Dump latest model
-    model.dump(os.path.join(subdir, "model.latest.hdf5"))
-    # Plot visualizations
-    plot_validation(history.history, model.metrics, subdir)
+# #-----------------------------------------------------#
+# #               Prepare Cross-Validation              #
+# #-----------------------------------------------------#
+# #               Sample images into folds              #
+# # Load class dictionary
+# path_classdict = os.path.join(path_target, str(seed) + ".classes.pickle")
+# with open(path_classdict, "rb") as pickle_reader:
+#     class_dict = pickle.load(pickle_reader)
+# # Transform class dictionary
+# samples_classified = ([], [], [])
+# for index in class_dict:
+#     classification = class_dict[index]
+#     samples_classified[classification].append(index)
+#
+# # Split COVID-19 samples into folds
+# samples_covid19_all = np.random.permutation(samples_classified[2])
+# samples_covid19_cv = np.array_split(samples_covid19_all, n_folds)
+# # Split Viral Pneumonia samples into folds
+# samples_vp_all = np.random.permutation(samples_classified[1])
+# samples_vp_cv = np.array_split(samples_vp_all, n_folds)
+# # Split NORMAL samples into folds
+# samples_normal_all = np.random.permutation(samples_classified[0])
+# samples_normal_cv = np.array_split(samples_normal_all, n_folds)
+# # Combine all samples from all classes
+# samples_combined = np.concatenate((samples_normal_all,
+#                                    samples_vp_all,
+#                                    samples_covid19_all),
+#                                   axis=0)
+#
+# #                 Create filestructure                #
+# # For each fold in the CV
+# folds = list(range(n_folds))
+# for fold in folds:
+#     # Initialize evaluation subdirectory for current fold
+#     subdir = create_directories(path_val, "fold_" + str(fold))
+#     # Create validation set for current fold
+#     validation = np.concatenate((samples_normal_cv[fold],
+#                                  samples_vp_cv[fold],
+#                                  samples_covid19_cv[fold]),
+#                                 axis=0)
+#     # Create training set for current fold
+#     training = [x for x in samples_combined if x not in validation]
+#     # Store fold sampling on disk
+#     fold_cache = os.path.join(subdir, "sample_list.csv")
+#     write_fold2csv(fold_cache, training, validation)
+#
+# #-----------------------------------------------------#
+# #                 Run Cross-Validation                #
+# #-----------------------------------------------------#
+# for fold in folds:
+#     print("Processing fold:", fold)
+#     # Obtain subdirectory
+#     subdir = os.path.join(path_val, "fold_" + str(fold))
+#     # Load sampling fold from disk
+#     fold_path = os.path.join(subdir, "sample_list.csv")
+#     training, validation = load_csv2fold(fold_path)
+#     # Reset Neural Network model weights
+#     model.reset_weights()
+#     # Define callbacks
+#     cb_mc = ModelCheckpoint(os.path.join(subdir, "model.best.hdf5"),
+#                                monitor="val_loss", verbose=1,
+#                                save_best_only=True, mode="min")
+#     cb_cl = CSVLogger(os.path.join(subdir, "logs.csv"), separator=',', append=False)
+#     cb_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=20, verbose=1,
+#                               mode='min', min_delta=0.0001, cooldown=1, min_lr=0.00001)
+#     cb_es = EarlyStopping(monitor="val_loss", patience=100)
+#     callbacks = [cb_mc, cb_cl, cb_lr, cb_es]
+#     # Run validation
+#     history = model.evaluate(training, validation, epochs=epochs,
+#                              iterations=iterations, callbacks=callbacks)
+#     # Dump latest model
+#     model.dump(os.path.join(subdir, "model.latest.hdf5"))
+#     # Plot visualizations
+#     plot_validation(history.history, model.metrics, subdir)
