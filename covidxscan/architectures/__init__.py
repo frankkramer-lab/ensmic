@@ -20,3 +20,4 @@ from covidxscan.architectures.vgg16 import Architecture_VGG16
 from covidxscan.architectures.inceptionResNetV2 import Architecture_InceptionResNetV2
 from covidxscan.architectures.xception import Architecture_Xception
 from covidxscan.architectures.denseNet import Architecture_DenseNet
+from covidxscan.architectures.resNeSt import Architecture_ResNeSt
