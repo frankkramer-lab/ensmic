@@ -60,7 +60,7 @@ from tensorflow.keras.layers import (
 #-----------------------------------------------------#
 #             Architecture class: Resnest             #
 #-----------------------------------------------------#
-""" The classification variant of the ResNeSt architecture.
+""" The classification variant of the ResNeSt101 architecture.
 
 Methods:
     __init__                Object creation function
@@ -88,12 +88,10 @@ class Architecture_ResNeSt(Abstract_Architecture):
                                        n_classes=n_labels,
                                        dropout_rate=self.dropout,
                                        fc_activation=self.fc_activation,
-                                       blocks_set=[3,24,36,3],
+                                       blocks_set=[3,4,23,3],
                                        radix=2, groups=1, bottleneck_width=64,
-                                       deep_stem=True,
-                                       stem_width=64,
-                                       avg_down=True, avd=True,
-                                       avd_first=False)
+                                       deep_stem=True, stem_width=64,
+                                       avg_down=True, avd=True, avd_first=False)
         # Build model
         model = resnest_architecture.build()
         # Return model
@@ -103,7 +101,21 @@ class Architecture_ResNeSt(Abstract_Architecture):
     #               Create 3D Model               #
     #---------------------------------------------#
     def create_model_3D(self, input_shape, n_labels=2):
-        pass
+        # Initialize architecture
+        resnest_architecture = ResNest3D(verbose=False,
+                                         input_shape=self.fixed_input_shape,
+                                         n_classes=n_labels,
+                                         dropout_rate=self.dropout,
+                                         fc_activation=self.fc_activation,
+                                         blocks_set=[3,4,23,3],
+                                         radix=2, groups=1, bottleneck_width=64,
+                                         deep_stem=True, stem_width=64,
+                                         avg_down=True, avd=True,
+                                         avd_first=False)
+        # Build model
+        model = resnest_architecture.build()
+        # Return model
+        return model
 
 #-----------------------------------------------------#
 #        ResNeSt2D TensorFlow 2 Implementation        #
