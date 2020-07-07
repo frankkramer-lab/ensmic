@@ -29,6 +29,7 @@ from miscnn.data_loading.data_io import create_directories
 from miscnn.utils.plotting import plot_validation
 from tensorflow.keras.callbacks import ModelCheckpoint, CSVLogger, EarlyStopping, \
                                        ReduceLROnPlateau
+from tensorflow.keras.metrics import CategoricalCrossentropy, CategoricalAccuracy
 # Internal libraries/scripts
 from covidxscan.preprocessing import setup_screening
 from covidxscan.data_loading.io_screening import COVIDXSCAN_interface
@@ -198,11 +199,11 @@ for design in architectures:
     else : raise ValueError("Called architecture is unknown.")
 
     # Create the Neural Network model
-    model = Neural_Network(preprocessor=pp, loss="categorical_crossentropy",
+    model = Neural_Network(preprocessor=pp, loss=CategoricalCrossentropy,
                            architecture=architecture,
-                           metrics=["categorical_accuracy", "accuracy"],
+                           metrics=[CategoricalAccuracy],
                            batch_queue_size=2, workers=3, learninig_rate=0.001)
-
+                           
     #-----------------------------------------------------#
     #                 Run Cross-Validation                #
     #-----------------------------------------------------#
