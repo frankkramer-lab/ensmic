@@ -199,11 +199,11 @@ for design in architectures:
     else : raise ValueError("Called architecture is unknown.")
 
     # Create the Neural Network model
-    model = Neural_Network(preprocessor=pp, loss=CategoricalCrossentropy,
+    model = Neural_Network(preprocessor=pp, loss=CategoricalCrossentropy(),
                            architecture=architecture,
-                           metrics=[CategoricalAccuracy],
+                           metrics=[CategoricalAccuracy()],
                            batch_queue_size=2, workers=3, learninig_rate=0.001)
-                           
+
     #-----------------------------------------------------#
     #                 Run Cross-Validation                #
     #-----------------------------------------------------#
