@@ -70,4 +70,5 @@ class Inference_IO():
         # Append prediction to inference JSON
         data["fold_" + str(fold)] = pred
         # Store inference JSON to disk
-        json.dump(data, inf_json)
+        with open(inf_json, "w") as file:
+            json.dump(data, file)
