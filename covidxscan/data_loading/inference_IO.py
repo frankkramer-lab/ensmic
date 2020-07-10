@@ -58,7 +58,7 @@ class Inference_IO():
     #              Inference Storage              #
     #---------------------------------------------#
     def store_inference(self, fold, pred, index):
-        inf_json = os.path.join(self.outdir, index)
+        inf_json = os.path.join(self.outdir, index + ".json")
         # check if inference JSON already exist
         if os.path.exists(inf_json):
             # Load already stored inference data
