@@ -32,7 +32,7 @@ from tensorflow.keras.losses import CategoricalCrossentropy
 from tensorflow.keras.metrics import CategoricalAccuracy
 # Internal libraries/scripts
 from covidxscan.preprocessing import setup_screening, prepare_cv
-from covidxscan.data_loading.io_screening import COVIDXSCAN_interface
+from covidxscan.data_loading import COVIDXSCAN_interface, Inference_IO
 from covidxscan.subfunctions import Resize, SegFix
 from covidxscan.architectures import *
 
@@ -121,9 +121,8 @@ data_aug.seg_augmentation = False
 # Iterate over all architectures from the list
 for design in architectures:
     print("Start processing architecture:", design)
-    # Create a subdirectory for predictions of the current architecture
-    infarchdir = create_directories(infdir, design)
-    data_io.output_path = infarchdir
+    # Create an inference IO handler
+    infIO = Inference_IO(class_dict, outdir=os.path.join(infdir, design))
 
     # Identify input shape by parsing SizeAxSizeB as string to tuple shape
     if input_shape == None : input_shape = input_shape_default[design]
@@ -200,6 +199,6 @@ for design in architectures:
         model.load(os.path.join(archdir, "model.best.hdf5"))
         # Compute prediction for each sample
         for index in testing:
-            pred = model.predict([index], activation_output=True)
-            print(design, index, pred)
-    break
+            pred = model.predict([index], direct_output=True,
+                                 activation_output=True)
+            infIO.store_inference(fold, pred, index)

@@ -21,25 +21,53 @@
 #-----------------------------------------------------#
 # External libraries
 import os
+import json
+# MIScnn libraries
+from miscnn.data_loading.data_io import create_directories
 
 #-----------------------------------------------------#
-#                  Prediction Storage                 #
+#                     Inference IO                    #
 #-----------------------------------------------------#
+""" Class to handle all kinds of input/output functionality for inference.
 
-#-----------------------------------------------------#
-#                  Prediction Storage                 #
-#-----------------------------------------------------#
-def store_prediction():
+Methods:
+    __init__                Object creation function
+    load_inference:         Load already stored predictions
+    store_inference:        Store a prediction to disk
+"""
+class Inference_IO():
+    #---------------------------------------------#
+    #                Initialization               #
+    #---------------------------------------------#
+    def __init__(self, class_dict, outdir="inference"):
+        # Create output directory
+        self.outdir = create_directories(outdir)
+        # Store class dictionary
+        self.class_list = sorted(class_dict, key=class_dict.get)
 
-a_dictionary = {"d": 4}
+    #---------------------------------------------#
+    #              Inference Loading              #
+    #---------------------------------------------#
+    def load_inference(self, index):
+        path = os.path.join(self.outdir, index)
+        with open(path, "r") as file:
+            inference = json.load(file)
+        return inference
 
-
-with open("sample_file.json", "r+") as file:
-
-    data = json.load(file)
-
-    data.update(a_dictionary)
-
-    file.seek(0)
-
-    json.dump(data, file)
+    #---------------------------------------------#
+    #              Inference Storage              #
+    #---------------------------------------------#
+    def store_inference(self, fold, pred, index):
+        inf_json = os.path.join(self.outdir, index)
+        # check if inference JSON already exist
+        if os.path.exists(inf_json):
+            # Load already stored inference data
+            data = load_inference(index)
+        else:
+            # Create a new inference JSON object
+            data = {}
+            data["legend"] = self.class_list
+        # Append prediction to inference JSON
+        data["fold_" + str(fold)] = pred
+        # Store inference JSON to disk
+        json.dump(data, inf_json)
