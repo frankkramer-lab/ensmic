@@ -29,7 +29,8 @@ from miscnn.data_loading.data_io import create_directories
 from miscnn.utils.plotting import plot_validation
 from tensorflow.keras.callbacks import ModelCheckpoint, CSVLogger, EarlyStopping, \
                                        ReduceLROnPlateau
-from tensorflow.keras.metrics import CategoricalCrossentropy, CategoricalAccuracy
+from tensorflow.keras.losses import CategoricalCrossentropy
+from tensorflow.keras.metrics import CategoricalAccuracy
 # Internal libraries/scripts
 from covidxscan.preprocessing import setup_screening
 from covidxscan.data_loading.io_screening import COVIDXSCAN_interface
@@ -53,7 +54,7 @@ batch_size = 48
 # Number of epochs
 epochs = 1              # 500
 # Number of iterations
-iterations = 3          # 150
+iterations = 3          # 120/150
 # Number of folds
 k_folds = 5
 # path to result directory
@@ -73,12 +74,12 @@ input_shape_default = {"VGG16": "224x224",
 #-----------------------------------------------------#
 #              TensorFlow Configurations              #
 #-----------------------------------------------------#
-# import os
-# os.environ["CUDA_VISIBLE_DEVICES"] = "1"
-#
-# import tensorflow as tf
-# physical_devices = tf.config.list_physical_devices('GPU')
-# tf.config.experimental.set_memory_growth(physical_devices[0], True)
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+
+import tensorflow as tf
+physical_devices = tf.config.list_physical_devices('GPU')
+tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
 #-----------------------------------------------------#
 #           Data Loading and File Structure           #
@@ -202,7 +203,7 @@ for design in architectures:
     model = Neural_Network(preprocessor=pp, loss=CategoricalCrossentropy(),
                            architecture=architecture,
                            metrics=[CategoricalAccuracy()],
-                           batch_queue_size=2, workers=3, learninig_rate=0.001)
+                           batch_queue_size=3, workers=3, learninig_rate=0.001)
 
     #-----------------------------------------------------#
     #                 Run Cross-Validation                #
@@ -245,7 +246,7 @@ for design in architectures:
         archdir = create_directories(folddir, design)
         # Load model
         model.load(os.path.join(archdir, "model.best.hdf5"))
-        #
+        # Compute prediction for each sample
         for index in testing:
             pred = model.predict([index], return_output=True,
                                  activation_output=True)
