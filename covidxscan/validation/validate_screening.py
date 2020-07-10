@@ -203,6 +203,6 @@ for design in architectures:
         model.load(os.path.join(archdir, "model.best.hdf5"))
         # Compute prediction for each sample
         for index in testing:
-            pred = model.predict([index], direct_output=True,
+            pred = model.predict([index], return_output=True,
                                  activation_output=True)
             infIO.store_inference(fold, pred, index)
