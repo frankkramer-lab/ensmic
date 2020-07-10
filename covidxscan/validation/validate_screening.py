@@ -21,10 +21,9 @@
 #-----------------------------------------------------#
 # External libraries
 import os
-import pickle
-import numpy as np
+# MIScnn libraries
 from miscnn import Preprocessor, Data_IO, Neural_Network, Data_Augmentation
-from miscnn.evaluation.cross_validation import write_fold2csv, load_csv2fold
+from miscnn.evaluation.cross_validation import load_csv2fold
 from miscnn.data_loading.data_io import create_directories
 from miscnn.utils.plotting import plot_validation
 from tensorflow.keras.callbacks import ModelCheckpoint, CSVLogger, EarlyStopping, \
@@ -32,7 +31,7 @@ from tensorflow.keras.callbacks import ModelCheckpoint, CSVLogger, EarlyStopping
 from tensorflow.keras.losses import CategoricalCrossentropy
 from tensorflow.keras.metrics import CategoricalAccuracy
 # Internal libraries/scripts
-from covidxscan.preprocessing import setup_screening
+from covidxscan.preprocessing import setup_screening, prepare_cv
 from covidxscan.data_loading.io_screening import COVIDXSCAN_interface
 from covidxscan.subfunctions import Resize, SegFix
 from covidxscan.architectures import *
@@ -50,11 +49,11 @@ class_dict = {'NORMAL': 0,
 # Architectures for Neural Network
 architectures = ["VGG16", "InceptionResNetV2", "Xception", "DenseNet", "ResNeSt"]
 # Batch size
-batch_size = 48
+batch_size = 1          # 48
 # Number of epochs
 epochs = 1              # 500
 # Number of iterations
-iterations = 3          # 120/150
+iterations = 1          # 120/150
 # Number of folds
 k_folds = 5
 # path to result directory
@@ -74,12 +73,12 @@ input_shape_default = {"VGG16": "224x224",
 #-----------------------------------------------------#
 #              TensorFlow Configurations              #
 #-----------------------------------------------------#
-import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
-
-import tensorflow as tf
-physical_devices = tf.config.list_physical_devices('GPU')
-tf.config.experimental.set_memory_growth(physical_devices[0], True)
+# import os
+# os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+#
+# import tensorflow as tf
+# physical_devices = tf.config.list_physical_devices('GPU')
+# tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
 #-----------------------------------------------------#
 #           Data Loading and File Structure           #
@@ -99,64 +98,14 @@ sample_list = data_io.get_indiceslist()
 print("Finished parsing data set")
 
 #-----------------------------------------------------#
-#    Prepare Cross-Validation Folds and Testing Set   #
+#              Prepare Cross-Validation               #
 #-----------------------------------------------------#
 print("Start preparing file structure & sampling")
-#               Sample images into folds              #
-# Load class dictionary
-path_classdict = os.path.join(path_target, str(seed) + ".classes.pickle")
-with open(path_classdict, "rb") as pickle_reader:
-    class_dict = pickle.load(pickle_reader)
-# Transform class dictionary
-samples_classified = ([], [], [])
-for index in class_dict:
-    classification = class_dict[index]
-    samples_classified[classification].append(index)
+# Prepare sampling and file structure for cross-validation
+prepare_cv(path_target, path_val, class_dict, k_folds, seed)
 
-# Split COVID-19 samples into folds
-samples_covid19_all = np.random.permutation(samples_classified[2])
-samples_covid19_cv = np.array_split(samples_covid19_all, k_folds+1)
-# Split Viral Pneumonia samples into folds
-samples_vp_all = np.random.permutation(samples_classified[1])
-samples_vp_cv = np.array_split(samples_vp_all, k_folds+1)
-# Split NORMAL samples into folds
-samples_normal_all = np.random.permutation(samples_classified[0])
-samples_normal_cv = np.array_split(samples_normal_all, k_folds+1)
-# Combine all samples from all classes
-samples_combined = np.concatenate((samples_normal_all,
-                                   samples_vp_all,
-                                   samples_covid19_all),
-                                  axis=0)
-
-#                 Create filestructure                #
-# Create testing set
-subdir = create_directories(path_val, "testing")
-testing = np.concatenate((samples_normal_cv[k_folds],
-                          samples_vp_cv[k_folds],
-                          samples_covid19_cv[k_folds]),
-                         axis=0)
-# Store test sampling on disk
-fold_cache = os.path.join(subdir, "sample_list.csv")
-write_fold2csv(fold_cache, [], testing)
-# Remove test samples from remaining training data set
-samples_combined = np.setdiff1d(samples_combined, samples_normal_cv[k_folds])
-samples_combined = np.setdiff1d(samples_combined, samples_vp_cv[k_folds])
-samples_combined = np.setdiff1d(samples_combined, samples_covid19_cv[k_folds])
-
-# For each fold in the CV
-for fold in range(0, k_folds):
-    # Initialize evaluation subdirectory for current fold
-    subdir = create_directories(path_val, "fold_" + str(fold))
-    # Create validation set for current fold
-    validation = np.concatenate((samples_normal_cv[fold],
-                                 samples_vp_cv[fold],
-                                 samples_covid19_cv[fold]),
-                                axis=0)
-    # Create training set for current fold
-    training = [x for x in samples_combined if x not in validation]
-    # Store fold sampling on disk
-    fold_cache = os.path.join(subdir, "sample_list.csv")
-    write_fold2csv(fold_cache, training, validation)
+# Create inference subdirectory
+infdir = create_directories(path_val, "inference")
 print("Finished preparing file structure & sampling")
 
 #-----------------------------------------------------#
@@ -172,6 +121,10 @@ data_aug.seg_augmentation = False
 # Iterate over all architectures from the list
 for design in architectures:
     print("Start processing architecture:", design)
+    # Create a subdirectory for predictions of the current architecture
+    infarchdir = create_directories(infdir, design)
+    data_io.output_path = infarchdir
+
     # Identify input shape by parsing SizeAxSizeB as string to tuple shape
     if input_shape == None : input_shape = input_shape_default[design]
     input_shape = tuple(int(i) for i in input_shape.split("x") + [1])
@@ -242,13 +195,11 @@ for design in architectures:
     print(design, "-", "Compute predictions for test set")
     for fold in range(0, k_folds):
         # Obtain subdirectory
-        folddir = os.path.join(path_val, "fold_" + str(fold))
-        archdir = create_directories(folddir, design)
+        archdir = os.path.join(path_val, "fold_" + str(fold), design)
         # Load model
         model.load(os.path.join(archdir, "model.best.hdf5"))
         # Compute prediction for each sample
         for index in testing:
-            pred = model.predict([index], return_output=True,
-                                 activation_output=True)
+            pred = model.predict([index], activation_output=True)
             print(design, index, pred)
     break
