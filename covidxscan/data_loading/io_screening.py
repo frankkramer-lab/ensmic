@@ -143,5 +143,4 @@ class COVIDXSCAN_interface(Abstract_IO):
     #               save_prediction               #
     #---------------------------------------------#
     def save_prediction(self, pred, i, output_path):
-        # Debugging
-        print(i, pred)
+        pass
