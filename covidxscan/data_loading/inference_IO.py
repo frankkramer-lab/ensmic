@@ -49,7 +49,7 @@ class Inference_IO():
     #              Inference Loading              #
     #---------------------------------------------#
     def load_inference(self, index):
-        path = os.path.join(self.outdir, index)
+        path = os.path.join(self.outdir, index + ".json")
         with open(path, "r") as file:
             inference = json.load(file)
         return inference
