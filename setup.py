@@ -13,7 +13,7 @@ setup(
    long_description_content_type="text/markdown",
    packages=find_packages(),
    install_requires=['tensorflow==2.2.0',
-                     'miscnn==0.37',
+                     'miscnn==0.38',
                      'Pillow==6.2.1'],
    classifiers=["Programming Language :: Python :: 3",
                 "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
