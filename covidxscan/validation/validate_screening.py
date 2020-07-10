@@ -23,7 +23,7 @@
 import os
 # MIScnn libraries
 from miscnn import Preprocessor, Data_IO, Neural_Network, Data_Augmentation
-from miscnn.evaluation.cross_validation import load_csv2fold
+from miscnn.evaluation.cross_validation import load_disk2fold
 from miscnn.data_loading.data_io import create_directories
 from miscnn.utils.plotting import plot_validation
 from tensorflow.keras.callbacks import ModelCheckpoint, CSVLogger, EarlyStopping, \
@@ -166,8 +166,8 @@ for design in architectures:
         folddir = os.path.join(path_val, "fold_" + str(fold))
         archdir = create_directories(folddir, design)
         # Load sampling fold from disk
-        fold_path = os.path.join(folddir, "sample_list.csv")
-        training, validation = load_csv2fold(fold_path)
+        fold_path = os.path.join(folddir, "sample_list.json")
+        training, validation = load_disk2fold(fold_path)
         # Reset Neural Network model weights
         model.reset_weights()
         # Define callbacks
@@ -193,8 +193,8 @@ for design in architectures:
     #-----------------------------------------------------#
     print(design, "-", "Compute predictions for test set")
     # Load sampling fold from disk
-    testing_path = os.path.join(path_val, "testing", "sample_list.csv")
-    _, testing = load_csv2fold(testing_path)
+    testing_path = os.path.join(path_val, "testing", "sample_list.json")
+    _, testing = load_disk2fold(testing_path)
     # Iterate over each fold model
     for fold in range(0, k_folds):
         # Obtain subdirectory

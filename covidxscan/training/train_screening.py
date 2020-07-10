@@ -24,7 +24,7 @@ import os
 import pickle
 import numpy as np
 from miscnn import Preprocessor, Data_IO, Neural_Network, Data_Augmentation
-from miscnn.evaluation.cross_validation import write_fold2csv, load_csv2fold
+from miscnn.evaluation.cross_validation import write_fold2disk, load_csv2fold
 from miscnn.data_loading.data_io import create_directories
 from miscnn.utils.plotting import plot_validation
 from tensorflow.keras.callbacks import ModelCheckpoint, CSVLogger, EarlyStopping, \

@@ -25,7 +25,7 @@ import pickle
 import numpy as np
 # MIScnn libraries
 from miscnn.data_loading.data_io import create_directories
-from miscnn.evaluation.cross_validation import write_fold2csv
+from miscnn.evaluation.cross_validation import write_fold2disk
 
 #-----------------------------------------------------#
 #               Sample Images into Folds              #
@@ -63,8 +63,8 @@ def fold_sampling(path_target, path_val, class_dict, k_folds, seed):
                               samples_covid19_cv[k_folds]),
                              axis=0)
     # Store test sampling on disk
-    fold_cache = os.path.join(subdir, "sample_list.csv")
-    write_fold2csv(fold_cache, [], testing)
+    fold_cache = os.path.join(subdir, "sample_list.json")
+    write_fold2disk(fold_cache, [], testing)
     # Remove test samples from remaining training data set
     samples_combined = np.setdiff1d(samples_combined,
                                     samples_normal_cv[k_folds])
@@ -85,5 +85,5 @@ def fold_sampling(path_target, path_val, class_dict, k_folds, seed):
         # Create training set for current fold
         training = [x for x in samples_combined if x not in validation]
         # Store fold sampling on disk
-        fold_cache = os.path.join(subdir, "sample_list.csv")
-        write_fold2csv(fold_cache, training, validation)
+        fold_cache = os.path.join(subdir, "sample_list.json")
+        write_fold2disk(fold_cache, training, validation)
