@@ -205,4 +205,4 @@ for design in architectures:
         for index in testing:
             pred = model.predict([index], return_output=True,
                                  activation_output=True)
-            infIO.store_inference(fold, pred, index)
+            infIO.store_inference(fold, pred[0], index)
