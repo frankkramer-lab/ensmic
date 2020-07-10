@@ -192,6 +192,10 @@ for design in architectures:
     #                    Run Inference                    #
     #-----------------------------------------------------#
     print(design, "-", "Compute predictions for test set")
+    # Load sampling fold from disk
+    testing_path = os.path.join(path_val, "testing", "sample_list.csv")
+    _, testing = load_csv2fold(testing_path)
+    # Iterate over each fold model
     for fold in range(0, k_folds):
         # Obtain subdirectory
         archdir = os.path.join(path_val, "fold_" + str(fold), design)
