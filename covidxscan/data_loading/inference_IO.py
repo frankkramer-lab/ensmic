@@ -62,13 +62,13 @@ class Inference_IO():
         # check if inference JSON already exist
         if os.path.exists(inf_json):
             # Load already stored inference data
-            data = load_inference(index)
+            data = self.load_inference(index)
         else:
             # Create a new inference JSON object
             data = {}
             data["legend"] = self.class_list
         # Append prediction to inference JSON
-        data["fold_" + str(fold)] = list(pred)
+        data["fold_" + str(fold)] = pred.tolist()
         # Store inference JSON to disk
         with open(inf_json, "w") as file:
             json.dump(data, file)

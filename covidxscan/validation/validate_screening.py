@@ -74,7 +74,7 @@ input_shape_default = {"VGG16": "224x224",
 #              TensorFlow Configurations              #
 #-----------------------------------------------------#
 import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 import tensorflow as tf
 physical_devices = tf.config.list_physical_devices('GPU')
