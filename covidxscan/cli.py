@@ -1,3 +1,8 @@
-# TODO : implement argparse interface for train/predict/validate
-# client start
-# server start
+# TODO : implement argparse interface for
+
+# -> training
+# -> inference
+# -> validation
+
+# -> client start
+# -> rest_server start
