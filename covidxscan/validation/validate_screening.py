@@ -31,7 +31,7 @@ from tensorflow.keras.callbacks import ModelCheckpoint, CSVLogger, EarlyStopping
                                        ReduceLROnPlateau
 from tensorflow.keras.losses import CategoricalCrossentropy
 from tensorflow.keras.metrics import CategoricalAccuracy
-from tensorflow.keras.backend import clear_session()
+from tensorflow.keras.backend import clear_session
 # Internal libraries/scripts
 from covidxscan.preprocessing import setup_screening, prepare_cv
 from covidxscan.data_loading import SCREENING_interface, Inference_IO
