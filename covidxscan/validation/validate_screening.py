@@ -27,11 +27,11 @@ from miscnn.evaluation.cross_validation import load_disk2fold
 from miscnn.data_loading.data_io import create_directories
 from miscnn.utils.plotting import plot_validation
 # TensorFlow libraries
+import tensorflow as tf
 from tensorflow.keras.callbacks import ModelCheckpoint, CSVLogger, EarlyStopping, \
                                        ReduceLROnPlateau
 from tensorflow.keras.losses import CategoricalCrossentropy
 from tensorflow.keras.metrics import CategoricalAccuracy
-from tensorflow.keras.backend import clear_session
 # Internal libraries/scripts
 from covidxscan.preprocessing import setup_screening, prepare_cv
 from covidxscan.data_loading import SCREENING_interface, Inference_IO
@@ -76,9 +76,10 @@ input_shape_default = {"VGG16": "224x224",
 import os
 os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
-import tensorflow as tf
-physical_devices = tf.config.list_physical_devices('GPU')
-tf.config.experimental.set_memory_growth(physical_devices[0], True)
+def reset_TFsession():
+    tf.keras.backend.clear_session()
+    physical_devices = tf.config.list_physical_devices('GPU')
+    tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
 #-----------------------------------------------------#
 #           Data Loading and File Structure           #
@@ -121,6 +122,9 @@ data_aug.seg_augmentation = False
 # Iterate over all architectures from the list
 for design in architectures:
     print("Start processing architecture:", design)
+    # Clean up TensorFlow Session
+    reset_TFsession()
+
     # Create an inference IO handler
     infIO = Inference_IO(class_dict, outdir=os.path.join(infdir, design))
 
@@ -209,6 +213,3 @@ for design in architectures:
     # Summarize inference results
     for index in testing:
         infIO.summarize_inference(index)
-
-    # Clean up TensorFlow Session
-    clear_session()
