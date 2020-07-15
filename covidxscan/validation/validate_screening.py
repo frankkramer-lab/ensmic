@@ -60,10 +60,8 @@ k_folds = 5
 path_val = "validation.screening"
 # Seed (if training multiple runs)
 seed = 42
-# Image shape in which images should be resized
-## If None then default patch shapes for specific architecture will be used
-input_shape = None
-# Default patch shapes
+# Default patch shapes in which images should be resized
+## input patch shapes for specific architecture will be automatically used
 input_shape_default = {"VGG16": "224x224",
                        "InceptionResNetV2": "299x299",
                        "Xception": "299x299",
@@ -125,7 +123,7 @@ for design in architectures:
     infIO = Inference_IO(class_dict, outdir=os.path.join(infdir, design))
 
     # Identify input shape by parsing SizeAxSizeB as string to tuple shape
-    if input_shape == None : input_shape = input_shape_default[design]
+    input_shape = input_shape_default[design]
     input_shape = tuple(int(i) for i in input_shape.split("x") + [1])
 
     # Specify subfunctions for preprocessing
@@ -206,3 +204,6 @@ for design in architectures:
             pred = model.predict([index], return_output=True,
                                  activation_output=True)
             infIO.store_inference(fold, pred[0], index)
+    # Summarize inference results
+    for index in testing:
+        infIO.summarize_inference(index)
