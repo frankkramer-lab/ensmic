@@ -22,6 +22,7 @@
 # External libraries
 import os
 import pickle
+import pandas
 # MIScnn libraries
 from miscnn.data_loading.data_io import create_directories
 from miscnn.evaluation.cross_validation import load_disk2fold
@@ -74,7 +75,7 @@ def preprocessing(architecture, path_data, path_val, path_eval):
         gt.append(gt_map[sample])
         pd.append(inf)
     # Return parsed information
-    return id, gt, pd
+    return id, gt, pd, path_arch
 
 #-----------------------------------------------------#
 #             Function: Metric Computation            #
@@ -122,8 +123,16 @@ def safe_division(x, y):
 #-----------------------------------------------------#
 #               Function: Results Backup              #
 #-----------------------------------------------------#
-def backup_results(architecture):
-    pass
+def parse_results(path_arch, metrics):
+    # Parse metrics to Pandas dataframe
+    results = pandas.DataFrame.from_dict(metrics)
+    results = results.transpose()
+    results.columns = class_list
+    # Backup to disk
+    path_res = os.path.join(path_arch, "metrics.csv")
+    results.to_csv(path_res, index=True, index_label="metric")
+    # Return dataframe
+    return results
 
 #-----------------------------------------------------#
 #                Function: Plot Results               #
@@ -138,9 +147,9 @@ def plot_results(architecture):
 path_eval = create_directories(path_val, "evaluation")
 # Iterate over each architecture
 for architecture in architectures:
-    id, gt, pd = preprocessing(architecture, path_target, path_val, path_eval)
+    id, gt, pd, path_arch = preprocessing(architecture, path_target,
+                                          path_val, path_eval)
     # Compute metrics
     metrics = compute_metrics(gt, pd)
-    m = "sensitivity"
-    print(metrics[0][m], metrics[1][m], metrics[2][m])
-    break
+    # Backup results
+    metrics_df = parse_results(path_arch, metrics)
