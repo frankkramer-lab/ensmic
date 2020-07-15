@@ -32,7 +32,7 @@ from tensorflow.keras.losses import CategoricalCrossentropy
 from tensorflow.keras.metrics import CategoricalAccuracy
 # Internal libraries/scripts
 from covidxscan.preprocessing import setup_screening, prepare_cv
-from covidxscan.data_loading import COVIDXSCAN_interface, Inference_IO
+from covidxscan.data_loading import SCREENING_interface, Inference_IO
 from covidxscan.subfunctions import Resize, SegFix
 from covidxscan.architectures import *
 
@@ -72,7 +72,7 @@ input_shape_default = {"VGG16": "224x224",
 #              TensorFlow Configurations              #
 #-----------------------------------------------------#
 import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
 import tensorflow as tf
 physical_devices = tf.config.list_physical_devices('GPU')
@@ -86,7 +86,7 @@ print("Start parsing data set")
 setup_screening(path_input, path_target, classes=class_dict, seed=seed)
 
 # Initialize the Image I/O interface based on the covidxscan file structure
-interface = COVIDXSCAN_interface(class_dict=class_dict, seed=seed)
+interface = SCREENING_interface(class_dict=class_dict, seed=seed)
 
 # Create the MIScnn Data I/O object
 data_io = Data_IO(interface, path_target)

@@ -27,7 +27,7 @@ import numpy as np
 from miscnn.data_loading.interfaces.abstract_io import Abstract_IO
 
 #-----------------------------------------------------#
-#               covidxscan I/O Interface              #
+#               Screening I/O Interface               #
 #-----------------------------------------------------#
 """ Data I/O Interface for JPEG, PNG or other 2D image files.
     Images are read by calling the imread function from the Pillow module.
@@ -44,7 +44,7 @@ Methods:
     load_details:           Load optional information
     save_prediction:        Save a prediction to file
 """
-class COVIDXSCAN_interface(Abstract_IO):
+class SCREENING_interface(Abstract_IO):
     #---------------------------------------------#
     #                   __init__                  #
     #---------------------------------------------#

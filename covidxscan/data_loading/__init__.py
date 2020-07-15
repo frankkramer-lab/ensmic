@@ -16,5 +16,5 @@
 #  You should have received a copy of the GNU General Public License           #
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.       #
 #==============================================================================#
-from covidxscan.data_loading.io_screening import COVIDXSCAN_interface
+from covidxscan.data_loading.io_screening import SCREENING_interface
 from covidxscan.data_loading.inference_IO import Inference_IO
