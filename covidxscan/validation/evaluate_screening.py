@@ -23,6 +23,8 @@
 import os
 import pickle
 import pandas
+import numpy as np
+from plotnine import *
 # MIScnn libraries
 from miscnn.data_loading.data_io import create_directories
 from miscnn.evaluation.cross_validation import load_disk2fold
@@ -67,6 +69,9 @@ def preprocessing(architecture, path_data, path_val, path_eval):
     pd = []
     # Iterate over all samples of the testing set
     for sample in testing:
+        #DEBUG######################################################################################################
+        if not os.path.exists(os.path.join(path_pd, sample, ".json")): continue
+        # DEBUG######################################################################################################
         # Load prediction
         inf_json = infIO.load_inference(sample)
         inf = class_dict[inf_json["cds_class"]]
@@ -88,14 +93,14 @@ def compute_metrics(truth, pred):
         # Compute the confusion matrix
         tp, tn, fp, fn = compute_CM(truth, pred, c)
         # Compute several metrics
-        mc["sensitivity"] = safe_division(tp, tp+fn)
-        mc["specificity"] = safe_division(tn, tn+fp)
-        mc["precision"] = safe_division(tp, tp+fp)
-        mc["fpr"] = safe_division(fp, fp+tn)
-        mc["fnr"] = safe_division(fn, fn+tp)
-        mc["fdr"] = safe_division(fp, fp+tp)
-        mc["accuracy"] = safe_division(tp+tn, tp+tn+fp+fn)
-        mc["f1"] = safe_division(2*tp, 2*tp+fp+fn)
+        mc["Sensitivity"] = safe_division(tp, tp+fn)
+        mc["Specificity"] = safe_division(tn, tn+fp)
+        mc["Precision"] = safe_division(tp, tp+fp)
+        mc["FPR"] = safe_division(fp, fp+tn)
+        mc["FNR"] = safe_division(fn, fn+tp)
+        mc["FDR"] = safe_division(fp, fp+tp)
+        mc["Accuracy"] = safe_division(tp+tn, tp+tn+fp+fn)
+        mc["F1"] = safe_division(2*tp, 2*tp+fp+fn)
         # Append dictionary to metric list
         metrics.append(mc)
     # Return results
@@ -121,7 +126,7 @@ def safe_division(x, y):
     return x / y if y else 0
 
 #-----------------------------------------------------#
-#               Function: Results Backup              #
+#          Function: Results Parsing & Backup         #
 #-----------------------------------------------------#
 def parse_results(path_arch, metrics):
     # Parse metrics to Pandas dataframe
@@ -134,11 +139,53 @@ def parse_results(path_arch, metrics):
     # Return dataframe
     return results
 
+def collect_results(result_set, architectures, path_eval):
+    # Initialize result dataframe
+    cols = ["architecture", "class", "metric", "value"]
+    df_results = pandas.DataFrame(data=[], dtype=np.float64, columns=cols)
+    # Iterate over each architecture results
+    for i in range(0, len(architectures)):
+        arch_type = architectures[i]
+        arch_df = result_set[i]
+        # Parse architecture result dataframe into desired shape
+        arch_df = arch_df.reset_index()
+        arch_df.rename(columns={"index":"metric"}, inplace=True)
+        arch_df["architecture"] = arch_type
+        arch_df = arch_df.melt(id_vars=["architecture", "metric"],
+                               value_vars=["NORMAL", "Viral Pneumonia", "COVID-19"],
+                               var_name="class",
+                               value_name="value")
+        # Reorder columns
+        arch_df = arch_df[cols]
+        # Merge to global result dataframe
+        df_results = df_results.append(arch_df, ignore_index=True)
+    # Backup merged results to disk
+    path_res = os.path.join(path_eval, "results.csv")
+    df_results.to_csv(path_res, index=False)
+    # Return merged results
+    return df_results
+
 #-----------------------------------------------------#
 #                Function: Plot Results               #
 #-----------------------------------------------------#
-def plot_results(architecture):
-    pass
+def plot_results(results, eval_path):
+    # Iterate over each metric
+    for metric in np.unique(results["metric"]):
+        # Extract sub dataframe for the current metric
+        df = results.loc[results["metric"] == metric]
+        # Plot results
+        fig = (ggplot(df, aes("architecture", "value", fill="class"))
+                      + geom_col(stat='identity', position='dodge', size=2)
+                      + ggtitle("Architecture Comparison by " + metric)
+                      + xlab("Architectures")
+                      + ylab(metric)
+                      + scale_y_continuous(limits=[0, 1])
+                      + scale_fill_discrete(name="Classification",
+                                            labels=class_list) # ------------------------------------------- Is this correct??!?!?
+                      + theme_bw(base_size=28))
+        # Store figure to disk
+        fig.save(filename="plot." + metric + ".png", path=path_eval,
+                 width=18, height=10, dpi=500)
 
 #-----------------------------------------------------#
 #                    Run Evaluation                   #
@@ -146,6 +193,7 @@ def plot_results(architecture):
 # Create evaluation subdirectory
 path_eval = create_directories(path_val, "evaluation")
 # Iterate over each architecture
+result_set = []
 for architecture in architectures:
     id, gt, pd, path_arch = preprocessing(architecture, path_target,
                                           path_val, path_eval)
@@ -153,3 +201,9 @@ for architecture in architectures:
     metrics = compute_metrics(gt, pd)
     # Backup results
     metrics_df = parse_results(path_arch, metrics)
+    # Cache dataframe
+    result_set.append(metrics_df)
+# Combine results
+results = collect_results(result_set, architectures, path_eval)
+# Plot result figure
+plot_results(results, path_eval)
