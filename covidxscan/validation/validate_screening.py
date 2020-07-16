@@ -106,7 +106,7 @@ print("Start preparing file structure & sampling")
 prepare_cv(path_target, path_val, class_dict, k_folds, seed)
 
 # Create inference subdirectory
-infdir = create_directories(path_val, "inference")
+infdir = create_directories(path_val, "testing")
 print("Finished preparing file structure & sampling")
 
 #-----------------------------------------------------#

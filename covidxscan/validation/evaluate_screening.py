@@ -61,7 +61,7 @@ def preprocessing(architecture, path_data, path_val, path_eval):
     path_testing = os.path.join(path_val, "testing", "sample_list.json")
     _, testing = load_disk2fold(path_testing)
     # Initialize Inference IO for prediction loading
-    path_pd = os.path.join(path_val, "inference", architecture)
+    path_pd = os.path.join(path_val, "testing", architecture)
     infIO = Inference_IO(class_dict, outdir=path_pd)
     # Initialize lists for predictions and ground truth
     id = []
@@ -69,9 +69,6 @@ def preprocessing(architecture, path_data, path_val, path_eval):
     pd = []
     # Iterate over all samples of the testing set
     for sample in testing:
-        #DEBUG######################################################################################################
-        if not os.path.exists(os.path.join(path_pd, sample, ".json")): continue
-        # DEBUG######################################################################################################
         # Load prediction
         inf_json = infIO.load_inference(sample)
         inf = class_dict[inf_json["cds_class"]]
