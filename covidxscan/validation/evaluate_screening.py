@@ -30,6 +30,9 @@ from miscnn.data_loading.data_io import create_directories
 from miscnn.evaluation.cross_validation import load_disk2fold
 # Internal libraries/scripts
 from covidxscan.data_loading import Inference_IO
+# Experimental
+import warnings
+warnings.filterwarnings("ignore")
 
 #-----------------------------------------------------#
 #                    Configurations                   #
@@ -50,9 +53,7 @@ architectures = ["VGG16", "InceptionResNetV2", "Xception", "DenseNet", "ResNeSt"
 #-----------------------------------------------------#
 #               Function: Preprocessing               #
 #-----------------------------------------------------#
-def preprocessing(architecture, path_data, path_val, path_eval):
-    # Create evaluation subdirectory for the current architecture
-    path_arch = create_directories(path_eval, architecture)
+def preprocessing(architecture, path_data, path_val):
     # Load ground truth dictionary
     path_gt = os.path.join(path_data, str(seed) + ".classes.pickle")
     with open(path_gt, "rb") as pickle_reader:
@@ -77,7 +78,7 @@ def preprocessing(architecture, path_data, path_val, path_eval):
         gt.append(gt_map[sample])
         pd.append(inf)
     # Return parsed information
-    return id, gt, pd, path_arch
+    return id, gt, pd
 
 #-----------------------------------------------------#
 #             Function: Metric Computation            #
@@ -125,13 +126,13 @@ def safe_division(x, y):
 #-----------------------------------------------------#
 #          Function: Results Parsing & Backup         #
 #-----------------------------------------------------#
-def parse_results(path_arch, metrics):
+def parse_results(path_eval, metrics, architecture):
     # Parse metrics to Pandas dataframe
     results = pandas.DataFrame.from_dict(metrics)
     results = results.transpose()
     results.columns = class_list
     # Backup to disk
-    path_res = os.path.join(path_arch, "metrics.csv")
+    path_res = os.path.join(path_eval, "metrics." + architecture + ".csv")
     results.to_csv(path_res, index=True, index_label="metric")
     # Return dataframe
     return results
@@ -170,6 +171,10 @@ def plot_results(results, eval_path):
     for metric in np.unique(results["metric"]):
         # Extract sub dataframe for the current metric
         df = results.loc[results["metric"] == metric]
+        # Sort classification
+        df["class"] = pandas.Categorical(df["class"],
+                                         categories=class_list,
+                                         ordered=True)
         # Plot results
         fig = (ggplot(df, aes("architecture", "value", fill="class"))
                       + geom_col(stat='identity', position='dodge', size=2)
@@ -177,8 +182,7 @@ def plot_results(results, eval_path):
                       + xlab("Architectures")
                       + ylab(metric)
                       + scale_y_continuous(limits=[0, 1])
-                      + scale_fill_discrete(name="Classification",
-                                            labels=class_list) # ------------------------------------------- Is this correct??!?!?
+                      + scale_fill_discrete(name="Classification")
                       + theme_bw(base_size=28))
         # Store figure to disk
         fig.save(filename="plot." + metric + ".png", path=path_eval,
@@ -192,12 +196,11 @@ path_eval = create_directories(path_val, "evaluation")
 # Iterate over each architecture
 result_set = []
 for architecture in architectures:
-    id, gt, pd, path_arch = preprocessing(architecture, path_target,
-                                          path_val, path_eval)
+    id, gt, pd = preprocessing(architecture, path_target, path_val)
     # Compute metrics
     metrics = compute_metrics(gt, pd)
     # Backup results
-    metrics_df = parse_results(path_arch, metrics)
+    metrics_df = parse_results(path_eval, metrics, architecture)
     # Cache dataframe
     result_set.append(metrics_df)
 # Combine results

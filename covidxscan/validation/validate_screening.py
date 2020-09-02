@@ -53,9 +53,9 @@ architectures = ["VGG16", "InceptionResNetV2", "Xception", "DenseNet", "ResNeSt"
 # Batch size
 batch_size = 1          # 48
 # Number of epochs
-epochs = 1              # 500
+epochs = 2              # 500
 # Number of iterations
-iterations = 1          # 120/150
+iterations = 10          # 120/150
 # Number of folds
 k_folds = 5
 # path to result directory
