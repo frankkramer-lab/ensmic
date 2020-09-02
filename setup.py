@@ -3,7 +3,7 @@ from setuptools import find_packages
 
 setup(
    name='covidxscan',
-   version='0.4',
+   version='0.5',
    description='COVID-19 Screening and Quantitative Assessment of X-Ray Images and CT Volumes using Deep Learning',
    url='https://github.com/muellerdo/covid-xscan',
    author='Dominik Müller',
@@ -12,10 +12,10 @@ setup(
    long_description="COVID-19 Screening and Quantitative Assessment of X-Ray Images and CT Volumes using Deep Learning",
    long_description_content_type="text/markdown",
    packages=find_packages(),
-   install_requires=['tensorflow==2.2.0',
-                     'miscnn==0.38',
-                     'Pillow==6.2.2',
-                     'pandas==1.0.5'],
+   install_requires=['tensorflow==2.3.0',
+                     'miscnn==1.0.1',
+                     'pandas',
+                     'pillow==7.2.0'],
    classifiers=["Programming Language :: Python :: 3",
                 "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
                 "Operating System :: OS Independent",
