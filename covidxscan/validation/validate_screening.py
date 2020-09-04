@@ -121,7 +121,9 @@ def setup_miscnn(config):
                       subfunctions=sf,
                       prepare_subfunctions=True,
                       prepare_batches=False,
-                      analysis="fullimage")
+                      analysis="fullimage",
+                      use_multiprocessing=True)
+    pp.mp_threads = 16
 
     # Initialize architecture of the neural network
     if config["design"] == "VGG16":
