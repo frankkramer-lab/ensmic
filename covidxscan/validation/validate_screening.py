@@ -57,7 +57,6 @@ def get_config():
     # Initialize configuration dictionary
     config = {}
     # File structure
-    config["path_input"] = "data.screening"
     config["path_target"] = "data"
     # Adjust possible classes
     config["class_dict"] = {'NORMAL': 0,
