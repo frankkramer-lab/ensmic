@@ -21,6 +21,7 @@
 #-----------------------------------------------------#
 # External libraries
 import os
+import argparse
 # MIScnn libraries
 from miscnn import Preprocessor, Data_IO, Neural_Network, Data_Augmentation
 from miscnn.evaluation.cross_validation import load_disk2fold
@@ -33,125 +34,104 @@ from tensorflow.keras.callbacks import ModelCheckpoint, CSVLogger, EarlyStopping
 from tensorflow.keras.losses import CategoricalCrossentropy
 from tensorflow.keras.metrics import CategoricalAccuracy
 # Internal libraries/scripts
-from covidxscan.preprocessing import setup_screening, prepare_cv
 from covidxscan.data_loading import SCREENING_interface, Inference_IO
 from covidxscan.subfunctions import Resize, SegFix
 from covidxscan.architectures import *
 
 #-----------------------------------------------------#
+#                      Argparser                      #
+#-----------------------------------------------------#
+def setup_argparser():
+    parser = argparse.ArgumentParser(description="COVID-Xscan Screening Validation")
+    parser.add_argument("-a", "--architecture", action="store",
+                        dest="architecture", type=str, required=False)
+    parser.add_argument("--gpu", action="store",
+                        dest="gpu", type=int, required=False)
+    args = parser.parse_args()
+
+#-----------------------------------------------------#
 #                    Configurations                   #
 #-----------------------------------------------------#
-# File structure
-path_input = "data.screening"
-path_target = "data"
-# Adjust possible classes
-class_dict = {'NORMAL': 0,
-              'Viral Pneumonia': 1,
-              'COVID-19': 2}
-# Architectures for Neural Network
-architectures = ["VGG16", "InceptionResNetV2", "Xception", "DenseNet", "ResNeSt"]
-# Batch size
-batch_size = 1          # 48
-# Number of epochs
-epochs = 2              # 500
-# Number of iterations
-iterations = 10          # 120/150
-# Number of folds
-k_folds = 5
-# path to result directory
-path_val = "validation.screening"
-# Seed (if training multiple runs)
-seed = 42
-# Default patch shapes in which images should be resized
-## input patch shapes for specific architecture will be automatically used
-input_shape_default = {"VGG16": "224x224",
-                       "InceptionResNetV2": "299x299",
-                       "Xception": "299x299",
-                       "DenseNet": "224x224",
-                       "ResNeSt": "224x224"}
+def get_config():
+    # Initialize configuration dictionary
+    config = {}
+    # File structure
+    config["path_input"] = "data.screening"
+    config["path_target"] = "data"
+    # Adjust possible classes
+    config["class_dict"] = {'NORMAL': 0,
+                            'Viral Pneumonia': 1,
+                            'COVID-19': 2}
+    # Architectures for Neural Network
+    config["architectures"] = ["VGG16", "InceptionResNetV2", "Xception",
+                               "DenseNet", "ResNeSt"]
+    # Batch size
+    config["batch_size"] = 1          # 48
+    # Number of epochs
+    config["epochs"] = 2              # 500
+    # Number of iterations
+    config["iterations"] = 10          # 120/150
+    # Number of folds
+    config["k_folds"] = 5
+    # path to result directory
+    config["path_val"] = "validation.screening"
+    # Seed (if training multiple runs)
+    config["seed"] = 42
+    # Default patch shapes in which images should be resized
+    ## input patch shapes for specific architecture will be automatically used
+    config["input_shape_default"] = {"VGG16": "224x224",
+                                     "InceptionResNetV2": "299x299",
+                                     "Xception": "299x299",
+                                     "DenseNet": "224x224",
+                                     "ResNeSt": "224x224"}
+    # Return configuration dictionary
+    return config
 
 #-----------------------------------------------------#
-#              TensorFlow Configurations              #
+#                MIScnn Pipeline Setup                #
 #-----------------------------------------------------#
-import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+def setup_miscnn(config):
+    print("Start processing architecture:", config["design"])
 
-def reset_TFsession():
-    tf.keras.backend.clear_session()
-    physical_devices = tf.config.list_physical_devices('GPU')
-    tf.config.experimental.set_memory_growth(physical_devices[0], True)
+    # Initialize the Image I/O interface based on the covidxscan file structure
+    interface = SCREENING_interface(class_dict=config["class_dict"],
+                                    seed=config["seed"])
 
-#-----------------------------------------------------#
-#           Data Loading and File Structure           #
-#-----------------------------------------------------#
-print("Start parsing data set")
-# Initialize file structure for covidxscan
-setup_screening(path_input, path_target, classes=class_dict, seed=seed)
+    # Create the MIScnn Data I/O object
+    data_io = Data_IO(interface, config["path_target"])
 
-# Initialize the Image I/O interface based on the covidxscan file structure
-interface = SCREENING_interface(class_dict=class_dict, seed=seed)
-
-# Create the MIScnn Data I/O object
-data_io = Data_IO(interface, path_target)
-
-# Get sample list
-sample_list = data_io.get_indiceslist()
-print("Finished parsing data set")
-
-#-----------------------------------------------------#
-#              Prepare Cross-Validation               #
-#-----------------------------------------------------#
-print("Start preparing file structure & sampling")
-# Prepare sampling and file structure for cross-validation
-prepare_cv(path_target, path_val, class_dict, k_folds, seed)
-
-# Create inference subdirectory
-infdir = create_directories(path_val, "testing")
-print("Finished preparing file structure & sampling")
-
-#-----------------------------------------------------#
-#            Setup the MIScnn Preprocessor            #
-#-----------------------------------------------------#
-# Create and configure the Data Augmentation class
-data_aug = Data_Augmentation(cycles=1, scaling=True, rotations=True,
-                             elastic_deform=True, mirror=True,
-                             brightness=True, contrast=True,
-                             gamma=True, gaussian_noise=True)
-data_aug.seg_augmentation = False
-
-# Iterate over all architectures from the list
-for design in architectures:
-    print("Start processing architecture:", design)
-    # Clean up TensorFlow Session
-    reset_TFsession()
-
-    # Create an inference IO handler
-    infIO = Inference_IO(class_dict, outdir=os.path.join(infdir, design))
+    # Create and configure the Data Augmentation class
+    data_aug = Data_Augmentation(cycles=1, scaling=True, rotations=True,
+                                 elastic_deform=True, mirror=True,
+                                 brightness=True, contrast=True,
+                                 gamma=True, gaussian_noise=True)
+    data_aug.seg_augmentation = False
 
     # Identify input shape by parsing SizeAxSizeB as string to tuple shape
-    input_shape = input_shape_default[design]
+    input_shape = config["input_shape_default"][config["design"]]
     input_shape = tuple(int(i) for i in input_shape.split("x") + [1])
 
     # Specify subfunctions for preprocessing
     sf = [SegFix(), Resize(new_shape=input_shape)]
 
     # Create and configure the MIScnn Preprocessor class
-    pp = Preprocessor(data_io, data_aug=data_aug, batch_size=batch_size,
+    pp = Preprocessor(data_io, data_aug=data_aug,
+                      batch_size=config["batch_size"],
                       subfunctions=sf,
                       prepare_subfunctions=True,
                       prepare_batches=False,
                       analysis="fullimage")
 
     # Initialize architecture of the neural network
-    if design == "VGG16":
+    if config["design"] == "VGG16":
         architecture = Architecture_VGG16(input_shape)
-    elif design == "InceptionResNetV2":
+    elif config["design"] == "InceptionResNetV2":
         architecture = Architecture_InceptionResNetV2(input_shape)
-    elif design == "Xception":
+    elif config["design"] == "Xception":
         architecture = Architecture_Xception(input_shape)
-    elif design == "DenseNet":
+    elif config["design"] == "DenseNet":
         architecture = Architecture_DenseNet(input_shape)
-    elif design == "ResNeSt":
+    elif config["design"] == "ResNeSt":
         architecture = Architecture_ResNeSt(input_shape)
     else : raise ValueError("Called architecture is unknown.")
 
@@ -160,15 +140,21 @@ for design in architectures:
                            architecture=architecture,
                            metrics=[CategoricalAccuracy()],
                            batch_queue_size=3, workers=3, learninig_rate=0.001)
+    # Return MIScnn model
+    return model
 
-    #-----------------------------------------------------#
-    #                 Run Cross-Validation                #
-    #-----------------------------------------------------#
-    for fold in range(0, k_folds):
-        print(design, "-", "Processing fold:", fold)
+#-----------------------------------------------------#
+#                 Run Cross-Validation                #
+#-----------------------------------------------------#
+def run_crossvalidation(model, config):
+    # Get sample list
+    sample_list = model.preprocessor.data_io.get_indiceslist()
+    # Iterate over each fold
+    for fold in range(0, config["k_folds"]):
+        print(config["design"], "-", "Processing fold:", fold)
         # Obtain subdirectory
-        folddir = os.path.join(path_val, "fold_" + str(fold))
-        archdir = create_directories(folddir, design)
+        folddir = os.path.join(config["path_val"], "fold_" + str(fold))
+        archdir = create_directories(folddir, config["design"])
         # Load sampling fold from disk
         fold_path = os.path.join(folddir, "sample_list.json")
         training, validation = load_disk2fold(fold_path)
@@ -176,8 +162,8 @@ for design in architectures:
         model.reset_weights()
         # Define callbacks
         cb_mc = ModelCheckpoint(os.path.join(archdir, "model.best.hdf5"),
-                                   monitor="val_loss", verbose=1,
-                                   save_best_only=True, mode="min")
+                                monitor="val_loss", verbose=1,
+                                save_best_only=True, mode="min")
         cb_cl = CSVLogger(os.path.join(archdir, "logs.csv"), separator=',')
         cb_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=20,
                                   verbose=1, mode='min', min_delta=0.0001,
@@ -185,24 +171,33 @@ for design in architectures:
         cb_es = EarlyStopping(monitor="val_loss", patience=100)
         callbacks = [cb_mc, cb_cl, cb_lr, cb_es]
         # Run validation
-        history = model.evaluate(training, validation, epochs=epochs,
-                                 iterations=iterations, callbacks=callbacks)
+        history = model.evaluate(training, validation, epochs=config["epochs"],
+                                 iterations=config["iterations"],
+                                 callbacks=callbacks)
         # Dump latest model
         model.dump(os.path.join(archdir, "model.latest.hdf5"))
         # Plot visualizations
         plot_validation(history.history, model.metrics, archdir)
 
-    #-----------------------------------------------------#
-    #                    Run Inference                    #
-    #-----------------------------------------------------#
-    print(design, "-", "Compute predictions for test set")
+#-----------------------------------------------------#
+#                    Run Inference                    #
+#-----------------------------------------------------#
+def run_inference(model, config):
+    print(config["design"], "-", "Compute predictions for test set")
+    # Obtain inference subdirectory
+    infdir = os.path.join(config["path_val"], "testing")
     # Load sampling fold from disk
-    testing_path = os.path.join(path_val, "testing", "sample_list.json")
+    testing_path = os.path.join(infidr, "sample_list.json")
     _, testing = load_disk2fold(testing_path)
+
+    # Create an inference IO handler
+    infIO = Inference_IO(config["class_dict"],
+                         outdir=os.path.join(infdir, config["design"]))
     # Iterate over each fold model
-    for fold in range(0, k_folds):
+    for fold in range(0, config["k_folds"]):
         # Obtain subdirectory
-        archdir = os.path.join(path_val, "fold_" + str(fold), design)
+        archdir = os.path.join(config["path_val"], "fold_" + str(fold),
+                               config["design"])
         # Load model
         model.load(os.path.join(archdir, "model.best.hdf5"))
         # Compute prediction for each sample
@@ -213,3 +208,13 @@ for design in architectures:
     # Summarize inference results
     for index in testing:
         infIO.summarize_inference(index)
+
+#-----------------------------------------------------#
+#                     Main Runner                     #
+#-----------------------------------------------------#
+#
+# # Iterate over all architectures from the list
+# for design in architectures:
+#
+# import os
+# os.environ["CUDA_VISIBLE_DEVICES"] = "1"
