@@ -66,11 +66,11 @@ def get_config():
     config["architectures"] = ["VGG16", "InceptionResNetV2", "Xception",
                                "DenseNet", "ResNeSt"]
     # Batch size
-    config["batch_size"] = 1          # 48
+    config["batch_size"] = 48           # 48
     # Number of epochs
-    config["epochs"] = 2              # 500
+    config["epochs"] = 500              # 500
     # Number of iterations
-    config["iterations"] = 10          # 120/150
+    config["iterations"] = 150          # 120/150
     # Number of folds
     config["k_folds"] = 5
     # path to result directory
@@ -141,7 +141,7 @@ def setup_miscnn(config):
     model = Neural_Network(preprocessor=pp, loss=CategoricalCrossentropy(),
                            architecture=architecture,
                            metrics=[CategoricalAccuracy()],
-                           batch_queue_size=3, workers=3, learninig_rate=0.001)
+                           batch_queue_size=10, workers=10, learninig_rate=0.001)
     # Return MIScnn model
     return model
 
