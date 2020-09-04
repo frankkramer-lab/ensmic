@@ -48,6 +48,7 @@ def setup_argparser():
     parser.add_argument("--gpu", action="store",
                         dest="gpu", type=int, required=False)
     args = parser.parse_args()
+    return args
 
 #-----------------------------------------------------#
 #                    Configurations                   #
@@ -212,9 +213,23 @@ def run_inference(model, config):
 #-----------------------------------------------------#
 #                     Main Runner                     #
 #-----------------------------------------------------#
-#
-# # Iterate over all architectures from the list
-# for design in architectures:
-#
-# import os
-# os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+if __name__ == "__main__":
+    # Setup Argparser
+    args = setup_argparser()
+    # Specify GPU if needed
+    if args.gpu : os.environ["CUDA_VISIBLE_DEVICES"] = str(args.gpu)
+    # Obtain fixed configurations
+    config = get_config()
+    # IF no specific architecture is defined -> run all architectures
+    if not args.architecture:
+        for design in config["architectures"]:
+            config["design"] = design
+            model = setup_miscnn(config)
+            run_crossvalidation(model, config)
+            run_inference(model, config)
+    # IF a specific architecture is defined -> run the specfic architecture
+    else:
+        config["design"] = args.architecture
+        model = setup_miscnn(config)
+        run_crossvalidation(model, config)
+        run_inference(model, config)
