@@ -189,7 +189,7 @@ def run_inference(model, config):
     # Obtain inference subdirectory
     infdir = os.path.join(config["path_val"], "testing")
     # Load sampling fold from disk
-    testing_path = os.path.join(infidr, "sample_list.json")
+    testing_path = os.path.join(infdir, "sample_list.json")
     _, testing = load_disk2fold(testing_path)
 
     # Create an inference IO handler
