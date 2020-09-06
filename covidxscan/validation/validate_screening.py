@@ -98,7 +98,7 @@ def setup_miscnn(config):
                                     seed=config["seed"])
 
     # Create the MIScnn Data I/O object
-    data_io = Data_IO(interface, config["path_target"])
+    data_io = Data_IO(interface, config["path_target"], delete_batchDir=False)
 
     # Create and configure the Data Augmentation class
     data_aug = Data_Augmentation(cycles=1, scaling=True, rotations=True,
