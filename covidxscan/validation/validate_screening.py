@@ -141,7 +141,7 @@ def setup_miscnn(config):
     model = Neural_Network(preprocessor=pp, loss=CategoricalCrossentropy(),
                            architecture=architecture,
                            metrics=[CategoricalAccuracy()],
-                           batch_queue_size=10, workers=10, learninig_rate=0.001)
+                           batch_queue_size=10, workers=8, learninig_rate=0.001)
     # Return MIScnn model
     return model
 
