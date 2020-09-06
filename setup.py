@@ -3,7 +3,7 @@ from setuptools import find_packages
 
 setup(
    name='covidxscan',
-   version='0.5',
+   version='0.6',
    description='COVID-19 Screening and Quantitative Assessment of X-Ray Images and CT Volumes using Deep Learning',
    url='https://github.com/muellerdo/covid-xscan',
    author='Dominik Müller',
