@@ -98,7 +98,7 @@ class Inference_IO():
         max_value = np.max(avg_softmax)
         min_value = np.min(avg_softmax)
         avg_std = (avg_softmax - min_value) / (max_value - min_value)
-        avg_normalized = avg_std * (max_value - min_value) + min_value
+        avg_normalized = avg_std * (1 - 0) + 0
         avg_percentage = np.rint(avg_normalized * 100)
         # Get final suggestion
         avg_output = self.class_list[np.argmax(avg_percentage)]
