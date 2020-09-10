@@ -64,7 +64,7 @@ def get_config():
                             'COVID-19': 2}
     # Architectures for Neural Network
     config["architectures"] = ["VGG16", "InceptionResNetV2", "Xception",
-                               "DenseNet", "ResNeSt"]
+                               "DenseNet", "ResNeSt", "ResNet"]
     # Batch size
     config["batch_size"] = 48           # 48
     # Number of epochs
@@ -83,7 +83,8 @@ def get_config():
                                      "InceptionResNetV2": "299x299",
                                      "Xception": "299x299",
                                      "DenseNet": "224x224",
-                                     "ResNeSt": "224x224"}
+                                     "ResNeSt": "224x224",
+                                     "ResNet": "224x224"}
     # Return configuration dictionary
     return config
 
@@ -135,6 +136,8 @@ def setup_miscnn(config):
         architecture = Architecture_DenseNet(input_shape)
     elif config["design"] == "ResNeSt":
         architecture = Architecture_ResNeSt(input_shape)
+    elif config["design"] == "ResNet":
+        architecture = Architecture_ResNet(input_shape)
     else : raise ValueError("Called architecture is unknown.")
 
     # Create the Neural Network model
