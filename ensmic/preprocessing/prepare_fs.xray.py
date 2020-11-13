@@ -24,42 +24,63 @@ import os
 import random
 import pickle
 from shutil import copyfile
-# MIScnn libraries
-from miscnn.data_loading.data_io import create_directories
 # Internal libraries/scripts
-from covidxscan.preprocessing.bf_xray import fs_generator as setup_fs_xray
 
 #-----------------------------------------------------#
 #                    Configurations                   #
 #-----------------------------------------------------#
 # File structure
-path_input = "data.screening"
+path_input = "data.x-ray"
 path_target = "data"
 # Adjust possible classes
-class_dict = {'NORMAL': 0,
-              'Viral Pneumonia': 1,
-              'COVID-19': 2}
+classes = {'NORMAL': 0, 'Viral Pneumonia': 1, 'COVID-19': 2}
 # Number of folds
 k_folds = 5
 # path to result directory
 path_val = "validation.screening"
-# Seed (if training multiple runs)
-seed = 42
+# Prefix/Seed (if training multiple runs)
+seed = "x-ray"
 
 #-----------------------------------------------------#
-#                 File Structure Setup                #
+#                Parse Dataset : X-Ray                #
 #-----------------------------------------------------#
-print("Start parsing data set")
-# Initialize file structure for covidxscan
-setup_screening(path_input, path_target, classes=class_dict, seed=seed)
-
-#-----------------------------------------------------#
-#              Prepare Cross-Validation               #
-#-----------------------------------------------------#
-print("Start preparing file structure & sampling")
-# Prepare sampling and file structure for cross-validation
-prepare_cv(path_target, path_val, class_dict, k_folds, seed)
-
-# Create inference subdirectory
-infdir = create_directories(path_val, "testing")
-print("Finished preparing file structure & sampling")
+# check if input path is available
+if not os.path.exists(path_input):
+    raise IOError(
+        "Images path, {}, could not be resolved".format(str(path_input))
+    )
+# create ensmic data structure
+if not os.path.exists(path_target) : os.mkdir(path_target)
+img_dir = os.path.join(path_target, "images")
+if not os.path.exists(img_dir) : os.mkdir(img_dir)
+# Initialize class dictionary and index
+class_dict = {}
+i = 0
+# Iterate over all class directory
+for c in classes:
+    path_class = os.path.join(path_input, c)
+    # check if class direcotry is available
+    if not os.path.exists(path_class):
+        raise IOError(
+            "Class directory, {}, could not be resolved".format(str(path_class))
+        )
+    img_list = os.listdir(path_class)
+    # Iterate over each image
+    for img in img_list:
+        # Check if file is an image
+        if not img.endswith(".png"):
+            continue
+        # Pseudonymization
+        name = str(seed) + "." + "img_" + str(i)
+        # Store image in file structure
+        path_img_in = os.path.join(path_class, img)
+        path_img_out = os.path.join(img_dir, name + ".png")
+        if not os.path.exists(path_img_out):
+            copyfile(path_img_in, path_img_out)
+        class_dict[name] = classes[c]
+        # Increment index
+        i += 1
+# Store class dictionary
+path_dict = os.path.join(path_target, str(seed) + ".classes.pickle")
+with open(path_dict, "wb") as pickle_writer:
+    pickle.dump(class_dict, pickle_writer)
