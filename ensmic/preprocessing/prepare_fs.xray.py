@@ -25,6 +25,7 @@ import random
 import pickle
 from shutil import copyfile
 # Internal libraries/scripts
+from ensmic.preprocessing.sampling import run_sampling, sampling_to_disk
 
 #-----------------------------------------------------#
 #                    Configurations                   #
@@ -34,7 +35,10 @@ path_input = "data.x-ray"
 path_target = "data"
 # Adjust possible classes
 classes = {'NORMAL': 0, 'Viral Pneumonia': 1, 'COVID-19': 2}
-# Number of folds
+# Sampling strategy (in percentage)
+sampling = [65, 10, 10, 15]
+sampling_names = ["train-model", "val-model", "val-ensemble", "test"]
+# Number of folds for CV
 k_folds = 5
 # path to result directory
 path_val = "validation.screening"
@@ -42,8 +46,9 @@ path_val = "validation.screening"
 seed = "x-ray"
 
 #-----------------------------------------------------#
-#                Parse Dataset : X-Ray                #
+#         Parse Dataset & File Structure Setup        #
 #-----------------------------------------------------#
+print("Start parsing data set")
 # check if input path is available
 if not os.path.exists(path_input):
     raise IOError(
@@ -84,3 +89,16 @@ for c in classes:
 path_dict = os.path.join(path_target, str(seed) + ".classes.pickle")
 with open(path_dict, "wb") as pickle_writer:
     pickle.dump(class_dict, pickle_writer)
+
+#-----------------------------------------------------#
+#               Create Dataset Sampling               #
+#-----------------------------------------------------#
+print("Start dataset sampling")
+# Run sampling into train-model / val-model / val-ensemble / test
+sample_sets = run_sampling(path_data=path_target, seed=str(seed),
+                           sampling=sampling, n_classes=len(classes))
+# Store sample sets to disk
+sampling_to_disk(sample_sets, setnames=sampling_names,
+                 path_data=path_target, seed=str(seed))
+
+# Split training samples into cross-validation folds
