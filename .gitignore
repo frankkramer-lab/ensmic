@@ -15,5 +15,7 @@ data/
 debug.sh
 
 # Datasets Links
-data.x-ray
-data.ct
+data.x-ray.ref
+data.x-ray/
+data.ct.ref
+data.ct/
