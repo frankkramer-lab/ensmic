@@ -6,10 +6,14 @@ build/
 dist/
 *.egg-info/
 
-# covid-xscan
+# ensmic
 batches/
 predictions/
 data/
 
 # Testing
 debug.sh
+
+# Datasets Links
+data.x-ray/
+data.ct/

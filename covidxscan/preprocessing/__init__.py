@@ -16,5 +16,3 @@
 #  You should have received a copy of the GNU General Public License           #
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.       #
 #==============================================================================#
-from covidxscan.preprocessing.bf_screening import fs_generator as setup_screening
-from covidxscan.preprocessing.prepare_cv import fold_sampling as prepare_cv

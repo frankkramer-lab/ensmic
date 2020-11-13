@@ -48,7 +48,7 @@ class_dict = {'NORMAL': 0,
               'COVID-19': 2}
 class_list = sorted(class_dict, key=class_dict.get)
 # Architectures for Neural Network
-architectures = ["VGG16", "InceptionResNetV2", "Xception", "DenseNet", "ResNeSt"]
+architectures = ["VGG16", "Xception", "DenseNet"]
 
 #-----------------------------------------------------#
 #               Function: Preprocessing               #
@@ -90,6 +90,7 @@ def compute_metrics(truth, pred):
         mc = {}
         # Compute the confusion matrix
         tp, tn, fp, fn = compute_CM(truth, pred, c)
+        mc["TP-TN-FP-FN"] = "-".join([str(tp), str(tn), str(fp), str(fn)])
         # Compute several metrics
         mc["Sensitivity"] = safe_division(tp, tp+fn)
         mc["Specificity"] = safe_division(tn, tn+fp)
@@ -145,6 +146,8 @@ def collect_results(result_set, architectures, path_eval):
     for i in range(0, len(architectures)):
         arch_type = architectures[i]
         arch_df = result_set[i]
+        arch_df.drop(index="TP-TN-FP-FN", inplace=True)
+        arch_df = arch_df.astype(float)
         # Parse architecture result dataframe into desired shape
         arch_df = arch_df.reset_index()
         arch_df.rename(columns={"index":"metric"}, inplace=True)

@@ -1,8 +1,8 @@
-# covid-xscan
-Detection of COVID-19 infection on x-rays via deep learning classification
+# An analysis on Ensemble Learning optimized Neural Network Classification for COVID-19 CT and X-Ray Imaging
 
+A survey on...?
 
-RSNA: https://www.kaggle.com/c/10338/download-all
+ensmic?
 
 
 ```sh
@@ -26,7 +26,7 @@ Xception: 18211MiB
 DenseNet: 11011MiB
 
 
-
+https://towardsdatascience.com/ensembles-the-almost-free-lunch-in-machine-learning-91af7ebe5090
 
 
 --------------------------------------------
