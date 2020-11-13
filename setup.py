@@ -2,14 +2,14 @@
 from setuptools import find_packages
 
 setup(
-   name='covidxscan',
-   version='0.6',
-   description='COVID-19 Screening and Quantitative Assessment of X-Ray Images and CT Volumes using Deep Learning',
-   url='https://github.com/muellerdo/covid-xscan',
+   name='ensmic',
+   version='1.0',
+   description='An analysis on Ensemble Learning optimized Neural Network Classification for COVID-19 CT and X-Ray Imaging',
+   url='https://github.com/muellerdo/ensmic',
    author='Dominik Müller',
    author_email='dominik.mueller@informatik.uni-augsburg.de',
    license='GPLv3',
-   long_description="COVID-19 Screening and Quantitative Assessment of X-Ray Images and CT Volumes using Deep Learning",
+   long_description="An analysis on Ensemble Learning optimized Neural Network Classification for COVID-19 CT and X-Ray Imaging",
    long_description_content_type="text/markdown",
    packages=find_packages(),
    install_requires=['tensorflow==2.3.0',
