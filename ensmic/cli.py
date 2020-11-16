@@ -6,5 +6,3 @@
 
 # -> client start
 # -> rest_server start
-
-from covidxscan.preprocessing.bf_xray import fs_generator
