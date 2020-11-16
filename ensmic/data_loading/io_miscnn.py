@@ -27,7 +27,7 @@ import numpy as np
 from miscnn.data_loading.interfaces.abstract_io import Abstract_IO
 
 #-----------------------------------------------------#
-#                    I/O Interface                    #
+#               I/O Interface for MIScnn              #
 #-----------------------------------------------------#
 """ Data I/O Interface for JPEG, PNG or other 2D image files.
     Images are read by calling the imread function from the Pillow module.
@@ -44,7 +44,7 @@ Methods:
     load_details:           Load optional information
     save_prediction:        Save a prediction to file
 """
-class IO_Interface(Abstract_IO):
+class IO_MIScnn(Abstract_IO):
     #---------------------------------------------#
     #                   __init__                  #
     #---------------------------------------------#

@@ -16,5 +16,5 @@
 #  You should have received a copy of the GNU General Public License           #
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.       #
 #==============================================================================#
-from ensmic.data_loading.io_interface import IO_Interface
-from ensmic.data_loading.inference_IO import Inference_IO
+from ensmic.data_loading.io_miscnn import IO_MIScnn
+from ensmic.data_loading.io_inference import IO_Inference
