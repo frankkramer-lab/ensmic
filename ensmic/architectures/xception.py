@@ -49,7 +49,7 @@ class Architecture_Xception(Abstract_Architecture):
     #---------------------------------------------#
     #                Initialization               #
     #---------------------------------------------#
-    def __init__(self, fixed_input_shape):
+    def __init__(self, fixed_input_shape=(299, 299, 1)):
         # Parse parameter
         self.fixed_input_shape = fixed_input_shape
 

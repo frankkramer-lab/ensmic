@@ -49,7 +49,7 @@ class Architecture_VGG16(Abstract_Architecture):
     #---------------------------------------------#
     #                Initialization               #
     #---------------------------------------------#
-    def __init__(self, fixed_input_shape):
+    def __init__(self, fixed_input_shape=(224, 224, 1)):
         # Parse parameter
         self.fixed_input_shape = fixed_input_shape
 
