@@ -55,14 +55,14 @@ from tensorflow.keras.layers import (
 #-----------------------------------------------------#
 #             Architecture class: Resnest             #
 #-----------------------------------------------------#
-""" The classification variant of the ResNeSt101 architecture.
+""" The classification variant of the ResNeSt50 architecture.
 
 Methods:
     __init__                Object creation function
     create_model_2D:        Creating the 2D ResNeSt model for classification
     create_model_3D:        Creating the 3D ResNeSt model for classification
 """
-class Architecture_ResNeSt101(Abstract_Architecture):
+class Architecture_ResNeSt50(Abstract_Architecture):
     #---------------------------------------------#
     #                Initialization               #
     #---------------------------------------------#
