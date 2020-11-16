@@ -62,7 +62,7 @@ Methods:
     create_model_2D:        Creating the 2D ResNeSt model for classification
     create_model_3D:        Creating the 3D ResNeSt model for classification
 """
-class Architecture_ResNeSt50(Abstract_Architecture):
+class Architecture_ResNeSt101(Abstract_Architecture):
     #---------------------------------------------#
     #                Initialization               #
     #---------------------------------------------#
@@ -83,9 +83,9 @@ class Architecture_ResNeSt50(Abstract_Architecture):
                                        n_classes=n_labels,
                                        dropout_rate=self.dropout,
                                        fc_activation=self.fc_activation,
-                                       blocks_set=[3,4,6,3],
+                                       blocks_set=[3,4,23,3],
                                        radix=2, groups=1, bottleneck_width=64,
-                                       deep_stem=True, stem_width=32,
+                                       deep_stem=True, stem_width=64,
                                        avg_down=True, avd=True, avd_first=False)
         # Build model
         model = resnest_architecture.build()
