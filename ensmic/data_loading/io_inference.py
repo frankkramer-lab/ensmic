@@ -27,7 +27,7 @@ import numpy as np
 from miscnn.data_loading.data_io import create_directories
 
 #-----------------------------------------------------#
-#                     Inference IO                    #
+#               Inference IO Interface                #
 #-----------------------------------------------------#
 """ Class to handle all kinds of input/output functionality for inference.
 
@@ -36,7 +36,7 @@ Methods:
     load_inference:         Load already stored predictions
     store_inference:        Store a prediction to disk
 """
-class Inference_IO():
+class IO_Inference():
     #---------------------------------------------#
     #                Initialization               #
     #---------------------------------------------#
