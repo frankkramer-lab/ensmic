@@ -33,7 +33,7 @@
 # External libraries
 from tensorflow.keras.models import Model
 import tensorflow.keras.layers as layers
-from tensorflow.keras.applications.inception_resnet_v2 import InceptionResNetV2
+from tensorflow.keras.applications import InceptionResNetV2
 from miscnn.neural_network.architecture.abstract_architecture import Abstract_Architecture
 
 #-----------------------------------------------------#
@@ -50,7 +50,7 @@ class Architecture_InceptionResNetV2(Abstract_Architecture):
     #---------------------------------------------#
     #                Initialization               #
     #---------------------------------------------#
-    def __init__(self, fixed_input_shape):
+    def __init__(self, fixed_input_shape=(299, 299, 1)):
         # Parse parameter
         self.fixed_input_shape = fixed_input_shape
 

@@ -18,39 +18,38 @@
 #==============================================================================#
 #-----------------------------------------------------#
 #              REFERENCE IMPLEMENTATION:              #
-#          https://keras.io/api/applications/         #
+#            https://keras.io/applications/           #
 #-----------------------------------------------------#
-#                   REFERENCE PAPER:                  #
-#                     10 Dec 2015.                    #
-#       Learning Transferable Architectures for       #
-#             Scalable Image Recognition.             #
-#    Barret Zoph, Vijay Vasudevan, Jonathon Shlens,   #
-#                     Quoc V. Le.                     #
-#           https://arxiv.org/abs/1707.07012          #
+#                  REFERENCE PAPER:                   #
+#                    28 May 2019.                     #
+#      EfficientNet: Rethinking Model Scaling for     #
+#            Convolutional Neural Networks.           #
+#              Mingxing Tan, Quoc V. Le.              #
+#          https://arxiv.org/abs/1905.11946           #
 #-----------------------------------------------------#
 #                   Library imports                   #
 #-----------------------------------------------------#
 # External libraries
 from tensorflow.keras.models import Model
 import tensorflow.keras.layers as layers
-from tensorflow.keras.applications import NASNetLarge
+from tensorflow.keras.applications import EfficientNetB6
 from miscnn.neural_network.architecture.abstract_architecture import Abstract_Architecture
 
 #-----------------------------------------------------#
-#           Architecture class: NASNetLarge           #
+#           Architecture class: EfficientNet          #
 #-----------------------------------------------------#
-""" The classification variant of the NASNetLarge architecture.
+""" The classification variant of the EfficientNet architecture.
 
 Methods:
     __init__                Object creation function
-    create_model_2D:        Creating the 2D NASNetLarge model for classification
+    create_model_2D:        Creating the 2D EfficientNet model for classification
     create_model_3D:        -
 """
-class Architecture_NASNetLarge(Abstract_Architecture):
+class Architecture_EfficientNetB6(Abstract_Architecture):
     #---------------------------------------------#
     #                Initialization               #
     #---------------------------------------------#
-    def __init__(self, fixed_input_shape=(224, 224, 1)):
+    def __init__(self, fixed_input_shape=(299, 299, 1)):
         # Parse parameter
         self.fixed_input_shape = fixed_input_shape
 
@@ -58,11 +57,11 @@ class Architecture_NASNetLarge(Abstract_Architecture):
     #               Create 2D Model               #
     #---------------------------------------------#
     def create_model_2D(self, input_shape, n_labels=2):
-        # Obtain NASNetLarge as base model
-        base_model = NASNetLarge(include_top=False, weights=None,
-                                 input_tensor=None,
-                                 input_shape=self.fixed_input_shape,
-                                 pooling=None)
+        # Obtain EfficientNet as base model
+        base_model = EfficientNetB6(include_top=False, weights=None,
+                                    input_tensor=None,
+                                    input_shape=self.fixed_input_shape,
+                                    pooling=None)
         top_model = base_model.output
 
         # Add classification block as top model

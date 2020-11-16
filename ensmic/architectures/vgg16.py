@@ -63,9 +63,7 @@ class Architecture_VGG16(Abstract_Architecture):
         top_model = base_model.output
 
         # Add classification block as top model
-        top_model = layers.Flatten(name="flatten")(top_model)
-        top_model = layers.Dense(4096, activation="relu", name="fc1")(top_model)
-        top_model = layers.Dense(4096, activation="relu", name="fc2")(top_model)
+        top_model = layers.GlobalAveragePooling2D(name="avg_pool")(top_model)
         top_model = layers.Dense(n_labels, activation="softmax",
                                  name="predictions")(top_model)
 

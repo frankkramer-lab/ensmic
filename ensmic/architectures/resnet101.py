@@ -44,11 +44,11 @@ Methods:
     create_model_2D:        Creating the 2D ResNet model for classification
     create_model_3D:        -
 """
-class Architecture_ResNet(Abstract_Architecture):
+class Architecture_ResNet101(Abstract_Architecture):
     #---------------------------------------------#
     #                Initialization               #
     #---------------------------------------------#
-    def __init__(self, fixed_input_shape):
+    def __init__(self, fixed_input_shape=(224, 224, 1)):
         # Parse parameter
         self.fixed_input_shape = fixed_input_shape
 

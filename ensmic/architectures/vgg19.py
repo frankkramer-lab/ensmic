@@ -18,7 +18,8 @@
 #==============================================================================#
 #-----------------------------------------------------#
 #              REFERENCE IMPLEMENTATION:              #
-#         https://keras.io/applications/#vgg16        #
+#        https://keras.io/api/applications/vgg        #
+#                   /#vgg19-function                  #
 #-----------------------------------------------------#
 #                  REFERENCE PAPER:                   #
 #                    04 Sep 2014.                     #
@@ -45,7 +46,7 @@ Methods:
     create_model_2D:        Creating the 2D VGG-19 model for classification
     create_model_3D:        -
 """
-class Architecture_VGG16(Abstract_Architecture):
+class Architecture_VGG19(Abstract_Architecture):
     #---------------------------------------------#
     #                Initialization               #
     #---------------------------------------------#
@@ -63,9 +64,7 @@ class Architecture_VGG16(Abstract_Architecture):
         top_model = base_model.output
 
         # Add classification block as top model
-        top_model = layers.Flatten(name="flatten")(top_model)
-        top_model = layers.Dense(4096, activation="relu", name="fc1")(top_model)
-        top_model = layers.Dense(4096, activation="relu", name="fc2")(top_model)
+        top_model = layers.GlobalAveragePooling2D(name="avg_pool")(top_model)
         top_model = layers.Dense(n_labels, activation="softmax",
                                  name="predictions")(top_model)
 

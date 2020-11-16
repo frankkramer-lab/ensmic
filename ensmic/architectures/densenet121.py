@@ -32,24 +32,24 @@
 # External libraries
 from tensorflow.keras.models import Model
 import tensorflow.keras.layers as layers
-from tensorflow.keras.applications.densenet import DenseNet121
+from tensorflow.keras.applications import DenseNet121
 from miscnn.neural_network.architecture.abstract_architecture import Abstract_Architecture
 
 #-----------------------------------------------------#
-#            Architecture class: DenseNet             #
+#           Architecture class: DenseNet121           #
 #-----------------------------------------------------#
-""" The classification variant of the DenseNet architecture.
+""" The classification variant of the DenseNet121 architecture.
 
 Methods:
     __init__                Object creation function
-    create_model_2D:        Creating the 2D DenseNet model for classification
+    create_model_2D:        Creating the 2D DenseNet121 model for classification
     create_model_3D:        -
 """
-class Architecture_DenseNet(Abstract_Architecture):
+class Architecture_DenseNet121(Abstract_Architecture):
     #---------------------------------------------#
     #                Initialization               #
     #---------------------------------------------#
-    def __init__(self, fixed_input_shape):
+    def __init__(self, fixed_input_shape=(224, 224, 1)):
         # Parse parameter
         self.fixed_input_shape = fixed_input_shape
 
@@ -57,7 +57,7 @@ class Architecture_DenseNet(Abstract_Architecture):
     #               Create 2D Model               #
     #---------------------------------------------#
     def create_model_2D(self, input_shape, n_labels=2):
-        # Obtain DenseNet as base model
+        # Obtain DenseNet121 as base model
         base_model = DenseNet121(include_top=False, weights=None,
                                  input_tensor=None,
                                  input_shape=self.fixed_input_shape,
