@@ -27,7 +27,7 @@ import numpy as np
 from miscnn.data_loading.interfaces.abstract_io import Abstract_IO
 
 #-----------------------------------------------------#
-#               Screening I/O Interface               #
+#                    I/O Interface                    #
 #-----------------------------------------------------#
 """ Data I/O Interface for JPEG, PNG or other 2D image files.
     Images are read by calling the imread function from the Pillow module.
@@ -44,7 +44,7 @@ Methods:
     load_details:           Load optional information
     save_prediction:        Save a prediction to file
 """
-class SCREENING_interface(Abstract_IO):
+class IO_Interface(Abstract_IO):
     #---------------------------------------------#
     #                   __init__                  #
     #---------------------------------------------#
@@ -67,9 +67,9 @@ class SCREENING_interface(Abstract_IO):
                 "Data path, {}, could not be resolved".format(str(input_path))
             )
         # Cache data and image directory
-        self.data_directory = input_path
+        self.img_directory = os.path.join(input_path, "images")
         # Identify samples
-        sample_list = os.listdir(input_path)
+        sample_list = os.listdir(self.img_directory)
         # Sanity check all samples
         for i in reversed(range(0, len(sample_list))):
             # Remove every sample which does not match image typ
@@ -83,7 +83,7 @@ class SCREENING_interface(Abstract_IO):
             # Remove image type tag from index name
             sample_list[i] = sample_list[i][:-(len(self.img_type)+1)]
         # Load classification file if existent in the data set directory
-        path_classes = os.path.join(self.data_directory,
+        path_classes = os.path.join(input_path,
                                     str(self.seed) + ".classes.pickle")
         if os.path.exists(path_classes):
             with open(path_classes, "rb") as pickle_reader:
@@ -96,7 +96,7 @@ class SCREENING_interface(Abstract_IO):
     #---------------------------------------------#
     def load_image(self, index):
         # Make sure that the image file exists in the data set directory
-        img_path = os.path.join(self.data_directory, index + "." + \
+        img_path = os.path.join(self.img_directory, index + "." + \
                                 self.img_type)
         if not os.path.exists(img_path):
             raise ValueError(
