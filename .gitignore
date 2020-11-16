@@ -13,6 +13,7 @@ data/
 
 # Testing
 debug.sh
+debug.py
 
 # Datasets links
 data.x-ray
