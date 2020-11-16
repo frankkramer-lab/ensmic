@@ -16,3 +16,161 @@
 #  You should have received a copy of the GNU General Public License           #
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.       #
 #==============================================================================#
+#-----------------------------------------------------#
+#                   Library imports                   #
+#-----------------------------------------------------#
+# External libraries
+import os
+# MIScnn libraries
+from miscnn import Preprocessor, Data_IO, Neural_Network, Data_Augmentation
+from miscnn.data_loading.data_io import create_directories
+from miscnn.utils.plotting import plot_validation
+# TensorFlow libraries
+import tensorflow as tf
+from tensorflow.keras.callbacks import ModelCheckpoint, CSVLogger, EarlyStopping, \
+                                       ReduceLROnPlateau
+from tensorflow.keras.losses import CategoricalCrossentropy
+from tensorflow.keras.metrics import CategoricalAccuracy
+# Internal libraries/scripts
+from ensmic.data_loading import IO_MIScnn, IO_Inference, load_sampling
+from ensmic.subfunctions import Resize, SegFix
+from ensmic.architectures import architecture_dict, architectures
+
+#-----------------------------------------------------#
+#                    Configurations                   #
+#-----------------------------------------------------#
+# Initialize configuration dictionary
+config = {}
+# Path to data directory
+config["path_data"] = "data"
+# Path to result directory
+config["path_results"] = "results"
+# Seed (if training multiple runs)
+config["seed"] = "x-ray"
+
+# Adjust possible classes
+config["class_dict"] = {'NORMAL': 0,
+                        'Viral Pneumonia': 1,
+                        'COVID-19': 2}
+# Architectures for Classification
+config["architecture_list"] = architectures
+
+# Preprocessor Configurations
+config["threads"] = 2                  # 8
+config["batch_size"] = 2               # 48
+# Neural Network Configurations
+config["epochs"] = 500
+config["iterations"] = 50
+config["workers"] = 3                  # 5
+
+# GPU Configurations
+config["gpu_id"] = 0
+
+#-----------------------------------------------------#
+#                 MIScnn Data IO Setup                #
+#-----------------------------------------------------#
+def setup_miscnn(architecture, config):
+    # Initialize the Image I/O interface based on the covidxscan file structure
+    interface = IO_MIScnn(class_dict=config["class_dict"], seed=config["seed"])
+
+    # Create the MIScnn Data I/O object
+    data_io = Data_IO(interface, config["path_data"], delete_batchDir=False)
+
+    # Create and configure the Data Augmentation class
+    data_aug = Data_Augmentation(cycles=1, scaling=True, rotations=True,
+                                 elastic_deform=True, mirror=True,
+                                 brightness=True, contrast=True,
+                                 gamma=True, gaussian_noise=True)
+    data_aug.seg_augmentation = False
+
+    # Initialize architecture of the neural network
+    nn_architecture = architecture_dict[architecture]()
+
+    # Specify subfunctions for preprocessing
+    input_shape = nn_architecture.fixed_input_shape
+    sf = [SegFix(), Resize(new_shape=input_shape)]
+
+    # Create and configure the MIScnn Preprocessor class
+    pp = Preprocessor(data_io, data_aug=data_aug,
+                      batch_size=config["batch_size"],
+                      subfunctions=sf,
+                      prepare_subfunctions=True,
+                      prepare_batches=False,
+                      analysis="fullimage",
+                      use_multiprocessing=True)
+    pp.mp_threads = config["threads"]
+
+    # Create the Neural Network model
+    model = Neural_Network(preprocessor=pp, loss=CategoricalCrossentropy(),
+                           architecture=nn_architecture,
+                           metrics=[CategoricalAccuracy()],
+                           batch_queue_size=10, workers=config["workers"],
+                           learninig_rate=0.001)
+    # Return MIScnn model
+    return model
+
+#-----------------------------------------------------#
+#            Prepare Result File Structure            #
+#-----------------------------------------------------#
+def prepare_rs(architecture, path_results, seed):
+    # Create results directory
+    if not os.path.exists(path_results) : os.mkdir(path_results)
+    # Create subdirectories for phase & architecture
+    path_phase = os.path.join(path_results, "phase_one" + "." + str(seed))
+    if not os.path.exists(path_phase) : os.mkdir(path_phase)
+    path_arch = os.path.join(path_phase, architecture)
+    if not os.path.exists(path_arch) : os.mkdir(path_arch)
+    # Return path to architecture result directory
+    return path_arch
+
+#-----------------------------------------------------#
+#                     Run Training                    #
+#-----------------------------------------------------#
+def run_training(model, architecture, config):
+    # Load sampling
+    samples_train = load_sampling(path_data=config["path_data"],
+                                  subset="train-model",
+                                  seed=config["seed"])
+    samples_val = load_sampling(path_data=config["path_data"],
+                                subset="train-model",
+                                seed=config["seed"])
+
+    # Create result directory
+    path_res = prepare_rs(architecture, path_results=config["path_results"],
+                          seed=config["seed"])
+    # Reset Neural Network model weights
+    model.reset_weights()
+
+    # Define callbacks
+    cb_mc = ModelCheckpoint(os.path.join(path_res, "model.best.hdf5"),
+                            monitor="val_loss", verbose=1,
+                            save_best_only=True, mode="min")
+    cb_cl = CSVLogger(os.path.join(path_res, "logs.csv"), separator=',')
+    cb_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=15,
+                              verbose=1, mode='min', min_delta=0.0001,
+                              cooldown=1, min_lr=0.00001)
+    cb_es = EarlyStopping(monitor="val_loss", patience=50)
+    callbacks = [cb_mc, cb_cl, cb_lr, cb_es]
+
+    # Run validation
+    history = model.evaluate(samples_train, samples_val,
+                             epochs=config["epochs"],
+                             iterations=config["iterations"],
+                             callbacks=callbacks)
+    # Dump latest model
+    model.dump(os.path.join(path_res, "model.latest.hdf5"))
+    # Plot visualizations
+    plot_validation(history.history, model.metrics, path_res)
+
+#-----------------------------------------------------#
+#                     Main Runner                     #
+#-----------------------------------------------------#
+# Adjust GPU utilization
+os.environ["CUDA_VISIBLE_DEVICES"] = str(config["gpu_id"])
+
+# Run Training for all architectures
+for architecture in config["architecture_list"]:
+    print("Run training for Architecture:", architecture)
+    model = setup_miscnn(architecture, config)
+    run_training(model, architecture, config)
+    print("Finished training for Architecture:", architecture)
