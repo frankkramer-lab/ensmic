@@ -16,5 +16,5 @@
 #  You should have received a copy of the GNU General Public License           #
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.       #
 #==============================================================================#
-from covidxscan.subfunctions.sf_class import SegFix
-from covidxscan.subfunctions.sf_resize import Resize
+from ensmic.subfunctions.sf_class import SegFix
+from ensmic.subfunctions.sf_resize import Resize
