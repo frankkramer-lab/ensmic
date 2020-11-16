@@ -16,6 +16,18 @@
 #  You should have received a copy of the GNU General Public License           #
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.       #
 #==============================================================================#
-from ensmic.data_loading.io_miscnn import IO_MIScnn
-from ensmic.data_loading.io_inference import IO_Inference
-from ensmic.data_loading.sampling_loader import load_sampling
+#-----------------------------------------------------#
+#                   Library imports                   #
+#-----------------------------------------------------#
+# External libraries
+import os
+import json
+
+#-----------------------------------------------------#
+#               Load Sampling from disk               #
+#-----------------------------------------------------#
+def load_sampling(path_data, subset, seed):
+    path_sampling = os.path.join(path_data, str(seed) + ".sampling.json")
+    with open(path_sampling, "r") as jsonfile:
+        sampling = json.load(jsonfile)
+    return sampling[subset]
