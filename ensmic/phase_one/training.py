@@ -56,12 +56,12 @@ config["class_dict"] = {'NORMAL': 0,
 config["architecture_list"] = architectures
 
 # Preprocessor Configurations
-config["threads"] = 2                  # 8
-config["batch_size"] = 2               # 48
+config["threads"] = 8
+config["batch_size"] = 48
 # Neural Network Configurations
 config["epochs"] = 500
 config["iterations"] = 50
-config["workers"] = 3                  # 5
+config["workers"] = 8
 
 # GPU Configurations
 config["gpu_id"] = 0
@@ -171,6 +171,10 @@ os.environ["CUDA_VISIBLE_DEVICES"] = str(config["gpu_id"])
 # Run Training for all architectures
 for architecture in config["architecture_list"]:
     print("Run training for Architecture:", architecture)
-    model = setup_miscnn(architecture, config)
-    run_training(model, architecture, config)
-    print("Finished training for Architecture:", architecture)
+     try:
+         model = setup_miscnn(architecture, config)
+         run_training(model, architecture, config)
+         print("Finished training for Architecture:", architecture)
+     except:
+         print("An exception occurred.")
+         print("Architecture:", architecture)
