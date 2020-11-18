@@ -57,10 +57,10 @@ config["architecture_list"] = architectures
 
 # Preprocessor Configurations
 config["threads"] = 8
-config["batch_size"] = 48
+config["batch_size"] = 32
 # Neural Network Configurations
 config["epochs"] = 500
-config["iterations"] = 50
+config["iterations"] = 60
 config["workers"] = 8
 
 # GPU Configurations
@@ -171,10 +171,10 @@ os.environ["CUDA_VISIBLE_DEVICES"] = str(config["gpu_id"])
 # Run Training for all architectures
 for architecture in config["architecture_list"]:
     print("Run training for Architecture:", architecture)
-     try:
-         model = setup_miscnn(architecture, config)
-         run_training(model, architecture, config)
-         print("Finished training for Architecture:", architecture)
-     except:
-         print("An exception occurred.")
-         print("Architecture:", architecture)
+    try:
+        model = setup_miscnn(architecture, config)
+        run_training(model, architecture, config)
+        print("Finished training for Architecture:", architecture)
+    except:
+        print("An exception occurred.")
+        print("Architecture:", architecture)
