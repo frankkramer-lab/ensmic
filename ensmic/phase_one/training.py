@@ -60,7 +60,7 @@ config["threads"] = 8
 config["batch_size"] = 32
 # Neural Network Configurations
 config["epochs"] = 500
-config["iterations"] = 60
+config["iterations"] = 75
 config["workers"] = 8
 
 # GPU Configurations
