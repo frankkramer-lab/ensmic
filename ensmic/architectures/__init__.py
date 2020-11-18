@@ -66,9 +66,9 @@ architecture_dict = {"VGG16": VGG16,
                      "EfficientNetB2": EfficientNetB2,
                      "EfficientNetB3": EfficientNetB3,
                      "EfficientNetB4": EfficientNetB4,
-                     "EfficientNetB5": EfficientNetB5,
-                     "EfficientNetB6": EfficientNetB6,
-                     "EfficientNetB7": EfficientNetB7,
+                     #"EfficientNetB5": EfficientNetB5,     # Removed due to too large VRAM requirement for batchsize 32
+                     #"EfficientNetB6": EfficientNetB6,     # Removed due to too large VRAM requirement for batchsize 32
+                     #"EfficientNetB7": EfficientNetB7,     # Removed due to too large VRAM requirement for batchsize 32
                      "InceptionResNetV2": InceptionResNetV2,
                      "InceptionV3": InceptionV3,
                      "MobileNet": MobileNet,
