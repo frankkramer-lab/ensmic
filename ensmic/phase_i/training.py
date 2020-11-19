@@ -24,7 +24,6 @@ import argparse
 import os
 # MIScnn libraries
 from miscnn import Preprocessor, Data_IO, Neural_Network, Data_Augmentation
-from miscnn.data_loading.data_io import create_directories
 from miscnn.utils.plotting import plot_validation
 # TensorFlow libraries
 from tensorflow.keras.callbacks import ModelCheckpoint, CSVLogger, EarlyStopping, \
@@ -32,7 +31,7 @@ from tensorflow.keras.callbacks import ModelCheckpoint, CSVLogger, EarlyStopping
 from tensorflow.keras.losses import CategoricalCrossentropy
 from tensorflow.keras.metrics import CategoricalAccuracy
 # Internal libraries/scripts
-from ensmic.data_loading import IO_MIScnn, IO_Inference, load_sampling
+from ensmic.data_loading import IO_MIScnn, load_sampling
 from ensmic.subfunctions import Resize, SegFix
 from ensmic.architectures import architecture_dict, architectures
 
