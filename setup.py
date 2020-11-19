@@ -13,6 +13,7 @@ setup(
    long_description_content_type="text/markdown",
    packages=find_packages(),
    install_requires=['tensorflow==2.3.1',
+                     'keras-applications==1.0.8',
                      'miscnn==1.1.2',
                      'pandas',
                      'pillow==7.2.0',
