@@ -54,11 +54,11 @@ from ensmic.architectures.vgg16 import Architecture_VGG16 as VGG16
 from ensmic.architectures.vgg19 import Architecture_VGG19 as VGG19
 # Xception
 from ensmic.architectures.xception import Architecture_Xception as Xception
-
+# AlexNet
+from ensmic.architectures.alexnet import Architecture_AlexNet as AlexNet
 
 # Architecture Dictionary
-architecture_dict = {"VGG16": VGG16,
-                     "VGG19": VGG19,
+architecture_dict = {"AlexNet": AlexNet,
                      "DenseNet121": DenseNet121,
                      "DenseNet169": DenseNet169,
                      "EfficientNetB0": EfficientNetB0,
@@ -83,6 +83,8 @@ architecture_dict = {"VGG16": VGG16,
                      "ResNet152V2": ResNet152V2,
                      "ResNeSt50": ResNeSt50,
                      "ResNeSt101": ResNeSt101,
+                     "VGG16": VGG16,
+                     "VGG19": VGG19,
                      "Xception": Xception
                     }
 # List of implemented architectures
