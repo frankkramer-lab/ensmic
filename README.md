@@ -4,6 +4,12 @@ A survey on...?
 
 ensmic?
 
+nohup sh -c "PYTHONUNBUFFERED=x python phase_one/training.py 2>&1 | tee results/phase_one.x-ray/output.log" &
+
+nohup 2>&1 sh -c "./run.sh" &> log.txt &
+
+nohup sh -c "python covidxscan/validation/validate_screening.py --architecture VGG16 --gpu 0 >output.VGG16.log 2>&1" &
+
 
 ```sh
 python covidxscan/validation/prepare_screening.py
@@ -70,8 +76,30 @@ for each top3 architecture:
 
 Note: 3-CV instead of 5-CV?
 
+### Phase 4:
+Utilizing data augmentation for inference.
+
+One model -> Multiple predictions on data augmentated testing -> ensemble learning -> final prediction
+
+1x train-model & 1x val-model
+-> Multiple predictions on 1x val-ensemble & 1x test set
+-> Ensemble Learning on 1x val-ensemble
+-> Evaluation on 1x test set
+
 --------------------------------------------------------------------------------
 
+## Usage
+
+```sh
+python ensmic/preprocessing/prepare_fs.xray.py
+```
+
+```sh
+python ensmic/phase_one/training.py -m "x-ray"
+python ensmic/phase_one/training.py -m "ct"
+```
+
+--------------------------------------------------------------------------------
 Interesting datasets:
 - https://www.kaggle.com/plameneduardo/sarscov2-ctscan-dataset?select=non-COVID
 - https://bimcv.cipf.es/bimcv-projects/bimcv-covid19/
