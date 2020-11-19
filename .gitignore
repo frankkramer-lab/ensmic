@@ -10,6 +10,7 @@ dist/
 batches/
 predictions/
 data/
+results/
 
 # Testing
 debug.sh
