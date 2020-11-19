@@ -49,6 +49,9 @@ from ensmic.architectures.resnet152v2 import Architecture_ResNet152V2 as ResNet1
 # ResNeSt
 from ensmic.architectures.resnest50 import Architecture_ResNeSt50 as ResNeSt50
 from ensmic.architectures.resnest101 import Architecture_ResNeSt101 as ResNeSt101
+# ResNeXt
+from ensmic.architectures.resnext50 import Architecture_ResNeXt50 as ResNeXt50
+from ensmic.architectures.resnext101 import Architecture_ResNeXt101 as ResNeXt101
 # VGG
 from ensmic.architectures.vgg16 import Architecture_VGG16 as VGG16
 from ensmic.architectures.vgg19 import Architecture_VGG19 as VGG19
@@ -83,6 +86,8 @@ architecture_dict = {"AlexNet": AlexNet,
                      "ResNet152V2": ResNet152V2,
                      "ResNeSt50": ResNeSt50,
                      "ResNeSt101": ResNeSt101,
+                     "ResNeXt50": ResNeXt50,
+                     "ResNeXt101": ResNeXt101,
                      "VGG16": VGG16,
                      "VGG19": VGG19,
                      "Xception": Xception
