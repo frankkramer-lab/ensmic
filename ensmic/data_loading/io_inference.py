@@ -40,7 +40,7 @@ class IO_Inference():
     #---------------------------------------------#
     #                Initialization               #
     #---------------------------------------------#
-    def __init__(self, class_dict, outdir="inference"):
+    def __init__(self, class_dict, path):
         # Create output directory
         self.outdir = create_directories(outdir)
         # Store class dictionary

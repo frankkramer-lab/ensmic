@@ -24,8 +24,6 @@ import argparse
 import os
 # MIScnn libraries
 from miscnn import Preprocessor, Data_IO, Neural_Network, Data_Augmentation
-from miscnn.data_loading.data_io import create_directories
-from miscnn.utils.plotting import plot_validation
 # TensorFlow libraries
 from tensorflow.keras.losses import CategoricalCrossentropy
 from tensorflow.keras.metrics import CategoricalAccuracy
@@ -72,8 +70,6 @@ config["architecture_list"] = architectures
 config["threads"] = 8
 config["batch_size"] = 32
 # Neural Network Configurations
-config["epochs"] = 1000
-config["iterations"] = 75
 config["workers"] = 8
 
 # GPU Configurations
@@ -82,7 +78,7 @@ config["gpu_id"] = int(args.gpu)
 #-----------------------------------------------------#
 #                 MIScnn Data IO Setup                #
 #-----------------------------------------------------#
-def setup_miscnn(architecture, config):
+def setup_miscnn(architecture, config, best_model=True):
     # Initialize the Image I/O interface based on the covidxscan file structure
     interface = IO_MIScnn(class_dict=config["class_dict"], seed=config["seed"])
 
@@ -119,61 +115,39 @@ def setup_miscnn(architecture, config):
                            metrics=[CategoricalAccuracy()],
                            batch_queue_size=10, workers=config["workers"],
                            learninig_rate=0.001)
+
+    # Obtain trained model file
+    path_arch = os.path.join(config["path_results"], "phase_i" + "." + \
+                             config["seed"], architecture)
+    if best_model : path_model = os.path.join(path_arch, "model.best.hdf5")
+    else : path_model = os.path.join(path_arch, "model.latest.hdf5")
+    # Load trained model from disk
+    model.load(path_model)
+
     # Return MIScnn model
     return model
 
 #-----------------------------------------------------#
-#            Prepare Result File Structure            #
+#                    Run Inference                    #
 #-----------------------------------------------------#
-def prepare_rs(architecture, path_results, seed):
-    # Create results directory
-    if not os.path.exists(path_results) : os.mkdir(path_results)
-    # Create subdirectories for phase & architecture
-    path_phase = os.path.join(path_results, "phase_one" + "." + str(seed))
-    if not os.path.exists(path_phase) : os.mkdir(path_phase)
-    path_arch = os.path.join(path_phase, architecture)
-    if not os.path.exists(path_arch) : os.mkdir(path_arch)
-    # Return path to architecture result directory
-    return path_arch
-
-#-----------------------------------------------------#
-#                     Run Training                    #
-#-----------------------------------------------------#
-def run_training(model, architecture, config):
+def run_inference(dataset, model, architecture, config):
     # Load sampling
-    samples_train = load_sampling(path_data=config["path_data"],
-                                  subset="train-model",
-                                  seed=config["seed"])
-    samples_val = load_sampling(path_data=config["path_data"],
-                                subset="train-model",
-                                seed=config["seed"])
+    samples = load_sampling(path_data=config["path_data"],
+                            subset=dataset,
+                            seed=config["seed"])
+    # Get result subdirectory for current architecture
+    path_arch = os.path.join(config["path_results"], "phase_i" + "." + \
+                             config["seed"], architecture)
 
-    # Create result directory
-    path_res = prepare_rs(architecture, path_results=config["path_results"],
-                          seed=config["seed"])
-    # Reset Neural Network model weights
-    model.reset_weights()
+    # Create an Inference IO Interface
+    path_inf = os.path.join(path_arch, "inference" + "." + dataset + ".json")
+    infIO = IO_Inference(config["class_dict"], path=path_inf)
 
-    # Define callbacks
-    cb_mc = ModelCheckpoint(os.path.join(path_res, "model.best.hdf5"),
-                            monitor="val_loss", verbose=1,
-                            save_best_only=True, mode="min")
-    cb_cl = CSVLogger(os.path.join(path_res, "logs.csv"), separator=',')
-    cb_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=15,
-                              verbose=1, mode='min', min_delta=0.0001,
-                              cooldown=1, min_lr=0.00001)
-    cb_es = EarlyStopping(monitor="val_loss", baseline=0.5, patience=75)
-    callbacks = [cb_mc, cb_cl, cb_lr, cb_es]
-
-    # Run validation
-    history = model.evaluate(samples_train, samples_val,
-                             epochs=config["epochs"],
-                             iterations=config["iterations"],
-                             callbacks=callbacks)
-    # Dump latest model
-    model.dump(os.path.join(path_res, "model.latest.hdf5"))
-    # Plot visualizations
-    plot_validation(history.history, model.metrics, path_res)
+    # Compute prediction for each sample
+    for index in samples:
+        pred = model.predict([index], return_output=True,
+                             activation_output=True)
+        infIO.store_inference(fold, pred[0], index) #TODOODOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
 
 #-----------------------------------------------------#
 #                     Main Runner                     #
@@ -181,45 +155,17 @@ def run_training(model, architecture, config):
 # Adjust GPU utilization
 os.environ["CUDA_VISIBLE_DEVICES"] = str(config["gpu_id"])
 
-# Run Training for all architectures
+# Run Inference for all architectures
 for architecture in config["architecture_list"]:
-    print("Run training for Architecture:", architecture)
+    print("Run inference for Architecture:", architecture)
     try:
+        # Setup pipeline
         model = setup_miscnn(architecture, config)
-        run_training(model, architecture, config)
-        print("Finished training for Architecture:", architecture)
+        # Compute predictions for subset: val-model
+        run_inference("val-model", architecture, config)
+        # Compute predictions for subset: test
+        run_inference("test", architecture, config)
+        print("Finished inference for Architecture:", architecture)
     except:
         print("An exception occurred.")
         print("Architecture:", architecture)
-
-
-# #-----------------------------------------------------#
-# #                    Run Inference                    #
-# #-----------------------------------------------------#
-# def run_inference(model, config):
-#     print(config["design"], "-", "Compute predictions for test set")
-#     # Obtain inference subdirectory
-#     infdir = os.path.join(config["path_val"], "testing")
-#     # Load sampling fold from disk
-#     testing_path = os.path.join(infdir, "sample_list.json")
-#     _, testing = load_disk2fold(testing_path)
-#
-#     # Create an inference IO handler
-#     infIO = Inference_IO(config["class_dict"],
-#                          outdir=os.path.join(infdir, config["design"]))
-#     # Iterate over each fold model
-#     for fold in range(0, config["k_folds"]):
-#         # Obtain subdirectory
-#         archdir = os.path.join(config["path_val"], "fold_" + str(fold),
-#                                config["design"])
-#         # Load model
-#         model.load(os.path.join(archdir, "model.best.hdf5"))
-#         # Compute prediction for each sample
-#         for index in testing:
-#             pred = model.predict([index], return_output=True,
-#                                  activation_output=True)
-#             infIO.store_inference(fold, pred[0], index)
-#     # Summarize inference results
-#     for index in testing:
-#         infIO.summarize_inference(index)
-#
