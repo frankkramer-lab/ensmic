@@ -131,7 +131,7 @@ def prepare_rs(architecture, path_results, seed):
     # Create results directory
     if not os.path.exists(path_results) : os.mkdir(path_results)
     # Create subdirectories for phase & architecture
-    path_phase = os.path.join(path_results, "phase_one" + "." + str(seed))
+    path_phase = os.path.join(path_results, "phase_i" + "." + str(seed))
     if not os.path.exists(path_phase) : os.mkdir(path_phase)
     path_arch = os.path.join(path_phase, architecture)
     if not os.path.exists(path_arch) : os.mkdir(path_arch)
