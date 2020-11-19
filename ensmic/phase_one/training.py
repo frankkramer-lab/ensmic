@@ -27,7 +27,6 @@ from miscnn import Preprocessor, Data_IO, Neural_Network, Data_Augmentation
 from miscnn.data_loading.data_io import create_directories
 from miscnn.utils.plotting import plot_validation
 # TensorFlow libraries
-import tensorflow as tf
 from tensorflow.keras.callbacks import ModelCheckpoint, CSVLogger, EarlyStopping, \
                                        ReduceLROnPlateau
 from tensorflow.keras.losses import CategoricalCrossentropy
