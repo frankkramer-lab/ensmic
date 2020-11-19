@@ -20,6 +20,7 @@
 #                   Library imports                   #
 #-----------------------------------------------------#
 # External libraries
+import argparse
 import os
 # MIScnn libraries
 from miscnn import Preprocessor, Data_IO, Neural_Network, Data_Augmentation
@@ -37,6 +38,16 @@ from ensmic.subfunctions import Resize, SegFix
 from ensmic.architectures import architecture_dict, architectures
 
 #-----------------------------------------------------#
+#                      Argparser                      #
+#-----------------------------------------------------#
+parser = argparse.ArgumentParser(description="Analysis of COVID-19 Classification via Ensemble Learning")
+parser.add_argument("-m", "--modularity", help="Data modularity selection: ['x-ray', 'ct']",
+                    required=True, type=str, dest="seed")
+parser.add_argument("-g", "--gpu", help="GPU ID selection for multi cluster",
+                    required=False, type=int, dest="gpu", default=0)
+args = parser.parse_args()
+
+#-----------------------------------------------------#
 #                    Configurations                   #
 #-----------------------------------------------------#
 # Initialize configuration dictionary
@@ -46,12 +57,17 @@ config["path_data"] = "data"
 # Path to result directory
 config["path_results"] = "results"
 # Seed (if training multiple runs)
-config["seed"] = "x-ray"
+config["seed"] = args.seed
 
 # Adjust possible classes
-config["class_dict"] = {'NORMAL': 0,
-                        'Viral Pneumonia': 1,
-                        'COVID-19': 2}
+if config["seed"] == "x-ray":
+    config["class_dict"] = {'NORMAL': 0,
+                            'Viral Pneumonia': 1,
+                            'COVID-19': 2}
+else:
+    print("ERROR - Unknwon:", config["seed"])
+    pass
+
 # Architectures for Classification
 config["architecture_list"] = architectures
 
@@ -64,7 +80,7 @@ config["iterations"] = 75
 config["workers"] = 8
 
 # GPU Configurations
-config["gpu_id"] = 0
+config["gpu_id"] = int(args.gpu)
 
 #-----------------------------------------------------#
 #                 MIScnn Data IO Setup                #
