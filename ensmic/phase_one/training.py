@@ -59,7 +59,7 @@ config["architecture_list"] = architectures
 config["threads"] = 8
 config["batch_size"] = 32
 # Neural Network Configurations
-config["epochs"] = 500
+config["epochs"] = 1000
 config["iterations"] = 75
 config["workers"] = 8
 
@@ -149,7 +149,7 @@ def run_training(model, architecture, config):
     cb_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=15,
                               verbose=1, mode='min', min_delta=0.0001,
                               cooldown=1, min_lr=0.00001)
-    cb_es = EarlyStopping(monitor="val_loss", patience=50)
+    cb_es = EarlyStopping(monitor="val_loss", baseline=0.5, patience=75)
     callbacks = [cb_mc, cb_cl, cb_lr, cb_es]
 
     # Run validation
