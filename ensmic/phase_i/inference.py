@@ -147,7 +147,7 @@ def run_inference(dataset, model, architecture, config):
     for index in samples:
         pred = model.predict([index], return_output=True,
                              activation_output=True)
-        infIO.store_inference(fold, pred[0], index) #TODOODOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
+        infIO.store_inference(index, pred[0])
 
 #-----------------------------------------------------#
 #                     Main Runner                     #
@@ -157,15 +157,16 @@ os.environ["CUDA_VISIBLE_DEVICES"] = str(config["gpu_id"])
 
 # Run Inference for all architectures
 for architecture in config["architecture_list"]:
+    if architecture != "MobileNetV2" : continue
     print("Run inference for Architecture:", architecture)
-    try:
-        # Setup pipeline
-        model = setup_miscnn(architecture, config)
-        # Compute predictions for subset: val-model
-        run_inference("val-model", architecture, config)
-        # Compute predictions for subset: test
-        run_inference("test", architecture, config)
-        print("Finished inference for Architecture:", architecture)
-    except:
-        print("An exception occurred.")
-        print("Architecture:", architecture)
+    #try:
+    # Setup pipeline
+    model = setup_miscnn(architecture, config)
+    # Compute predictions for subset: val-model
+    run_inference("val-model", model, architecture, config)
+    # Compute predictions for subset: test
+    run_inference("test", model, architecture, config)
+    print("Finished inference for Architecture:", architecture)
+    #except:
+        # print("An exception occurred.")
+        # print("Architecture:", architecture)
