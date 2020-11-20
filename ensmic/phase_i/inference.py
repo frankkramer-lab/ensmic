@@ -159,14 +159,14 @@ os.environ["CUDA_VISIBLE_DEVICES"] = str(config["gpu_id"])
 for architecture in config["architecture_list"]:
     if architecture != "MobileNetV2" : continue
     print("Run inference for Architecture:", architecture)
-    #try:
-    # Setup pipeline
-    model = setup_miscnn(architecture, config)
-    # Compute predictions for subset: val-model
-    run_inference("val-model", model, architecture, config)
-    # Compute predictions for subset: test
-    run_inference("test", model, architecture, config)
-    print("Finished inference for Architecture:", architecture)
-    #except:
-        # print("An exception occurred.")
-        # print("Architecture:", architecture)
+    try:
+        # Setup pipeline
+        model = setup_miscnn(architecture, config)
+        # Compute predictions for subset: val-model
+        run_inference("val-model", model, architecture, config)
+        # Compute predictions for subset: test
+        run_inference("test", model, architecture, config)
+        print("Finished inference for Architecture:", architecture)
+    except:
+        print("An exception occurred.")
+        print("Architecture:", architecture)
