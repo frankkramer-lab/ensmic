@@ -67,7 +67,8 @@ class IO_MIScnn(Abstract_IO):
                 "Data path, {}, could not be resolved".format(str(input_path))
             )
         # Cache data and image directory
-        self.img_directory = os.path.join(input_path, "images")
+        self.img_directory = os.path.join(input_path, self.seed + "." + \
+                                          "images")
         # Identify samples
         sample_list = os.listdir(self.img_directory)
         # Sanity check all samples

@@ -56,7 +56,7 @@ if not os.path.exists(path_input):
     )
 # create ensmic data structure
 if not os.path.exists(path_target) : os.mkdir(path_target)
-img_dir = os.path.join(path_target, "images")
+img_dir = os.path.join(path_target, seed + "." + "images")
 if not os.path.exists(img_dir) : os.mkdir(img_dir)
 # Initialize class dictionary and index
 class_dict = {}
