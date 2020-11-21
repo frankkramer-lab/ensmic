@@ -157,7 +157,6 @@ os.environ["CUDA_VISIBLE_DEVICES"] = str(config["gpu_id"])
 
 # Run Inference for all architectures
 for architecture in config["architecture_list"]:
-    if architecture != "MobileNetV2" : continue
     print("Run inference for Architecture:", architecture)
     try:
         # Setup pipeline
