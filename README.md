@@ -60,6 +60,16 @@ Train each ensemble method on models predictions for 1x val-ensemble set
 Run classifier on predictions for 1x test set
 
 ### Phase 3:
+Utilizing data augmentation for inference.
+
+One model -> Multiple predictions on data augmentated testing -> ensemble learning -> final prediction
+
+1x train-model & 1x val-model
+-> Multiple predictions on 1x val-ensemble & 1x test set
+-> Ensemble Learning on 1x val-ensemble
+-> Evaluation on 1x test set
+
+### Phase 4:
 Use top-3 models and top-3 ensemble methods:  
 
 Setup:  
@@ -76,15 +86,15 @@ for each top3 architecture:
 
 Note: 3-CV instead of 5-CV?
 
-### Phase 4:
-Utilizing data augmentation for inference.
+--------------------------------------------------------------------------------
 
-One model -> Multiple predictions on data augmentated testing -> ensemble learning -> final prediction
+## First Results
 
-1x train-model & 1x val-model
--> Multiple predictions on 1x val-ensemble & 1x test set
--> Ensemble Learning on 1x val-ensemble
--> Evaluation on 1x test set
+**Phase I:**  
+
+![PhaseI_F1](docs/plot.F1.png)
+
+![PhaseI_FDR](docs/plot.FDR.png)
 
 --------------------------------------------------------------------------------
 
