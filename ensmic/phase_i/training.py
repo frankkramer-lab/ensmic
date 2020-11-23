@@ -190,9 +190,6 @@ timer_cache = {}
 # Run Training for all architectures
 for architecture in config["architecture_list"]:
     print("Run training for Architecture:", architecture)
-    # Reset timer
-    timer_start = None
-    timer_end = None
     try:
         # Run Fitting Pipeline
         timer_start = time.time()
