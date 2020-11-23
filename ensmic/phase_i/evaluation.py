@@ -192,7 +192,7 @@ def collect_results(result_set, architectures, path_eval):
         # Merge to global result dataframe
         df_results = df_results.append(arch_df, ignore_index=True)
     # Backup merged results to disk
-    path_res = os.path.join(path_eval, "final.results.csv")
+    path_res = os.path.join(path_eval, "all.results.csv")
     df_results.to_csv(path_res, index=False)
     # Return merged results
     return df_results
