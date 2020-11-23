@@ -208,7 +208,7 @@ for architecture in config["architecture_list"]:
         print("Architecture:", architecture)
 
 # Store time measurements as JSON to disk
-path_time = os.path.join(config["path_results"], "phase_i" + "." + str(seed),
-                         "time_measurements.json")
+path_time = os.path.join(config["path_results"], "phase_i" + "." + \
+                         config["seed"], "time_measurements.json")
 with open(path_time, "w") as file:
     json.dump(cache, file, indent=2)
