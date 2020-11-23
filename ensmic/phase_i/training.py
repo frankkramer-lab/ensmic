@@ -23,6 +23,7 @@
 import argparse
 import os
 import time
+import json
 # MIScnn libraries
 from miscnn import Preprocessor, Data_IO, Neural_Network, Data_Augmentation
 from miscnn.utils.plotting import plot_validation
@@ -184,7 +185,7 @@ def run_training(model, architecture, config):
 os.environ["CUDA_VISIBLE_DEVICES"] = str(config["gpu_id"])
 
 # Initialize cache memory to store meta information
-cache = {}
+timer_cache = {}
 
 # Run Training for all architectures
 for architecture in config["architecture_list"]:
@@ -200,8 +201,14 @@ for architecture in config["architecture_list"]:
         timer_end = time.time()
         # Store execution time in cache
         timer_time = end - start
-        cache[architecture] = timer_time
+        timer_cache[architecture] = timer_time
         print("Finished training for Architecture:", architecture, timer_time)
     except:
         print("An exception occurred.")
         print("Architecture:", architecture)
+
+# Store time measurements as JSON to disk
+path_time = os.path.join(config["path_results"], "phase_i" + "." + str(seed),
+                         "time_measurements.json")
+with open(path_time, "w") as file:
+    json.dump(cache, file, indent=2)
