@@ -200,7 +200,7 @@ for architecture in config["architecture_list"]:
         run_training(model, architecture, config)
         timer_end = time.time()
         # Store execution time in cache
-        timer_time = end - start
+        timer_time = timer_end - timer_start
         timer_cache[architecture] = timer_time
         print("Finished training for Architecture:", architecture, timer_time)
     except Exception as e:
