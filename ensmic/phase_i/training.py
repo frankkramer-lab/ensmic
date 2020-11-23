@@ -148,7 +148,7 @@ def run_training(model, architecture, config):
                                   subset="train-model",
                                   seed=config["seed"])
     samples_val = load_sampling(path_data=config["path_data"],
-                                subset="train-model",
+                                subset="val-model",
                                 seed=config["seed"])
 
     # Create result directory
