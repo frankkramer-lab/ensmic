@@ -4,33 +4,6 @@ A survey on...?
 
 ensmic?
 
-nohup sh -c "PYTHONUNBUFFERED=x python phase_one/training.py 2>&1 | tee results/phase_one.x-ray/output.log" &
-
-nohup 2>&1 sh -c "./run.sh" &> log.txt &
-
-nohup sh -c "python covidxscan/validation/validate_screening.py --architecture VGG16 --gpu 0 >output.VGG16.log 2>&1" &
-
-
-```sh
-python covidxscan/validation/prepare_screening.py
-
-nohup python covidxscan/validation/validate_screening.py --architecture VGG16 --gpu 0 2>&1 | tee output.VGG16.log &
-nohup python covidxscan/validation/validate_screening.py --architecture Xception --gpu 2 2>&1 | tee output.Xception.log &
-nohup python covidxscan/validation/validate_screening.py --architecture DenseNet --gpu 3 2>&1 | tee output.DenseNet.log &
-
-nohup python covidxscan/validation/validate_screening.py --architecture ResNeSt --gpu 0 2>&1 | tee output.ResNeSt.log &
-nohup python covidxscan/validation/validate_screening.py --architecture InceptionResNetV2 --gpu 1 2>&1 | tee output.InceptionResNetV2.log &
-
-python covidxscan/validation/evaluate_screening.py
-```
-
-Starting Time: 10:04 (07.09.2020) - ServerTime 08:04
-
-VGG16: 17230MiB
-InceptionResNetV2: 17411MiB
-Xception: 18211MiB
-DenseNet: 11011MiB
-
 
 https://towardsdatascience.com/ensembles-the-almost-free-lunch-in-machine-learning-91af7ebe5090
 
