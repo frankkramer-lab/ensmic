@@ -166,6 +166,5 @@ for architecture in config["architecture_list"]:
         # Compute predictions for subset: test
         run_inference("test", model, architecture, config)
         print("Finished inference for Architecture:", architecture)
-    except:
-        print("An exception occurred.")
-        print("Architecture:", architecture)
+    except Exception as e:
+        print(architecture, "-", "An exception occurred:", str(e))

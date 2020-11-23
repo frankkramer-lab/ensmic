@@ -203,9 +203,8 @@ for architecture in config["architecture_list"]:
         timer_time = end - start
         timer_cache[architecture] = timer_time
         print("Finished training for Architecture:", architecture, timer_time)
-    except:
-        print("An exception occurred.")
-        print("Architecture:", architecture)
+    except Exception as e:
+        print(architecture, "-", "An exception occurred:", str(e))
 
 # Store time measurements as JSON to disk
 path_time = os.path.join(config["path_results"], "phase_i" + "." + \
