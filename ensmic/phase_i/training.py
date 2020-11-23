@@ -22,6 +22,7 @@
 # External libraries
 import argparse
 import os
+import time
 # MIScnn libraries
 from miscnn import Preprocessor, Data_IO, Neural_Network, Data_Augmentation
 from miscnn.utils.plotting import plot_validation
@@ -182,13 +183,25 @@ def run_training(model, architecture, config):
 # Adjust GPU utilization
 os.environ["CUDA_VISIBLE_DEVICES"] = str(config["gpu_id"])
 
+# Initialize cache memory to store meta information
+cache = {}
+
 # Run Training for all architectures
 for architecture in config["architecture_list"]:
     print("Run training for Architecture:", architecture)
+    # Reset timer
+    timer_start = None
+    timer_end = None
     try:
+        # Run Fitting Pipeline
+        timer_start = time.time()
         model = setup_miscnn(architecture, config)
         run_training(model, architecture, config)
-        print("Finished training for Architecture:", architecture)
+        timer_end = time.time()
+        # Store execution time in cache
+        timer_time = end - start
+        cache[architecture] = timer_time
+        print("Finished training for Architecture:", architecture, timer_time)
     except:
         print("An exception occurred.")
         print("Architecture:", architecture)
