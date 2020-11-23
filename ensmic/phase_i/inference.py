@@ -161,8 +161,8 @@ for architecture in config["architecture_list"]:
     try:
         # Setup pipeline
         model = setup_miscnn(architecture, config)
-        # Compute predictions for subset: val-model
-        run_inference("val-model", model, architecture, config)
+        # Compute predictions for subset: val-ensemble
+        run_inference("val-ensemble", model, architecture, config)
         # Compute predictions for subset: test
         run_inference("test", model, architecture, config)
         print("Finished inference for Architecture:", architecture)

@@ -236,20 +236,22 @@ result_set = []
 verified_architectures = []
 
 # Run Evaluation for all architectures
-for architecture in config["architecture_list"]:
-    print("Run evaluation for Architecture:", architecture)
-    try:
-        # Preprocess ground truth and predictions
-        id, gt, pd = preprocessing(architecture, "val-model", config)
-        # Compute metrics
-        metrics = compute_metrics(gt, pd, config)
-        # Backup results
-        metrics_df = parse_results(metrics, architecture, config)
-        # Cache dataframe and add architecture to verification list
-        result_set.append(metrics_df)
-        verified_architectures.append(architecture)
-    except:
-        print("Skipping Architecture", architecture, "due to Error.")
+for ds in ["val-ensemble", "test"]:
+    print("Run evaluation for dataset:", ds)
+    for architecture in config["architecture_list"]:
+        print("Run evaluation for Architecture:", architecture)
+        try:
+            # Preprocess ground truth and predictions
+            id, gt, pd = preprocessing(architecture, ds, config)
+            # Compute metrics
+            metrics = compute_metrics(gt, pd, config)
+            # Backup results
+            metrics_df = parse_results(metrics, architecture, config)
+            # Cache dataframe and add architecture to verification list
+            result_set.append(metrics_df)
+            verified_architectures.append(architecture)
+        except:
+            print("Skipping Architecture", architecture, "due to Error.")
 
 # Combine results
 results = collect_results(result_set, verified_architectures, path_eval)

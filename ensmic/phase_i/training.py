@@ -84,7 +84,7 @@ config["gpu_id"] = int(args.gpu)
 #                 MIScnn Data IO Setup                #
 #-----------------------------------------------------#
 def setup_miscnn(architecture, config):
-    # Initialize the Image I/O interface based on the covidxscan file structure
+    # Initialize the Image I/O interface based on the ensmic file structure
     interface = IO_MIScnn(class_dict=config["class_dict"], seed=config["seed"])
 
     # Create the MIScnn Data I/O object
