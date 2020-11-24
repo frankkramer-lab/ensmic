@@ -28,7 +28,7 @@ import json
 from miscnn import Preprocessor, Data_IO, Neural_Network, Data_Augmentation
 from miscnn.utils.plotting import plot_validation
 # TensorFlow libraries
-from tensorflow.keras.callbacks import ModelCheckpoint, CSVLogger, EarlyStopping, \
+from tensorflow.keras.callbacks import ModelCheckpoint, CSVLogger, \
                                        ReduceLROnPlateau
 from tensorflow.keras.losses import CategoricalCrossentropy
 from tensorflow.keras.metrics import CategoricalAccuracy
@@ -36,6 +36,7 @@ from tensorflow.keras.metrics import CategoricalAccuracy
 from ensmic.data_loading import IO_MIScnn, load_sampling
 from ensmic.subfunctions import Resize, SegFix
 from ensmic.architectures import architecture_dict, architectures
+from ensmic.utils.callbacks import ImprovedEarlyStopping
 
 #-----------------------------------------------------#
 #                      Argparser                      #
@@ -165,7 +166,7 @@ def run_training(model, architecture, config):
     cb_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=30,
                               verbose=1, mode='min', min_delta=0.0001,
                               cooldown=1, min_lr=0.00001)
-    cb_es = EarlyStopping(monitor="val_loss", baseline=0.5, patience=80)
+    cb_es = ImprovedEarlyStopping(monitor="val_loss", baseline=0.5, patience=70)
     callbacks = [cb_mc, cb_cl, cb_lr, cb_es]
 
     # Run validation
