@@ -91,8 +91,6 @@ def preprocessing(architecture, dataset, config):
     infIO = IO_Inference(config["class_dict"], path=path_inf)
     # Load predictions for samples
     inference = infIO.load_inference()
-    # Remove legend
-    del inference["legend"]
 
     # Initialize lists for predictions and ground truth
     id = []
