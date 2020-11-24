@@ -22,10 +22,8 @@
 # External libraries
 import argparse
 import os
-from shutil import copyfile
 import time
 # Internal libraries/scripts
-from ensmic.data_loading import IO_Inference, load_sampling
 from ensmic.ensemble import ensembler_dict, ensembler
 from ensmic.architectures import architectures
 
@@ -79,37 +77,50 @@ def prepare_rs(config):
     for elm in config["ensembler_list"]:
         path_elm = os.path.join(path_phase, elm)
         if not os.path.exists(path_elm) : os.mkdir(path_elm)
-    # Copy inferences from phase one
+    # Combine inferences from phase one
     path_poinf = os.path.join(path_phase, "phase_i.inference")
     if not os.path.exists(path_poinf) : os.mkdir(path_poinf)
     arch_list = []
+    inf_val = {}
+    inf_test = {}
+    # Iterate over all architectures
     for arch in config["architecture_list"]:
+        # Identify pathes
         path_arch = os.path.join(config["path_results"],
                                  "phase_i" + "." + str(config["seed"]),
                                  arch)
-        path_arch_src_val = os.path.join(path_arch, "inference." + \
-                                         "val-model" + ".json")       # DEBUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUGGGGGGING
-        path_arch_src_test = os.path.join(path_arch, "inference." + \
-                                          "test" + ".json")
-        path_arch_tar_val = os.path.join(path_poinf, "inference." + arch + \
-                                         "." + "val-ensemble" + ".json")
-        path_arch_tar_test = os.path.join(path_poinf, "inference." + arch + \
-                                          "." + "test" + ".json")
+        path_arch_val = os.path.join(path_arch, "inference." + \
+                                     "val-model" + ".json")       # DEBUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUGGGGGGING
+        path_arch_test = os.path.join(path_arch, "inference." + \
+                                      "test" + ".json")
         try:
-            copyfile(path_arch_src_val, path_arch_tar_val)
-            copyfile(path_arch_src_test, path_arch_tar_test)
+            # Load predictions on samples for val-ensemble subset
+            infIO = IO_Inference(config["class_dict"], path=path_arch_val)
+            inf_val[arch] = infIO.load_inference()
+            # Load predictions on samples for test subset
+            infIO = IO_Inference(config["class_dict"], path=path_arch_test)
+            inf_test[arch] = infIO.load_inference()
+            # Cache architecture with available inference
             arch_list.append(arch)
         except Exception as e:
-            print("Skipping inferences of architecture:", arch)
+            print("Skipping inference of architecture:", arch)
             print(arch, str(e))
+    # Create datasets from inference
+    create_dataset(inf_val, inf_test, config)
     # Return list of usable architectures
     return arch_list
 
 #-----------------------------------------------------#
+#                   Create dataset                    #
+#-----------------------------------------------------#
+def create_dataset(inf_val, inf_test, config):
+    print(inf_val)
+
+#-----------------------------------------------------#
 #                     Run Training                    #
 #-----------------------------------------------------#
-def run_training(model, architecture, config):
-    pass
+def run_training(ensembler, arch_list, config):
+    print(ensembler, arch_list)
 
 #-----------------------------------------------------#
 #                     Main Runner                     #
@@ -121,19 +132,19 @@ arch_list = prepare_rs(config)
 timer_cache = {}
 
 # Run Training for all ensemble learning techniques
-for ensemble in config["ensembler_list"]:
-    print("Run training for Ensembler:", ensemble)
+for ensembler in config["ensembler_list"]:
+    print("Run training for Ensembler:", ensembler)
     try:
         # Run Fitting Pipeline
         timer_start = time.time()
-        run_training(ensemble, arch_list, config)
+        run_training(ensembler, arch_list, config)
         timer_end = time.time()
         # Store execution time in cache
         timer_time = timer_end - timer_start
-        timer_cache[architecture] = timer_time
-        print("Finished training for Architecture:", architecture, timer_time)
+        timer_cache[ensembler] = timer_time
+        print("Finished training for Ensembler:", ensembler, timer_time)
     except Exception as e:
-        print(ensemble, "-", "An exception occurred:", str(e))
+        print(ensembler, "-", "An exception occurred:", str(e))
 
 # # Store time measurements as JSON to disk
 # path_time = os.path.join(config["path_results"], "phase_i" + "." + \
