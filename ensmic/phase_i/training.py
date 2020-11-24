@@ -162,10 +162,10 @@ def run_training(model, architecture, config):
                             monitor="val_loss", verbose=1,
                             save_best_only=True, mode="min")
     cb_cl = CSVLogger(os.path.join(path_res, "logs.csv"), separator=',')
-    cb_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=15,
+    cb_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=30,
                               verbose=1, mode='min', min_delta=0.0001,
                               cooldown=1, min_lr=0.00001)
-    cb_es = EarlyStopping(monitor="val_loss", baseline=0.5, patience=75)
+    cb_es = EarlyStopping(monitor="val_loss", baseline=0.5, patience=80)
     callbacks = [cb_mc, cb_cl, cb_lr, cb_es]
 
     # Run validation
@@ -207,4 +207,4 @@ for architecture in config["architecture_list"]:
 path_time = os.path.join(config["path_results"], "phase_i" + "." + \
                          config["seed"], "time_measurements.json")
 with open(path_time, "w") as file:
-    json.dump(cache, file, indent=2)
+    json.dump(timer_cache, file, indent=2)
