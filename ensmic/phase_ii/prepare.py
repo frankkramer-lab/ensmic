@@ -23,6 +23,8 @@
 import argparse
 import os
 import pandas as pd
+import pickle
+from sklearn.utils import shuffle
 # Internal libraries/scripts
 from ensmic.data_loading import IO_Inference
 from ensmic.ensemble import ensembler_dict, ensembler
@@ -89,7 +91,7 @@ for arch in config["architecture_list"]:
                              "phase_i" + "." + str(config["seed"]),
                              arch)
     path_arch_val = os.path.join(path_arch, "inference." + \
-                                 "val-model" + ".json")       # DEBUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUGGGGGGING
+                                 "val-ensemble" + ".json")
     path_arch_test = os.path.join(path_arch, "inference." + \
                                   "test" + ".json")
     try:
@@ -108,7 +110,43 @@ for arch in config["architecture_list"]:
 #-----------------------------------------------------#
 #                   Create dataset                    #
 #-----------------------------------------------------#
-# Create validation dataset and save to disk
-dt_val = pd.DataFrame.from_dict(inf_val)
-path_inf_val = os.path.join(path_phase, "phase_i.inference.val-ensemble.csv")
-dt_val.to_csv(path_inf_val)
+def create_dataset(dt, label):
+    # Create dataset and save to disk
+    dt_raw = pd.DataFrame.from_dict(dt)
+
+    # Split inference tuple (for each class) into separate dataframes
+    dt_arch_list = []
+    for name, arch_dt in dt_raw.items():
+        class_list = [str(c) for c in range(0, len(config["class_dict"]))]
+        colnames = [name + "_C" + c for c in class_list]
+        dt_split = pd.DataFrame(arch_dt.values.tolist(), columns=colnames)
+        dt_arch_list.append(dt_split)
+    # Concat inference dataframes of all architecture
+    dt_x = pd.concat(dt_arch_list, axis=1)
+    # Add sample names to dataframe
+    dt_x.set_index(dt_raw.index, inplace=True)
+
+    # Load ground truth dictionary
+    path_gt = os.path.join(config["path_data"], config["seed"] + \
+                           ".classes.pickle")
+    with open(path_gt, "rb") as pickle_reader:
+        gt_map = pickle.load(pickle_reader)
+    # Create ground truth dataframe
+    sample_list = dt_raw.index.tolist()
+    gt = [gt_map[sample] for sample in sample_list]
+    dt_y = pd.DataFrame(gt, index=dt_raw.index, columns=["Ground_Truth"])
+
+    # Shuffle rows
+    dt_x, dt_y = shuffle(dt_x, dt_y, random_state=0)
+
+    # Store dataset to disk as CSV
+    path_dsX = os.path.join(path_phase, "phase_i.inference." + \
+                            label + "." + "data" + ".csv")
+    path_dsY = os.path.join(path_phase, "phase_i.inference." + \
+                            label + "." + "class" + ".csv")
+    dt_x.to_csv(path_dsX, sep=",", header=True, index=True, index_label="index")
+    dt_y.to_csv(path_dsY, sep=",", header=True, index=True, index_label="index")
+
+# Create datasets for val-ensemble and test
+create_dataset(inf_val, "val-ensemble")
+create_dataset(inf_test, "test")
