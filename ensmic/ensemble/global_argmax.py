@@ -73,7 +73,3 @@ class ELM_GlobalArgmax(Abstract_Ensemble):
     def load(self, path):
         # No model infrastructure required for this method, therefore skip
         pass
-
-    #---------------------------------------------#
-    #              Custom Functions              #
-    #---------------------------------------------#
