@@ -63,16 +63,16 @@ else:
 #-----------------------------------------------------#
 #                     Run Training                    #
 #-----------------------------------------------------#
-def run_training(ds_x, ds_y, ensembler, path_phase, config):
+def run_training(ds_x, ds_y, ensembler, path_elm, config):
     # Create Ensemble Learning model
     model = ensembler_dict[ensembler]()
     # Fit model on data
     model.training(ds_x, ds_y)
     # Dump fitted model to disk
-    path_elm = os.path.join(path_phase, ensembler, "model.pkl")
-    model.dump(path_elm)
+    path_model = os.path.join(path_elm, "model.pkl")
+    model.dump(path_model)
     # Return fitted model and esembler path
-    return model, path_elm
+    return model
 
 #-----------------------------------------------------#
 #                    Run Inference                    #
@@ -80,7 +80,7 @@ def run_training(ds_x, ds_y, ensembler, path_phase, config):
 def run_inference(test_x, model, path_elm, config):
     # Compute predictions via Ensemble Learning method
     predictions = model.prediction(test_x)
-    
+
     # Create an Inference IO Interface
     path_inf = os.path.join(path_elm, "inference" + "." + "test" + ".json")
     infIO = IO_Inference(config["class_dict"], path=path_inf)
@@ -88,7 +88,6 @@ def run_inference(test_x, model, path_elm, config):
     # Store prediction for each sample
     for i, sample in enumerate(test_x.index.values.tolist()):
         infIO.store_inference(sample, predictions[i])
-
 
 #-----------------------------------------------------#
 #                     Main Runner                     #
@@ -115,10 +114,11 @@ timer_cache = {}
 for ensembler in config["ensembler_list"]:
     print("Run training for Ensembler:", ensembler)
     try:
+        # Get path to Ensembler subdirectory
+        path_elm = os.path.join(path_phase, ensembler)
         # Run Pipeline
         timer_start = time.time()
-        model, path_elm = run_training(train_x, train_y, ensembler, path_phase,
-                                       config)
+        model = run_training(train_x, train_y, ensembler, path_elm, config)
         run_inference(test_x, model, path_elm, config)
         timer_end = time.time()
         # Store execution time in cache
