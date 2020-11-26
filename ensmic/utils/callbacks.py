@@ -21,7 +21,6 @@
 #-----------------------------------------------------#
 from tensorflow.keras.callbacks import EarlyStopping
 
-
 #-----------------------------------------------------#
 #                   Custom Callbacks                  #
 #-----------------------------------------------------#
@@ -48,4 +47,4 @@ class ImprovedEarlyStopping(EarlyStopping):
                 self.baseline_attained = True
             else:
                 return
-        super(MyEarlyStopping, self).on_epoch_end(epoch, logs)
+        super(ImprovedEarlyStopping, self).on_epoch_end(epoch, logs)
