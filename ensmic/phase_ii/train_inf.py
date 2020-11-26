@@ -25,6 +25,7 @@ import os
 import time
 import json
 import pandas as pd
+from ensmic.data_loading import IO_Inference
 # Internal libraries/scripts
 from ensmic.ensemble import ensembler_dict, ensembler
 
@@ -63,13 +64,31 @@ else:
 #                     Run Training                    #
 #-----------------------------------------------------#
 def run_training(ds_x, ds_y, ensembler, path_phase, config):
-    # Create model
+    # Create Ensemble Learning model
     model = ensembler_dict[ensembler]()
     # Fit model on data
     model.training(ds_x, ds_y)
     # Dump fitted model to disk
     path_elm = os.path.join(path_phase, ensembler, "model.pkl")
     model.dump(path_elm)
+    # Return fitted model and esembler path
+    return model, path_elm
+
+#-----------------------------------------------------#
+#                    Run Inference                    #
+#-----------------------------------------------------#
+def run_inference(test_x, model, path_elm, config):
+    # Compute predictions via Ensemble Learning method
+    predictions = model.prediction(test_x)
+    
+    # Create an Inference IO Interface
+    path_inf = os.path.join(path_elm, "inference" + "." + "test" + ".json")
+    infIO = IO_Inference(config["class_dict"], path=path_inf)
+
+    # Store prediction for each sample
+    for i, sample in enumerate(test_x.index.values.tolist()):
+        infIO.store_inference(sample, predictions[i])
+
 
 #-----------------------------------------------------#
 #                     Main Runner                     #
@@ -78,23 +97,29 @@ def run_training(ds_x, ds_y, ensembler, path_phase, config):
 path_phase = os.path.join(config["path_results"],
                           "phase_ii" + "." + str(config["seed"]))
 # Load dataset for training
-ds_x = pd.read_csv(os.path.join(path_phase, "phase_i.inference." + \
-                                "val-ensemble." + "data" + ".csv"),
-                   header=0, index_col="index")
-ds_y = pd.read_csv(os.path.join(path_phase, "phase_i.inference." + \
-                                "val-ensemble." + "class" + ".csv"),
-                   header=0, index_col="index")
+train_x = pd.read_csv(os.path.join(path_phase, "phase_i.inference." + \
+                                   "val-ensemble." + "data" + ".csv"),
+                      header=0, index_col="index")
+train_y = pd.read_csv(os.path.join(path_phase, "phase_i.inference." + \
+                                   "val-ensemble." + "class" + ".csv"),
+                      header=0, index_col="index")
+# Load dataset for testing
+test_x = pd.read_csv(os.path.join(path_phase, "phase_i.inference." + \
+                                  "test." + "data" + ".csv"),
+                     header=0, index_col="index")
 
 # Initialize cache memory to store meta information
 timer_cache = {}
 
-# Run Training for all ensemble learning techniques
+# Run Training and Inference for all ensemble learning techniques
 for ensembler in config["ensembler_list"]:
     print("Run training for Ensembler:", ensembler)
     try:
-        # Run Fitting Pipeline
+        # Run Pipeline
         timer_start = time.time()
-        run_training(ds_x, ds_y, ensembler, path_phase, config)
+        model, path_elm = run_training(train_x, train_y, ensembler, path_phase,
+                                       config)
+        run_inference(test_x, model, path_elm, config)
         timer_end = time.time()
         # Store execution time in cache
         timer_time = timer_end - timer_start
