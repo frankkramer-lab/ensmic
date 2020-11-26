@@ -25,8 +25,8 @@ import os
 import time
 import json
 import pandas as pd
-from ensmic.data_loading import IO_Inference
 # Internal libraries/scripts
+from ensmic.data_loading import IO_Inference
 from ensmic.ensemble import ensembler_dict, ensembler
 
 #-----------------------------------------------------#
