@@ -23,8 +23,6 @@
 import os
 import json
 import numpy as np
-# MIScnn libraries
-from miscnn.data_loading.data_io import create_directories
 
 #-----------------------------------------------------#
 #               Inference IO Interface                #
@@ -59,7 +57,6 @@ class IO_Inference():
         if index is not None : return inference[index]
         else : return inference
 
-
     #---------------------------------------------#
     #              Inference Storage              #
     #---------------------------------------------#
@@ -77,38 +74,3 @@ class IO_Inference():
         # Store inference JSON to disk
         with open(self.path_inf, "w") as file:
             json.dump(data, file, indent=2)
-
-    # #---------------------------------------------#
-    # #             Summarize Inference             #
-    # #---------------------------------------------#
-    # def summarize_inference(self, index):
-    #     inf_json = os.path.join(self.outdir, index + ".json")
-    #     # check if inference JSON already exist
-    #     if os.path.exists(inf_json):
-    #         # Load already stored inference data
-    #         data = self.load_inference(index)
-    #     else: raise IOError("Missing inference JSON!", inf_json)
-    #     # Calculate sum softmax for each class
-    #     avg_softmax = []
-    #     for i in range(0, len(self.class_list)):
-    #         # Obtain predictions for class i
-    #         avg_class = []
-    #         for fold in data.keys():
-    #             if not fold.startswith("fold_"): continue
-    #             avg_class.append(data[fold][i])
-    #         # Compute sum
-    #         avg_softmax.append(np.sum(avg_class))
-    #     # Normalize mean values to percentage values
-    #     max_value = np.max(avg_softmax)
-    #     min_value = np.min(avg_softmax)
-    #     avg_std = (avg_softmax - min_value) / (max_value - min_value)
-    #     avg_normalized = avg_std * (1 - 0) + 0
-    #     avg_percentage = np.rint(avg_normalized * 100)
-    #     # Get final suggestion
-    #     avg_output = self.class_list[np.argmax(avg_percentage)]
-    #     # Append summaries to inference JSON
-    #     data["cds_output"] = avg_percentage.tolist()
-    #     data["cds_class"] = avg_output
-    #     # Store inference JSON to disk
-    #     with open(inf_json, "w") as file:
-    #         json.dump(data, file)
