@@ -67,7 +67,7 @@ def run_training(ds_x, ds_y, ensembler, path_elm, config):
     # Create Ensemble Learning model
     model = ensembler_dict[ensembler]()
     # Fit model on data
-    model.training(ds_x, ds_y)
+    model.training(ds_x.copy(), ds_y.copy())
     # Dump fitted model to disk
     path_model = os.path.join(path_elm, "model.pkl")
     model.dump(path_model)
@@ -79,7 +79,7 @@ def run_training(ds_x, ds_y, ensembler, path_elm, config):
 #-----------------------------------------------------#
 def run_inference(test_x, model, path_elm, config):
     # Compute predictions via Ensemble Learning method
-    predictions = model.prediction(test_x)
+    predictions = model.prediction(test_x.copy())
 
     # Create an Inference IO Interface
     path_inf = os.path.join(path_elm, "inference" + "." + "test" + ".json")
