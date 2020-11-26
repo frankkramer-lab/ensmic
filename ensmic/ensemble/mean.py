@@ -20,7 +20,6 @@
 #                   Library imports                   #
 #-----------------------------------------------------#
 # External libraries
-from tensorflow import keras
 from ensmic.ensemble.abstract_elm import Abstract_Ensemble
 
 #-----------------------------------------------------#
@@ -40,28 +39,45 @@ class ELM_Mean(Abstract_Ensemble):
     #                Initialization               #
     #---------------------------------------------#
     def __init__(self):
+        # No hyperparameter adjustment required for this method, therefore skip
         pass
 
     #---------------------------------------------#
     #                  Training                   #
     #---------------------------------------------#
     def training(self, train_x, train_y):
+        # No training required for this method, therefore skip
         pass
 
     #---------------------------------------------#
     #                  Prediction                 #
     #---------------------------------------------#
     def prediction(self, data):
-        pass
+        # Split data columns into multi level structure based on architecutre
+        data.columns = data.columns.str.split('_', expand=True)
+        # Compute average class probability (mean) across all architectures
+        data = data.groupby(level=1, axis=1).mean()
+        # Select argmax for each sample
+        pred = data.idxmax(axis=1).tolist()
+        # Transform column argmax into correct class integer
+        pred = [int(p[1]) for p in pred]
+        # Return prediction
+        return pred
 
     #---------------------------------------------#
     #              Dump Model to Disk             #
     #---------------------------------------------#
     def dump(self, path):
+        # No model infrastructure required for this method, therefore skip
         pass
 
     #---------------------------------------------#
     #             Load Model from Disk            #
     #---------------------------------------------#
     def load(self, path):
+        # No model infrastructure required for this method, therefore skip
         pass
+
+    #---------------------------------------------#
+    #              Custom Functions              #
+    #---------------------------------------------#
