@@ -47,12 +47,12 @@ class IO_Inference():
     #---------------------------------------------#
     #              Inference Loading              #
     #---------------------------------------------#
-    def load_inference(self, index=None):
+    def load_inference(self, index=None, with_legend=False):
         # Load inference JSON
         with open(self.path_inf, "r") as file:
             inference = json.load(file)
         # Remove legend
-        if index is None : del inference["legend"]
+        if index is None and not with_legend: del inference["legend"]
         # Return either complete dictionary or inference for a single sample
         if index is not None : return inference[index]
         else : return inference
@@ -64,13 +64,14 @@ class IO_Inference():
         # check if inference JSON already exist
         if os.path.exists(self.path_inf):
             # Load already stored inference data
-            data = self.load_inference()
+            data = self.load_inference(with_legend=True)
         else:
             # Create a new inference JSON object
             data = {}
             data["legend"] = self.class_list
         # Append prediction to inference JSON
-        data[index] = pred.tolist()
+        if type(pred) is np.ndarray : pred = pred.tolist()
+        data[index] = pred
         # Store inference JSON to disk
         with open(self.path_inf, "w") as file:
             json.dump(data, file, indent=2)
