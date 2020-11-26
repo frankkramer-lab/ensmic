@@ -19,7 +19,7 @@
 #-----------------------------------------------------#
 #                   Library imports                   #
 #-----------------------------------------------------#
-# External libraries
+# Internal libraries/scripts
 from ensmic.ensemble.abstract_elm import Abstract_Ensemble
 
 #-----------------------------------------------------#
