@@ -29,6 +29,7 @@ from plotnine import *
 # Internal libraries/scripts
 from ensmic.data_loading import IO_Inference
 from ensmic.architectures import architecture_dict, architectures
+from ensmic.utils.evaluation import compute_metrics
 # Experimental
 import warnings
 warnings.filterwarnings("ignore")
@@ -108,50 +109,6 @@ def preprocessing(architecture, dataset, config):
     return id, gt, pd
 
 #-----------------------------------------------------#
-#             Function: Metric Computation            #
-#-----------------------------------------------------#
-def compute_metrics(truth, pred, config):
-    # Iterate over each class
-    metrics = []
-    for c in sorted(config["class_dict"].values()):
-        mc = {}
-        # Compute the confusion matrix
-        tp, tn, fp, fn = compute_CM(truth, pred, c)
-        mc["TP-TN-FP-FN"] = "-".join([str(tp), str(tn), str(fp), str(fn)])
-        # Compute several metrics
-        mc["Sensitivity"] = safe_division(tp, tp+fn)
-        mc["Specificity"] = safe_division(tn, tn+fp)
-        mc["Precision"] = safe_division(tp, tp+fp)
-        mc["FPR"] = safe_division(fp, fp+tn)
-        mc["FNR"] = safe_division(fn, fn+tp)
-        mc["FDR"] = safe_division(fp, fp+tp)
-        mc["Accuracy"] = safe_division(tp+tn, tp+tn+fp+fn)
-        mc["F1"] = safe_division(2*tp, 2*tp+fp+fn)
-        # Append dictionary to metric list
-        metrics.append(mc)
-    # Return results
-    return metrics
-
-# Compute confusion matrix
-def compute_CM(gt, pd, c):
-    tp = 0
-    tn = 0
-    fp = 0
-    fn = 0
-    for i in range(0, len(gt)):
-        #print(c, gt[i], pd[i], gt[i] == pd[i])
-        if gt[i] == c and pd[i] == c : tp += 1
-        elif gt[i] == c and pd[i] != c : fn += 1
-        elif gt[i] != c and pd[i] != c : tn += 1
-        elif gt[i] != c and pd[i] == c : fp += 1
-        else : print("ERROR at confusion matrix", i)
-    return tp, tn, fp, fn
-
-# Function for safe division (catch division by zero)
-def safe_division(x, y):
-    return x / y if y else 0
-
-#-----------------------------------------------------#
 #          Function: Results Parsing & Backup         #
 #-----------------------------------------------------#
 def parse_results(metrics, architecture, config):
@@ -167,7 +124,7 @@ def parse_results(metrics, architecture, config):
     # Return dataframe
     return results
 
-def collect_results(result_set, architectures, path_eval):
+def collect_results(result_set, architectures, path_eval, config):
     # Initialize result dataframe
     cols = ["architecture", "class", "metric", "value"]
     df_results = pandas.DataFrame(data=[], dtype=np.float64, columns=cols)
@@ -182,7 +139,7 @@ def collect_results(result_set, architectures, path_eval):
         arch_df.rename(columns={"index":"metric"}, inplace=True)
         arch_df["architecture"] = arch_type
         arch_df = arch_df.melt(id_vars=["architecture", "metric"],
-                               value_vars=["NORMAL", "Viral Pneumonia", "COVID-19"],
+                               value_vars=config["class_list"],
                                var_name="class",
                                value_name="value")
         # Reorder columns
@@ -252,6 +209,6 @@ for ds in ["val-ensemble", "test"]:
             print("Skipping Architecture", architecture, "due to Error.")
 
 # Combine results
-results = collect_results(result_set, verified_architectures, path_eval)
+results = collect_results(result_set, verified_architectures, path_eval, config)
 # Plot result figure
 plot_results(results, path_eval)
