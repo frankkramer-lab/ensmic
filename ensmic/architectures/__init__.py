@@ -84,8 +84,8 @@ architecture_dict = {"AlexNet": AlexNet,
                      "ResNet50V2": ResNet50V2,
                      "ResNet101V2": ResNet101V2,
                      "ResNet152V2": ResNet152V2,
-                     "ResNeSt50": ResNeSt50,
-                     "ResNeSt101": ResNeSt101,
+                     #"ResNeSt50": ResNeSt50,              # Removed due to inefficiency
+                     #"ResNeSt101": ResNeSt101,            # Removed due to inefficiency
                      "ResNeXt50": ResNeXt50,
                      "ResNeXt101": ResNeXt101,
                      "VGG16": VGG16,
