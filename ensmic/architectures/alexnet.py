@@ -48,9 +48,11 @@ class Architecture_AlexNet(Abstract_Architecture):
     #---------------------------------------------#
     #                Initialization               #
     #---------------------------------------------#
-    def __init__(self, fixed_input_shape=(277, 277, 1)):
+    def __init__(self, fixed_input_shape=(277, 277, 1),
+                 out_activation="softmax"):
         # Parse parameter
         self.fixed_input_shape = fixed_input_shape
+        self.out_activation = out_activation
 
     #---------------------------------------------#
     #               Create 2D Model               #

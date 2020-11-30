@@ -49,9 +49,11 @@ class Architecture_Xception(Abstract_Architecture):
     #---------------------------------------------#
     #                Initialization               #
     #---------------------------------------------#
-    def __init__(self, fixed_input_shape=(299, 299, 1)):
+    def __init__(self, fixed_input_shape=(299, 299, 1),
+                 out_activation="softmax"):
         # Parse parameter
         self.fixed_input_shape = fixed_input_shape
+        self.out_activation = out_activation
 
     #---------------------------------------------#
     #               Create 2D Model               #
@@ -66,7 +68,7 @@ class Architecture_Xception(Abstract_Architecture):
 
         # Add classification block as top model
         top_model = layers.GlobalAveragePooling2D(name="avg_pool")(top_model)
-        top_model = layers.Dense(n_labels, activation="softmax",
+        top_model = layers.Dense(n_labels, activation=self.out_activation,
                                  name="predictions")(top_model)
 
         # Create model

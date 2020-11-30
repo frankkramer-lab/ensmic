@@ -67,11 +67,11 @@ class Architecture_ResNeSt50(Abstract_Architecture):
     #                Initialization               #
     #---------------------------------------------#
     def __init__(self, fixed_input_shape=(224, 224, 1), dropout=False,
-                 fc_activation="softmax"):
+                 out_activation="softmax"):
         # Parse parameter
         self.fixed_input_shape = fixed_input_shape
         self.dropout = dropout
-        self.fc_activation = fc_activation
+        self.fc_activation = out_activation
 
     #---------------------------------------------#
     #               Create 2D Model               #
