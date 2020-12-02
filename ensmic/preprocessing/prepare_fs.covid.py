@@ -31,7 +31,7 @@ from ensmic.preprocessing.sampling import run_sampling, sampling_to_disk
 #                    Configurations                   #
 #-----------------------------------------------------#
 # File structure
-path_input = "data.x-ray"
+path_input = "data.covid"
 path_target = "data"
 # Adjust possible classes
 classes = {'NORMAL': 0, 'Viral Pneumonia': 1, 'COVID-19': 2}
@@ -43,7 +43,7 @@ k_folds = 5
 # path to result directory
 path_val = "validation.screening"
 # Prefix/Seed (if training multiple runs)
-seed = "x-ray"
+seed = "covid"
 
 #-----------------------------------------------------#
 #         Parse Dataset & File Structure Setup        #
