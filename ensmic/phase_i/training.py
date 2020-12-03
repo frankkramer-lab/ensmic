@@ -42,7 +42,7 @@ from ensmic.utils.callbacks import ImprovedEarlyStopping
 #                      Argparser                      #
 #-----------------------------------------------------#
 parser = argparse.ArgumentParser(description="Analysis of COVID-19 Classification via Ensemble Learning")
-parser.add_argument("-m", "--modularity", help="Data modularity selection: ['x-ray', 'ct']",
+parser.add_argument("-m", "--modularity", help="Data modularity selection: ['covid', 'isic', 'riadd']",
                     required=True, type=str, dest="seed")
 parser.add_argument("-g", "--gpu", help="GPU ID selection for multi cluster",
                     required=False, type=int, dest="gpu", default=0)
