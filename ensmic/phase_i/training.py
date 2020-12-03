@@ -27,6 +27,7 @@ import json
 # MIScnn libraries
 from miscnn import Preprocessor, Data_IO, Neural_Network, Data_Augmentation
 from miscnn.utils.plotting import plot_validation
+from miscnn.processing.subfunctions import Normalization
 # TensorFlow libraries
 from tensorflow.keras.callbacks import ModelCheckpoint, CSVLogger, \
                                        ReduceLROnPlateau
@@ -74,8 +75,9 @@ config["threads"] = 8
 config["batch_size"] = 32
 # Neural Network Configurations
 config["epochs"] = 1000
-config["iterations"] = 75
+config["iterations"] = None
 config["workers"] = 8
+config["EarlyStopping_Patience"] = 50
 
 # GPU Configurations
 config["gpu_id"] = int(args.gpu)
@@ -102,7 +104,7 @@ def setup_miscnn(architecture, config):
 
     # Specify subfunctions for preprocessing
     input_shape = nn_architecture.fixed_input_shape
-    sf = [SegFix(), Resize(new_shape=input_shape)]
+    sf = [SegFix(), Normalization(mode="minmax"), Resize(new_shape=input_shape)]
 
     # Create and configure the MIScnn Preprocessor class
     pp = Preprocessor(data_io, data_aug=data_aug,
@@ -160,10 +162,11 @@ def run_training(model, architecture, config):
                             monitor="val_loss", verbose=1,
                             save_best_only=True, mode="min")
     cb_cl = CSVLogger(os.path.join(path_res, "logs.csv"), separator=',')
-    cb_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=30,
+    cb_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=15,
                               verbose=1, mode='min', min_delta=0.0001,
                               cooldown=1, min_lr=0.00001)
-    cb_es = ImprovedEarlyStopping(monitor="val_loss", baseline=0.5, patience=70)
+    cb_es = ImprovedEarlyStopping(monitor="val_loss", baseline=0.5,
+                                  patience=config["EarlyStopping_Patience"])
     callbacks = [cb_mc, cb_cl, cb_lr, cb_es]
 
     # Run validation
