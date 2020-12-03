@@ -33,7 +33,7 @@ from miscnn.data_loading.interfaces.abstract_io import Abstract_IO
     Images are read by calling the imread function from the Pillow module.
     Classification data is load from a SEED.class_map.json.
 
-    Image types: ["png", "tif", "jpg"]
+    Supported image types: ["png", "tif", "jpg"]
 
 Methods:
     __init__                Object creation function
@@ -48,14 +48,15 @@ class IO_MIScnn(Abstract_IO):
     #---------------------------------------------#
     #                   __init__                  #
     #---------------------------------------------#
-    def __init__(self, class_dict, seed, img_type="png"):
+    def __init__(self, class_dict, seed):
+        # Build class variables
         self.channels = 1
         self.class_dict = class_dict
         self.seed = seed
         self.classes = len(class_dict)
         self.three_dim = False
-        self.img_type = img_type
         self.classifications = None
+        self.img_type = None
 
     #---------------------------------------------#
     #                  initialize                 #
@@ -71,6 +72,8 @@ class IO_MIScnn(Abstract_IO):
                                           "images")
         # Identify samples
         sample_list = os.listdir(self.img_directory)
+        # Infer image type
+        self.img_type = sample_list[0][-3:]
         # Sanity check all samples
         for i in reversed(range(0, len(sample_list))):
             # Remove every sample which does not match image typ
