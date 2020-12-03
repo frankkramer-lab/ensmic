@@ -89,7 +89,7 @@ for img in os.listdir(input_img_dir):
     name = str(seed) + "." + "img_" + str(i)
     # Store image in file structure
     path_img_in = os.path.join(input_img_dir, img)
-    path_img_out = os.path.join(img_dir, name + ".png")
+    path_img_out = os.path.join(img_dir, name + ".jpg")
     if not os.path.exists(path_img_out):
         copyfile(path_img_in, path_img_out)
     class_dict[name] = int(class_map[img[:-4]])
