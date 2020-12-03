@@ -56,14 +56,11 @@ config["ensembler_list"] = ensembler
 # List of architectures which inferences should be included into ensembling
 config["architecture_list"] = architectures # all architectures
 
-# Adjust possible classes
-if config["seed"] == "x-ray":
-    config["class_dict"] = {'NORMAL': 0,
-                            'Viral Pneumonia': 1,
-                            'COVID-19': 2}
-else:
-    print("ERROR - Unknwon:", config["seed"])
-    pass
+# Load possible classes
+path_classdict = os.path.join(config["path_data"],
+                              str(self.seed) + ".classes.json")
+with open(path_classdict, "r") as json_reader:
+    config["class_dict"] = = json.load(json_reader)
 
 #-----------------------------------------------------#
 #            Prepare Result File Structure            #

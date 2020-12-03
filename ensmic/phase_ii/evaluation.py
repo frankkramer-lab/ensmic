@@ -24,6 +24,7 @@ import argparse
 import os
 import pandas
 import numpy as np
+import json
 from plotnine import *
 # Internal libraries/scripts
 from ensmic.data_loading import IO_Inference

@@ -21,7 +21,6 @@
 #-----------------------------------------------------#
 # External libraries
 import os
-import pickle
 import numpy as np
 import json
 
@@ -29,10 +28,10 @@ import json
 #                    Run Sampling                     #
 #-----------------------------------------------------#
 def run_sampling(path_data, seed, sampling, n_classes):
-    # Load class dictionary
-    path_classdict = os.path.join(path_data, str(seed) + ".classes.pickle")
-    with open(path_classdict, "rb") as pickle_reader:
-        class_dict = pickle.load(pickle_reader)
+    # Load class map
+    path_classdict = os.path.join(path_data, str(seed) + ".class_map.json")
+    with open(path_classdict, "r") as json_reader:
+        class_dict = json.load(json_reader)
     # Transform class dictionary
     samples_classified = tuple([[] for x in range(0, n_classes)])
     for index in class_dict:

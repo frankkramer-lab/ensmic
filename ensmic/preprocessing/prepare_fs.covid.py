@@ -21,8 +21,7 @@
 #-----------------------------------------------------#
 # External libraries
 import os
-import random
-import pickle
+import json
 from shutil import copyfile
 # Internal libraries/scripts
 from ensmic.preprocessing.sampling import run_sampling, sampling_to_disk
@@ -38,10 +37,6 @@ classes = {'NORMAL': 0, 'Viral Pneumonia': 1, 'COVID-19': 2}
 # Sampling strategy (in percentage)
 sampling = [65, 10, 10, 15]
 sampling_names = ["train-model", "val-model", "val-ensemble", "test"]
-# Number of folds for CV
-k_folds = 5
-# path to result directory
-path_val = "validation.screening"
 # Prefix/Seed (if training multiple runs)
 seed = "covid"
 
@@ -85,10 +80,16 @@ for c in classes:
         class_dict[name] = classes[c]
         # Increment index
         i += 1
-# Store class dictionary
-path_dict = os.path.join(path_target, str(seed) + ".classes.pickle")
-with open(path_dict, "wb") as pickle_writer:
-    pickle.dump(class_dict, pickle_writer)
+
+# Store class dictionary as JSON to disk
+path_dict = os.path.join(path_target, str(seed) + ".class_map.json")
+with open(path_dict, "w") as json_writer:
+    json.dump(class_dict, json_writer, indent=2)
+
+# Write classes as JSON to disk
+path_classes = os.path.join(path_target, str(seed) + ".classes.json")
+with open(path_classes, "w") as json_writer:
+    json.dump(classes, json_writer, indent=2)
 
 #-----------------------------------------------------#
 #               Create Dataset Sampling               #
@@ -100,5 +101,3 @@ sample_sets = run_sampling(path_data=path_target, seed=str(seed),
 # Store sample sets to disk
 sampling_to_disk(sample_sets, setnames=sampling_names,
                  path_data=path_target, seed=str(seed))
-
-# Split training samples into cross-validation folds

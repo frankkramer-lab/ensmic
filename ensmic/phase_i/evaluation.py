@@ -22,7 +22,7 @@
 # External libraries
 import argparse
 import os
-import pickle
+import json
 import pandas
 import numpy as np
 from plotnine import *
@@ -54,14 +54,11 @@ config["path_results"] = "results"
 # Seed (if training multiple runs)
 config["seed"] = args.seed
 
-# Adjust possible classes
-if config["seed"] == "x-ray":
-    config["class_dict"] = {'NORMAL': 0,
-                            'Viral Pneumonia': 1,
-                            'COVID-19': 2}
-else:
-    print("ERROR - Unknwon:", config["seed"])
-    pass
+# Load possible classes
+path_classdict = os.path.join(config["path_data"],
+                              str(self.seed) + ".classes.json")
+with open(path_classdict, "r") as json_reader:
+    config["class_dict"] = = json.load(json_reader)
 config["class_list"] = sorted(config["class_dict"],
                               key=config["class_dict"].get)
 
@@ -81,9 +78,9 @@ def identify_class(pred, method="argmax"):
 def preprocessing(architecture, dataset, config):
     # Load ground truth dictionary
     path_gt = os.path.join(config["path_data"], config["seed"] + \
-                           ".classes.pickle")
-    with open(path_gt, "rb") as pickle_reader:
-        gt_map = pickle.load(pickle_reader)
+                           ".class_map.pickle")
+    with open(path_gt, "r") as json_reader:
+        gt_map = json.load(json_reader)
     # Get result subdirectory for current architecture
     path_arch = os.path.join(config["path_results"], "phase_i" + "." + \
                              config["seed"], architecture)

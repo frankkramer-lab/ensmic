@@ -22,7 +22,7 @@
 # External libraries
 import os
 from PIL import Image
-import pickle
+import json
 import numpy as np
 from miscnn.data_loading.interfaces.abstract_io import Abstract_IO
 
@@ -31,7 +31,7 @@ from miscnn.data_loading.interfaces.abstract_io import Abstract_IO
 #-----------------------------------------------------#
 """ Data I/O Interface for JPEG, PNG or other 2D image files.
     Images are read by calling the imread function from the Pillow module.
-    Classification data is load from a class.pickle.
+    Classification data is load from a SEED.class_map.json.
 
     Image types: ["png", "tif", "jpg"]
 
@@ -84,11 +84,10 @@ class IO_MIScnn(Abstract_IO):
             # Remove image type tag from index name
             sample_list[i] = sample_list[i][:-(len(self.img_type)+1)]
         # Load classification file if existent in the data set directory
-        path_classes = os.path.join(input_path,
-                                    str(self.seed) + ".classes.pickle")
-        if os.path.exists(path_classes):
-            with open(path_classes, "rb") as pickle_reader:
-                self.classifications = pickle.load(pickle_reader)
+        path_classmap = os.path.join(input_path,
+                                     str(self.seed) + ".class_map.json")
+        with open(path_classmap, "r") as json_reader:
+            self.classifications = json.load(json_reader)
         # Return sample list
         return sample_list
 

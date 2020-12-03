@@ -1,11 +1,4 @@
-# An analysis on Ensemble Learning optimized Neural Network Classification for COVID-19 CT and X-Ray Imaging
-
-# An analysis on Ensemble Learning optimized Medical Image Classification for COVID-19 CT and X-Ray Imaging with Deep Convolutional Neural Networks
-
-A survey on...?
-
-ensmic?
-
+# An analysis on Ensemble Learning optimized Medical Image Classification with Deep Convolutional Neural Networks
 
 https://towardsdatascience.com/ensembles-the-almost-free-lunch-in-machine-learning-91af7ebe5090
 
@@ -14,6 +7,9 @@ https://towardsdatascience.com/ensembles-the-almost-free-lunch-in-machine-learni
 For multi-label classification:
 - Sigmoid instead of softmax
 - Use binary_crossentropy instead of categorical
+
+ensmeble learning output
+class & probability/confidence (for ROC)
 
 --------------------------------------------
 
@@ -96,25 +92,30 @@ python ensmic/phase_one/training.py -m "ct"
 --------------------------------------------------------------------------------
 Interesting datasets:
 
-1A) Pneumonia, COVID-19, NORMAL
+Focus on multi-class tasks in order to obtain more difficult tasks instead of binary task.  
+
+1) X-Ray COVID19 (multi-class)
+Classes: Pneumonia, COVID-19, NORMAL
 https://www.kaggle.com/tawsifurrahman/covid19-radiography-database
 
 https://ieeexplore.ieee.org/document/9144185
 M.E.H. Chowdhury, T. Rahman, A. Khandakar, R. Mazhar, M.A. Kadir, Z.B. Mahbub, K.R. Islam, M.S. Khan, A. Iqbal, N. Al-Emadi, M.B.I. Reaz, M. T. Islam, “Can AI help in screening Viral and COVID-19 pneumonia?” IEEE Access, Vol. 8, 2020, pp. 132665 - 132676.
 
-1B) X-Ray all types of x-ray abnormalities
-https://openaccess.thecvf.com/content_cvpr_2017/papers/Wang_ChestX-ray8_Hospital-Scale_Chest_CVPR_2017_paper.pdf
+2) The ISIC 2019 Challenge Dataset (multi-class)
 
-https://nihcc.app.box.com/v/ChestXray-NIHCC
+Multi-class dataset with 25,331 images and 9 classes.
 
--> Combine and create
-
-
-3) CT Dataset
-
-4) Pneumonia
+Didn't use ISIC 2020 (33,126) due to binary classification.  
+Aim: More difficult task in order to better evaluate ensemble learning performance gain.  
+https://challenge2020.isic-archive.com/
 
 
+3) Retinal Image Analysis for multi-Disease Detection Challenge (binary)
 
-- https://www.kaggle.com/plameneduardo/sarscov2-ctscan-dataset?select=non-COVID
-- https://bimcv.cipf.es/bimcv-projects/bimcv-covid19/
+https://riadd.grand-challenge.org/Home/
+
+- Classification into normal/abnormal
+
+
+List:
+https://github.com/sfikas/medical-imaging-datasets
