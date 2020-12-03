@@ -57,7 +57,7 @@ config["seed"] = args.seed
 
 # Load possible classes
 path_classdict = os.path.join(config["path_data"],
-                              str(self.seed) + ".classes.json")
+                              config["seed"] + ".classes.json")
 with open(path_classdict, "r") as json_reader:
     config["class_dict"] = json.load(json_reader)
 
