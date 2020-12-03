@@ -17,5 +17,6 @@ debug.sh
 debug.py
 
 # Datasets links
-data.x-ray
-data.ct
+data.covid
+data.isic
+data.riadd
