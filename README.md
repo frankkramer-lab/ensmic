@@ -1,12 +1,10 @@
 # An analysis on Ensemble Learning optimized Medical Image Classification with Deep Convolutional Neural Networks
 
+Project Description etc
+
 https://towardsdatascience.com/ensembles-the-almost-free-lunch-in-machine-learning-91af7ebe5090
 
 --------------------------------------------
-
-For multi-label classification:
-- Sigmoid instead of softmax
-- Use binary_crossentropy instead of categorical
 
 ensmeble learning output
 class & probability/confidence (for ROC)
@@ -29,6 +27,12 @@ Analyze all architectures with 1x train-model & 1x val-model
 Additional:  
 memory vs performance  
 model complexity vs performance  
+
+#### First Results
+
+![PhaseI_F1](docs/plot.F1.png)
+
+![PhaseI_FDR](docs/plot.FDR.png)
 
 ### Phase 2:
 
@@ -66,56 +70,83 @@ for each top3 architecture:
 
 Note: 3-CV instead of 5-CV?
 
---------------------------------------------------------------------------------
+## Reproducibility
 
-## First Results
+**Requirements:**
+- Ubuntu 18.04
+- Python 3.6
+- NVIDIA QUADRO RTX 6000 or a GPU with equivalent performance
 
-**Phase I:**  
+**Step-by-Step workflow:**
 
-![PhaseI_F1](docs/plot.F1.png)
+asd
 
-![PhaseI_FDR](docs/plot.FDR.png)
 
---------------------------------------------------------------------------------
 
-## Usage
+## Datasets
 
-```sh
-python ensmic/preprocessing/prepare_fs.xray.py
-```
+#### X-Ray COVID19
 
-```sh
-python ensmic/phase_one/training.py -m "x-ray"
-python ensmic/phase_one/training.py -m "ct"
-```
+**Classes:** 3 - Pneumonia, COVID-19, NORMAL  
+**Size:** 2905 images  
+**Source:** https://www.kaggle.com/tawsifurrahman/covid19-radiography-database  
 
---------------------------------------------------------------------------------
-Interesting datasets:
+**Short Description:**  
+A team of researchers from Qatar University, Doha, Qatar and the University of Dhaka, Bangladesh along with their collaborators from Pakistan and Malaysia in collaboration with medical doctors have created a database of chest X-ray images for COVID-19 positive cases along with Normal and Viral Pneumonia images. In our current release, there are 219 COVID-19 positive images, 1341 normal images and 1345 viral pneumonia images. We will continue to update this database as soon as we have new x-ray images for COVID-19 pneumonia patients.
 
-Focus on multi-class tasks in order to obtain more difficult tasks instead of binary task.  
-
-1) X-Ray COVID19 (multi-class)
-Classes: Pneumonia, COVID-19, NORMAL
-https://www.kaggle.com/tawsifurrahman/covid19-radiography-database
-
-https://ieeexplore.ieee.org/document/9144185
+**Reference:**  
 M.E.H. Chowdhury, T. Rahman, A. Khandakar, R. Mazhar, M.A. Kadir, Z.B. Mahbub, K.R. Islam, M.S. Khan, A. Iqbal, N. Al-Emadi, M.B.I. Reaz, M. T. Islam, “Can AI help in screening Viral and COVID-19 pneumonia?” IEEE Access, Vol. 8, 2020, pp. 132665 - 132676.
 
-2) The ISIC 2019 Challenge Dataset (multi-class)
+#### The ISIC 2019 Challenge Dataset
 
-Multi-class dataset with 25,331 images and 9 classes.
+**Classes:** 9 - Melanoma, Melanocytic nevus, Basal cell carcinoma, Actinic keratosis, Benign keratosis, Dermatofibroma, Vascular lesion, Squamous cell carcinoma, Unknown  
+**Size:** 25,331 images  
+**Source:** https://challenge2019.isic-archive.com/ or https://www.kaggle.com/andrewmvd/isic-2019
 
-Didn't use ISIC 2020 (33,126) due to binary classification.  
-Aim: More difficult task in order to better evaluate ensemble learning performance gain.  
-https://challenge2020.isic-archive.com/
+**Short Description:**  
+Skin cancer is the most common cancer globally, with melanoma being the most deadly form. Dermoscopy is a skin imaging modality that has demonstrated improvement for diagnosis of skin cancer compared to unaided visual inspection. However, clinicians should receive adequate training for those improvements to be realized. In order to make expertise more widely available, the International Skin Imaging Collaboration (ISIC) has developed the ISIC Archive, an international repository of dermoscopic images, for both the purposes of clinical training, and for supporting technical research toward automated algorithmic analysis by hosting the ISIC Challenges.
+
+**Note:**  
+We didn't use the newest ISIC 2020 (https://challenge2020.isic-archive.com/), because it was purely a binary classification dataset.  
+We utilized the multi-class 2019 variant in order to obtain a more difficult task for better evaluation of the ensemble learning performance gain.  
+
+**Reference:**  
+[1] Tschandl P., Rosendahl C. & Kittler H. The HAM10000 dataset, a large collection of multi-source dermatoscopic images of common pigmented skin lesions. Sci. Data 5, 180161 doi.10.1038/sdata.2018.161 (2018)  
+[2] Noel C. F. Codella, David Gutman, M. Emre Celebi, Brian Helba, Michael A. Marchetti, Stephen W. Dusza, Aadi Kalloo, Konstantinos Liopyris, Nabin Mishra, Harald Kittler, Allan Halpern: “Skin Lesion Analysis Toward Melanoma Detection: A Challenge at the 2017 International Symposium on Biomedical Imaging (ISBI), Hosted by the International Skin Imaging Collaboration (ISIC)”, 2017; arXiv:1710.05006.  
+[3] Marc Combalia, Noel C. F. Codella, Veronica Rotemberg, Brian Helba, Veronica Vilaplana, Ofer Reiter, Allan C. Halpern, Susana Puig, Josep Malvehy: “BCN20000: Dermoscopic Lesions in the Wild”, 2019; arXiv:1908.02288.  
 
 
-3) Retinal Image Analysis for multi-Disease Detection Challenge (binary)
+#### Retinal Image Analysis for multi-Disease Detection Challenge
 
+**Classes:** 2 - Normal, Abnormal  
+**Size:** 1920 images  
+**Source:** https://riadd.grand-challenge.org/Home/  
+
+**Short Description:**  
+According to the WHO,  World report on vision 2019, the number of visually impaired people worldwide is estimated to be 2.2 billion, of whom at least 1 billion have a vision impairment that could have been prevented or is yet to be addressed. The world faces considerable challenges in terms of eye care, including inequalities in the coverage and quality of prevention, treatment, and rehabilitation services. Early detection and diagnosis of ocular pathologies would enable forestall of visual impairment.
+
+**Reference:**  
 https://riadd.grand-challenge.org/Home/
 
-- Classification into normal/abnormal
+## Author
 
+Dominik Müller\
+Email: dominik.mueller@informatik.uni-augsburg.de\
+IT-Infrastructure for Translational Medical Research\
+University Augsburg\
+Bavaria, Germany
 
-List:
-https://github.com/sfikas/medical-imaging-datasets
+## How to cite / More information
+
+Coming soon
+
+```
+Coming soon
+```
+
+Thank you for citing our work.
+
+## License
+
+This project is licensed under the GNU GENERAL PUBLIC LICENSE Version 3.\
+See the LICENSE.md file for license rights and limitations.
