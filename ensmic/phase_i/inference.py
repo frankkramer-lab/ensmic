@@ -59,7 +59,7 @@ config["seed"] = args.seed
 path_classdict = os.path.join(config["path_data"],
                               str(self.seed) + ".classes.json")
 with open(path_classdict, "r") as json_reader:
-    config["class_dict"] = = json.load(json_reader)
+    config["class_dict"] = json.load(json_reader)
 
 # Architectures for Classification
 config["architecture_list"] = architectures

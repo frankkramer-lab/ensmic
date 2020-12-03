@@ -47,19 +47,18 @@ args = parser.parse_args()
 #-----------------------------------------------------#
 # Initialize configuration dictionary
 config = {}
+# Path to data directory
+config["path_data"] = "data"
 # Path to result directory
 config["path_results"] = "results"
 # Seed (if training multiple runs)
 config["seed"] = args.seed
 
-# Adjust possible classes
-if config["seed"] == "x-ray":
-    config["class_dict"] = {'NORMAL': 0,
-                            'Viral Pneumonia': 1,
-                            'COVID-19': 2}
-else:
-    print("ERROR - Unknwon:", config["seed"])
-    pass
+# Load possible classes
+path_classdict = os.path.join(config["path_data"],
+                              str(self.seed) + ".classes.json")
+with open(path_classdict, "r") as json_reader:
+    config["class_dict"] = json.load(json_reader)
 config["class_list"] = sorted(config["class_dict"],
                               key=config["class_dict"].get)
 
