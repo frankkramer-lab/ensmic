@@ -25,6 +25,7 @@ import os
 import json
 # MIScnn libraries
 from miscnn import Preprocessor, Data_IO, Neural_Network, Data_Augmentation
+from miscnn.processing.subfunctions import Normalization
 # TensorFlow libraries
 from tensorflow.keras.losses import CategoricalCrossentropy
 from tensorflow.keras.metrics import CategoricalAccuracy
@@ -95,7 +96,7 @@ def setup_miscnn(architecture, config, best_model=True):
 
     # Specify subfunctions for preprocessing
     input_shape = nn_architecture.fixed_input_shape
-    sf = [SegFix(), Resize(new_shape=input_shape)]
+    sf = [SegFix(), Normalization(mode="minmax"), Resize(new_shape=input_shape)]
 
     # Create and configure the MIScnn Preprocessor class
     pp = Preprocessor(data_io, data_aug=data_aug,
