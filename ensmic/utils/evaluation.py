@@ -20,12 +20,14 @@
 #                   Library imports                   #
 #-----------------------------------------------------#
 # External libraries
+from sklearn.metrics import roc_curve, auc
+import numpy as np
 # Internal libraries/scripts
 
 #-----------------------------------------------------#
 #             Function: Metric Computation            #
 #-----------------------------------------------------#
-def compute_metrics(truth, pred, config):
+def compute_metrics(truth, pred, pd_prob, config):
     # Iterate over each class
     metrics = []
     for c in sorted(config["class_dict"].values()):
@@ -42,6 +44,11 @@ def compute_metrics(truth, pred, config):
         mc["FDR"] = safe_division(fp, fp+tp)
         mc["Accuracy"] = safe_division(tp+tn, tp+tn+fp+fn)
         mc["F1"] = safe_division(2*tp, 2*tp+fp+fn)
+        # Compute AUROC
+        truth_class = (np.array(truth) == c).astype(int)
+        pdprob_class = np.asarray(pd_prob)[:, c]
+        mc["ROC_FPR"], mc["ROC_TPR"], _ = roc_curve(truth_class, pdprob_class)
+        mc["ROC_AUC"] = auc(mc["ROC_FPR"], mc["ROC_TPR"])
         # Append dictionary to metric list
         metrics.append(mc)
     # Return results
