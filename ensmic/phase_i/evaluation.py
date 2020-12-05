@@ -29,7 +29,8 @@ from plotnine import *
 # Internal libraries/scripts
 from ensmic.data_loading import IO_Inference
 from ensmic.architectures import architecture_dict, architectures
-from ensmic.utils.evaluation import compute_metrics
+from ensmic.evaluation.metrics import compute_metrics
+from ensmic.evaluation.categorical_averaging import macro_averaging
 # Experimental
 import warnings
 warnings.filterwarnings("ignore")
@@ -78,7 +79,7 @@ def identify_class(pred, method="argmax"):
 def preprocessing(architecture, dataset, config):
     # Load ground truth dictionary
     path_gt = os.path.join(config["path_data"], config["seed"] + \
-                           ".class_map.pickle")
+                           ".class_map.json")
     with open(path_gt, "r") as json_reader:
         gt_map = json.load(json_reader)
     # Get result subdirectory for current architecture
@@ -93,22 +94,24 @@ def preprocessing(architecture, dataset, config):
     # Initialize lists for predictions and ground truth
     id = []
     gt = []
-    pd = []
+    pd_class = []
+    pd_prob = []
     # Iterate over all samples of the testing set
     sample_list = inference.keys()
     for sample in sample_list:
-        # Load prediction
+        # Obtain ground truth and predictions
         prediction = inference[sample]
         id.append(sample)
         gt.append(gt_map[sample])
-        pd.append(identify_class(prediction))
+        pd_class.append(identify_class(prediction))
+        pd_prob.append(prediction)
     # Return parsed information
-    return id, gt, pd
+    return id, gt, pd_class, pd_prob
 
 #-----------------------------------------------------#
 #          Function: Results Parsing & Backup         #
 #-----------------------------------------------------#
-def parse_results(metrics, architecture, config):
+def parse_results(metrics, architecture, dataset, config):
     # Parse metrics to Pandas dataframe
     results = pandas.DataFrame.from_dict(metrics)
     results = results.transpose()
@@ -116,12 +119,12 @@ def parse_results(metrics, architecture, config):
     # Backup to disk
     path_arch = os.path.join(config["path_results"], "phase_i" + "." + \
                              config["seed"], architecture)
-    path_res = os.path.join(path_arch, "metrics.csv")
+    path_res = os.path.join(path_arch, "metrics." + dataset + ".csv")
     results.to_csv(path_res, index=True, index_label="metric")
     # Return dataframe
     return results
 
-def collect_results(result_set, architectures, path_eval, config):
+def collect_results(result_set, architectures, dataset, path_eval, config):
     # Initialize result dataframe
     cols = ["architecture", "class", "metric", "value"]
     df_results = pandas.DataFrame(data=[], dtype=np.float64, columns=cols)
@@ -130,6 +133,8 @@ def collect_results(result_set, architectures, path_eval, config):
         arch_type = architectures[i]
         arch_df = result_set[i]
         arch_df.drop(index="TP-TN-FP-FN", inplace=True)
+        arch_df.drop(index="ROC_FPR", inplace=True)
+        arch_df.drop(index="ROC_TPR", inplace=True)
         arch_df = arch_df.astype(float)
         # Parse architecture result dataframe into desired shape
         arch_df = arch_df.reset_index()
@@ -144,7 +149,7 @@ def collect_results(result_set, architectures, path_eval, config):
         # Merge to global result dataframe
         df_results = df_results.append(arch_df, ignore_index=True)
     # Backup merged results to disk
-    path_res = os.path.join(path_eval, "all.results.csv")
+    path_res = os.path.join(path_eval, "results." + dataset + ".collection.csv")
     df_results.to_csv(path_res, index=False)
     # Return merged results
     return df_results
@@ -152,7 +157,7 @@ def collect_results(result_set, architectures, path_eval, config):
 #-----------------------------------------------------#
 #                Function: Plot Results               #
 #-----------------------------------------------------#
-def plot_results(results, eval_path):
+def plot_categorical_results(results, dataset, eval_path):
     # Iterate over each metric
     for metric in np.unique(results["metric"]):
         # Extract sub dataframe for the current metric
@@ -161,9 +166,10 @@ def plot_results(results, eval_path):
         df["class"] = pandas.Categorical(df["class"],
                                          categories=config["class_list"],
                                          ordered=True)
-        # Plot results
+        # Plot results individually
         fig = (ggplot(df, aes("architecture", "value", fill="class"))
-                      + geom_col(stat='identity', width=0.6, position = position_dodge(width=0.6))
+                      + geom_col(stat='identity', width=0.6,
+                                 position = position_dodge(width=0.6))
                       + ggtitle("Architecture Comparison by " + metric)
                       + xlab("Architectures")
                       + ylab(metric)
@@ -172,8 +178,61 @@ def plot_results(results, eval_path):
                       + scale_fill_discrete(name="Classification")
                       + theme_bw(base_size=28))
         # Store figure to disk
-        fig.save(filename="plot." + metric + ".png", path=path_eval,
-                 width=18, height=14, dpi=300)
+        fig.save(filename="plot." + dataset + ".classwise." + metric + ".png",
+                 path=path_eval, width=18, height=14, dpi=200)
+    # Plot results together
+    fig = (ggplot(results, aes("architecture", "value", fill="class"))
+               + geom_col(stat='identity', width=0.6,
+                          position = position_dodge(width=0.6))
+               + ggtitle("Architecture Comparisons")
+               + facet_wrap("metric", nrow=2)
+               + xlab("Architectures")
+               + ylab("Score")
+               + coord_flip()
+               + scale_y_continuous(limits=[0, 1])
+               + scale_fill_discrete(name="Classification")
+               + theme_bw(base_size=28))
+    # Store figure to disk
+    fig.save(filename="plot." + dataset + ".classwise.all.png",
+          path=path_eval, width=40, height=25, dpi=200, limitsize=False)
+
+
+def plot_averaged_results(results, dataset, eval_path):
+    # Iterate over each metric
+    for metric in np.unique(results["metric"]):
+        # Extract sub dataframe for the current metric
+        df = results.loc[results["metric"] == metric]
+        # Plot results
+        fig = (ggplot(df, aes("architecture", "value"))
+                      + geom_col(stat='identity', width=0.6,
+                                 position = position_dodge(width=0.6),
+                                 show_legend=False,
+                                 color='#F6F6F6', fill="#0C475B")
+                      + ggtitle("Architecture Comparison by " + metric)
+                      + xlab("Architectures")
+                      + ylab(metric)
+                      + coord_flip()
+                      + scale_y_continuous(limits=[0, 1])
+                      + theme_bw(base_size=28))
+        # Store figure to disk
+        fig.save(filename="plot." + dataset + ".averaged." + metric + ".png",
+                 path=path_eval, width=18, height=14, dpi=200)
+    # Plot results together
+    fig = (ggplot(results, aes("architecture", "value"))
+               + geom_col(stat='identity', width=0.6,
+                          position = position_dodge(width=0.6),
+                          show_legend=False,
+                          color='#F6F6F6', fill="#0C475B")
+               + ggtitle("Architecture Comparisons")
+               + facet_wrap("metric", nrow=2)
+               + xlab("Architectures")
+               + ylab("Score")
+               + coord_flip()
+               + scale_y_continuous(limits=[0, 1])
+               + theme_bw(base_size=28))
+    # Store figure to disk
+    fig.save(filename="plot." + dataset + ".averaged.all.png",
+          path=path_eval, width=40, height=25, dpi=200, limitsize=False)
 
 #-----------------------------------------------------#
 #                    Run Evaluation                   #
@@ -183,29 +242,35 @@ path_eval = os.path.join(config["path_results"], "phase_i" + "." + \
                          config["seed"], "evaluation")
 if not os.path.exists(path_eval) : os.mkdir(path_eval)
 
-# Initialize result dataframe
-result_set = []
-verified_architectures = []
-
-# Run Evaluation for all architectures
+# Run Evaluation for validation and test dataset
 for ds in ["val-ensemble", "test"]:
+    # Initialize result dataframe
+    result_set = []
+    verified_architectures = []
+
+    # Run Evaluation for all architectures
     print("Run evaluation for dataset:", ds)
     for architecture in config["architecture_list"]:
         print("Run evaluation for Architecture:", architecture)
-        try:
-            # Preprocess ground truth and predictions
-            id, gt, pd = preprocessing(architecture, ds, config)
-            # Compute metrics
-            metrics = compute_metrics(gt, pd, config)
-            # Backup results
-            metrics_df = parse_results(metrics, architecture, config)
-            # Cache dataframe and add architecture to verification list
-            result_set.append(metrics_df)
-            verified_architectures.append(architecture)
-        except:
-            print("Skipping Architecture", architecture, "due to Error.")
+        # try:
+        # Preprocess ground truth and predictions
+        id, gt, pd, pd_prob = preprocessing(architecture, ds, config)
+        # Compute metrics
+        metrics = compute_metrics(gt, pd, pd_prob, config)
+        # Backup results
+        metrics_df = parse_results(metrics, architecture, ds, config)
+        # Cache dataframe and add architecture to verification list
+        result_set.append(metrics_df)
+        verified_architectures.append(architecture)
+        # except:
+        #     print("Skipping Architecture", architecture, "due to Error.")
 
-# Combine results
-results = collect_results(result_set, verified_architectures, path_eval, config)
-# Plot result figure
-plot_results(results, path_eval)
+    # Collect results
+    results_all = collect_results(result_set, verified_architectures, ds,
+                                  path_eval, config)
+    # Macro Average results
+    results_averaged = macro_averaging(results_all, ds, path_eval)
+
+    # Plot result figure
+    plot_categorical_results(results_all, ds, path_eval)
+    plot_averaged_results(results_averaged, ds, path_eval)
