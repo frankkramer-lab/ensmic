@@ -77,7 +77,11 @@ config["batch_size"] = 32
 config["epochs"] = 1000
 config["iterations"] = None
 config["workers"] = 8
-config["EarlyStopping_Patience"] = 50
+# Early Stopping Configurations
+config["EarlyStopping_Patience"] = 60
+if config["seed"] == "isic" : config["EarlyStopping_Baseline"] = 1.05
+elif config["seed"] == "riadd" : config["EarlyStopping_Baseline"] = 0.45
+else : config["EarlyStopping_Baseline"] = 0.5
 
 # GPU Configurations
 config["gpu_id"] = int(args.gpu)

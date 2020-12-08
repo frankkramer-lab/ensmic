@@ -11,10 +11,13 @@ python ensmic/preprocessing/prepare_fs.riadd.py
 ```sh
 # Dataset: COVID-19
 nohup sh -c "python ensmic/phase_i/training.py -m 'covid' --gpu 0" &> log.phase_i.covid.training.txt &
-
-# Dataset: ISIC 2019
-nohup sh -c "python ensmic/phase_i/training.py -m 'isic' --gpu 1" &> log.phase_i.isic.training.txt &
+nohup sh -c "python ensmic/phase_i/inference.py -m 'covid' --gpu 0" &> log.phase_i.covid.inference.txt &
 
 # Dataset: RIADD 2021
-nohup sh -c "python ensmic/phase_i/training.py -m 'riadd' --gpu 2" &> log.phase_i.riadd.training.txt &
+nohup sh -c "python ensmic/phase_i/training.py -m 'riadd' --gpu 1" &> log.phase_i.riadd.training.txt &
+nohup sh -c "python ensmic/phase_i/inference.py -m 'riadd' --gpu 1" &> log.phase_i.riadd.inference.txt &
+
+# Dataset: ISIC 2019
+nohup sh -c "python ensmic/phase_i/training.py -m 'isic' --gpu 0" &> log.phase_i.isic.training.txt &
+nohup sh -c "python ensmic/phase_i/inference.py -m 'isic' --gpu 0" &> log.phase_i.isic.inference.txt &
 ```
