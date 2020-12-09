@@ -29,7 +29,8 @@ from plotnine import *
 # Internal libraries/scripts
 from ensmic.data_loading import IO_Inference
 from ensmic.ensemble import ensembler
-from ensmic.utils.evaluation import compute_metrics
+from ensmic.evaluation.metrics import compute_metrics
+from ensmic.evaluation.categorical_averaging import macro_averaging
 # Experimental
 import warnings
 warnings.filterwarnings("ignore")
@@ -66,6 +67,13 @@ config["class_list"] = sorted(config["class_dict"],
 config["ensembler_list"] = ensembler
 
 #-----------------------------------------------------#
+#          Function: Identify Classification          #
+#-----------------------------------------------------#
+def identify_class(pred, method="argmax"):
+    if method == "argmax":
+        return np.argmax(pred)
+
+#-----------------------------------------------------#
 #               Function: Preprocessing               #
 #-----------------------------------------------------#
 def preprocessing(ensembler, config):
@@ -86,16 +94,19 @@ def preprocessing(ensembler, config):
     # Initialize lists for predictions and ground truth
     id = []
     gt = []
-    pd = []
+    pd_class = []
+    pd_prob = []
     # Iterate over all samples of the testing set
     sample_list = inference.keys()
     for sample in sample_list:
         # Cache ground truth and prediction
         id.append(sample)
         gt.append(gt_map[sample])
-        pd.append(inference[sample])
+        prediction = inference[sample]
+        pd_class.append(identify_class(prediction))
+        pd_prob.append(prediction)
     # Return parsed information
-    return id, gt, pd
+    return id, gt, pd_class, pd_prob
 
 #-----------------------------------------------------#
 #          Function: Results Parsing & Backup         #
@@ -120,8 +131,10 @@ def collect_results(result_set, verified_ensembler, path_eval, config):
     # Iterate over each ensembler results
     for i in range(0, len(verified_ensembler)):
         ens_type = verified_ensembler[i]
-        ens_df = result_set[i]
+        ens_df = result_set[i].copy()
         ens_df.drop(index="TP-TN-FP-FN", inplace=True)
+        ens_df.drop(index="ROC_FPR", inplace=True)
+        ens_df.drop(index="ROC_TPR", inplace=True)
         ens_df = ens_df.astype(float)
         # Parse ensembler result dataframe into desired shape
         ens_df = ens_df.reset_index()
@@ -158,9 +171,9 @@ for ensembler in config["ensembler_list"]:
     print("Run evaluation for Ensembler:", ensembler)
     try:
         # Preprocess ground truth and predictions
-        id, gt, pd = preprocessing(ensembler, config)
+        id, gt, pd, pd_prob = preprocessing(ensembler, config)
         # Compute metrics
-        metrics = compute_metrics(gt, pd, config)
+        metrics = compute_metrics(gt, pd, pd_prob, config)
         # Backup results
         metrics_df = parse_results(metrics, ensembler, config)
         # Cache dataframe and add ensembler to verification list
@@ -170,20 +183,20 @@ for ensembler in config["ensembler_list"]:
         print("Skipping Ensembler", ensembler, "due to Error:", e)
 
 # Combine results
-results = collect_results(result_set, verified_ensembler, path_eval, config)
+results_all = collect_results(result_set, verified_ensembler, path_eval, config)
 
 #-----------------------------------------------------#
-#                Function: Plot Results               #
+#         Function: Plot Performance Classwise        #
 #-----------------------------------------------------#
 # Iterate over each metric
-for metric in np.unique(results["metric"]):
+for metric in np.unique(results_all["metric"]):
     # Extract sub dataframe for the current metric
-    df = results.loc[results["metric"] == metric]
+    df = results_all.loc[results_all["metric"] == metric]
     # Sort classification
     df["class"] = pandas.Categorical(df["class"],
                                      categories=config["class_list"],
                                      ordered=True)
-    # Plot results
+    # Plot results individually
     fig = (ggplot(df, aes("ensembler", "value", fill="class"))
                   + geom_col(stat='identity', width=0.6, position = position_dodge(width=0.6))
                   + ggtitle("Ensemble Learning Comparison by " + metric)
@@ -194,5 +207,123 @@ for metric in np.unique(results["metric"]):
                   + scale_fill_discrete(name="Classification")
                   + theme_bw(base_size=28))
     # Store figure to disk
-    fig.save(filename="plot." + metric + ".png", path=path_eval,
-             width=18, height=14, dpi=300)
+    fig.save(filename="plot.classwise." + metric + ".png", path=path_eval,
+             width=18, height=14, dpi=200)
+# Plot results together
+fig = (ggplot(results_all, aes("ensembler", "value", fill="class"))
+           + geom_col(stat='identity', width=0.6,
+                      position = position_dodge(width=0.6))
+           + ggtitle("Ensemble Learning Comparisons")
+           + facet_wrap("metric", nrow=2)
+           + xlab("Ensemble Learning Technique")
+           + ylab("Score")
+           + coord_flip()
+           + scale_y_continuous(limits=[0, 1])
+           + scale_fill_discrete(name="Classification")
+           + theme_bw(base_size=28))
+# Store figure to disk
+fig.save(filename="plot.classwise.all.png",
+      path=path_eval, width=40, height=25, dpi=200, limitsize=False)
+
+#-----------------------------------------------------#
+#         Function: Plot Performance Averaged         #
+#-----------------------------------------------------#
+# Macro Average results
+results_averaged = macro_averaging(results_all, "test", path_eval, "ensembler")
+
+# Iterate over each metric
+for metric in np.unique(results_averaged["metric"]):
+    # Extract sub dataframe for the current metric
+    df = results_averaged.loc[results_averaged["metric"] == metric]
+    # Plot results individually
+    fig = (ggplot(df, aes("ensembler", "value"))
+                  + geom_col(stat='identity', width=0.6,
+                             position = position_dodge(width=0.6),
+                             show_legend=False,
+                             color='#F6F6F6', fill="#0C475B")
+                  + ggtitle("Ensemble Learning Comparison by " + metric)
+                  + xlab("Ensemble Learning Technique")
+                  + ylab(metric)
+                  + coord_flip()
+                  + scale_y_continuous(limits=[0, 1])
+                  + theme_bw(base_size=28))
+    # Store figure to disk
+    fig.save(filename="plot.averaged." + metric + ".png", path=path_eval,
+             width=18, height=14, dpi=200)
+# Plot results together
+fig = (ggplot(results_averaged, aes("ensembler", "value"))
+           + geom_col(stat='identity', width=0.6,
+                      position = position_dodge(width=0.6),
+                      show_legend=False,
+                      color='#F6F6F6', fill="#0C475B")
+           + ggtitle("Ensemble Learning Comparisons")
+           + facet_wrap("metric", nrow=2)
+           + xlab("Ensemble Learning Technique")
+           + ylab("Score")
+           + coord_flip()
+           + scale_y_continuous(limits=[0, 1])
+           + theme_bw(base_size=28))
+# Store figure to disk
+fig.save(filename="plot.averaged.all.png",
+      path=path_eval, width=40, height=25, dpi=200, limitsize=False)
+
+#-----------------------------------------------------#
+#                     ROC Analysis                    #
+#-----------------------------------------------------#
+# Initialize result dataframe
+cols = ["ensembler", "class", "FPR", "TPR"]
+results_roc = pandas.DataFrame(data=[], dtype=np.float64, columns=cols)
+# Iterate over each ensembler results
+for i in range(0, len(verified_ensembler)):
+    # Preprocess data into correct format
+    ens_df = result_set[i].copy()
+    ens_df = ens_df.transpose()
+    roc_df = ens_df[["ROC_FPR", "ROC_TPR"]]
+    roc_df = roc_df.apply(pandas.Series.explode)
+    roc_df["ensembler"] = verified_ensembler[i]
+    # Append to result dataframe
+    roc_df = roc_df.reset_index()
+    roc_df.rename(columns={"index":"class",
+                           "ROC_FPR":"FPR",
+                           "ROC_TPR":"TPR"},
+                  inplace=True)
+    # Reorder columns
+    roc_df = roc_df[cols]
+    # Convert from object to float
+    roc_df["FPR"] = roc_df["FPR"].astype(float)
+    roc_df["TPR"] = roc_df["TPR"].astype(float)
+    # Merge to global result dataframe
+    results_roc = results_roc.append(roc_df, ignore_index=True)
+
+# Plot roc results via facet_wrap
+fig = (ggplot(results_roc, aes("FPR", "TPR", color="class"))
+           + geom_line(size=1.5)
+           + geom_abline(intercept=0, slope=1, color="black",
+                         linetype="dashed")
+           + ggtitle("Ensemble Learning Comparisons by ROC")
+           + facet_wrap("ensembler", nrow=4)
+           + xlab("False Positive Rate")
+           + ylab("True Positive Rate")
+           + scale_x_continuous(limits=[0, 1])
+           + scale_y_continuous(limits=[0, 1])
+           + scale_color_discrete(name="Classification")
+           + theme_bw(base_size=28))
+# Store figure to disk
+fig.save(filename="plot.ROC.individual.png",
+         path=path_eval, width=40, height=20, dpi=200, limitsize=False)
+
+# Plot roc results together
+fig = (ggplot(results_roc, aes("FPR", "TPR", color="ensembler"))
+        + geom_smooth(method="loess", se=False, size=1.5)
+        + geom_abline(intercept=0, slope=1, color="black",
+                      linetype="dashed", size=1.5)
+        + ggtitle("Ensemble Learning Comparisons by ROC")
+        + xlab("False Positive Rate")
+        + ylab("True Positive Rate")
+        + scale_x_continuous(limits=[0, 1])
+        + scale_y_continuous(limits=[0, 1])
+        + scale_color_discrete(name="Ensemble LearningTechnique")
+        + theme_bw(base_size=40))
+# Store figure to disk
+fig.save(filename="plot.ROC.together.png",
+      path=path_eval, width=30, height=20, dpi=200, limitsize=False)

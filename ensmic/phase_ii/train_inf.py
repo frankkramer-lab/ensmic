@@ -63,8 +63,10 @@ with open(path_classdict, "r") as json_reader:
 #                     Run Training                    #
 #-----------------------------------------------------#
 def run_training(ds_x, ds_y, ensembler, path_elm, config):
+    # Obtain initialization variables for Ensemble Learning model
+    n_classes = len(config["class_dict"].keys())
     # Create Ensemble Learning model
-    model = ensembler_dict[ensembler]()
+    model = ensembler_dict[ensembler](n_classes=n_classes)
     # Fit model on data
     model.training(ds_x.copy(), ds_y.copy())
     # Dump fitted model to disk
@@ -111,7 +113,7 @@ timer_cache = {}
 
 # Run Training and Inference for all ensemble learning techniques
 for ensembler in config["ensembler_list"]:
-    print("Run training for Ensembler:", ensembler)
+    print("Start running Ensembler:", ensembler)
     try:
         # Get path to Ensembler subdirectory
         path_elm = os.path.join(path_phase, ensembler)
@@ -123,7 +125,7 @@ for ensembler in config["ensembler_list"]:
         # Store execution time in cache
         timer_time = timer_end - timer_start
         timer_cache[ensembler] = timer_time
-        print("Finished training for Ensembler:", ensembler, timer_time)
+        print("Finished running Ensembler:", ensembler, timer_time)
     except Exception as e:
         print(ensembler, "-", "An exception occurred:", str(e))
 

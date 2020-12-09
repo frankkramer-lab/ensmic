@@ -27,9 +27,9 @@ import os
 #-----------------------------------------------------#
 #              Function: Macro Averaging              #
 #-----------------------------------------------------#
-def macro_averaging(results, dataset, path_eval):
+def macro_averaging(results, dataset, path_eval, index_col="architecture"):
     # Compute macro average
-    mag = results.groupby(by=["architecture", "metric"], axis=0)
+    mag = results.groupby(by=[index_col, "metric"], axis=0)
     macro_averaged = mag.mean()
     # Reset index of grouped dataframe to normal dataframe back
     macro_averaged = macro_averaged.reset_index()
