@@ -282,21 +282,24 @@ def plot_auroc_results(results, dataset, eval_path):
     fig.save(filename="plot." + dataset + ".ROC.individual.png",
              path=path_eval, width=40, height=20, dpi=200, limitsize=False)
 
-    # Plot roc results together
-    fig = (ggplot(results, aes("FPR", "TPR", color="architecture"))
-            + geom_smooth(method="loess", se=False, size=1.5)
-            + geom_abline(intercept=0, slope=1, color="black",
-                          linetype="dashed", size=1.5)
-            + ggtitle("Architecture Comparisons by ROC")
-            + xlab("False Positive Rate")
-            + ylab("True Positive Rate")
-            + scale_x_continuous(limits=[0, 1])
-            + scale_y_continuous(limits=[0, 1])
-            + scale_color_discrete(name="Architectures")
-            + theme_bw(base_size=40))
-    # Store figure to disk
-    fig.save(filename="plot." + dataset + ".ROC.together.png",
-          path=path_eval, width=30, height=20, dpi=200, limitsize=False)
+    try:
+        # Plot roc results together
+        fig = (ggplot(results, aes("FPR", "TPR", color="architecture"))
+                + geom_smooth(method="loess", se=False, size=1.5)
+                + geom_abline(intercept=0, slope=1, color="black",
+                              linetype="dashed", size=1.5)
+                + ggtitle("Architecture Comparisons by ROC")
+                + xlab("False Positive Rate")
+                + ylab("True Positive Rate")
+                + scale_x_continuous(limits=[0, 1])
+                + scale_y_continuous(limits=[0, 1])
+                + scale_color_discrete(name="Architectures")
+                + theme_bw(base_size=40))
+        # Store figure to disk
+        fig.save(filename="plot." + dataset + ".ROC.together.png",
+              path=path_eval, width=30, height=20, dpi=200, limitsize=False)
+    except:
+        print("Skipped ROC-together figure for:", dataset)
 
 
 #-----------------------------------------------------#
@@ -389,14 +392,14 @@ for ds in ["val-ensemble", "test"]:
     results_averaged = macro_averaging(results_all, ds, path_eval)
 
     # Plot result figure
-    # plot_categorical_results(results_all, ds, path_eval)
-    # plot_averaged_results(results_averaged, ds, path_eval)
+    plot_categorical_results(results_all, ds, path_eval)
+    plot_averaged_results(results_averaged, ds, path_eval)
 
     # Analyse ROC
     results_roc = preprocess_roc_data(result_set)
     plot_auroc_results(results_roc, ds, path_eval)
 
 # Analyse fitting curve loggings
-# dt_fitting_loss, dt_fitting_accuracy = gather_fitting_data(config)
-# plot_fitting(dt_fitting_loss, "Loss_Function", path_eval, config)
-# plot_fitting(dt_fitting_accuracy, "Categorical_Accuracy", path_eval, config)
+dt_fitting_loss, dt_fitting_accuracy = gather_fitting_data(config)
+plot_fitting(dt_fitting_loss, "Loss_Function", path_eval, config)
+plot_fitting(dt_fitting_accuracy, "Categorical_Accuracy", path_eval, config)
