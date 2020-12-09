@@ -19,12 +19,10 @@
 # Simple Approaches
 from ensmic.ensemble.mean_unweighted import ELM_MeanUnweighted
 from ensmic.ensemble.global_argmax import ELM_GlobalArgmax
-from ensmic.ensemble.majority_vote import ELM_MajorityVote
 
 # Ensembler Dictionary
 ensembler_dict = {"MeanUnweighted":ELM_MeanUnweighted,
-                  "GlobalArgmax":ELM_GlobalArgmax,
-                  "MajorityVote":ELM_MajorityVote
+                  "GlobalArgmax":ELM_GlobalArgmax
                   }
 # List of implemented Ensemblers
 ensembler = list(ensembler_dict.keys())

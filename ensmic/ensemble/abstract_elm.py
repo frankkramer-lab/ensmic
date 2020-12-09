@@ -36,7 +36,7 @@ Methods:
 """
 class Abstract_Ensemble(ABC):
     @abstractmethod
-    def __init__(self):
+    def __init__(self, n_classes):
         pass
 
     @abstractmethod
