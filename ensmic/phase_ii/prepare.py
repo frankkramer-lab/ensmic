@@ -23,7 +23,7 @@
 import argparse
 import os
 import pandas as pd
-import pickle
+import json
 from sklearn.utils import shuffle
 # Internal libraries/scripts
 from ensmic.data_loading import IO_Inference
@@ -125,9 +125,9 @@ def create_dataset(dt, label):
 
     # Load ground truth dictionary
     path_gt = os.path.join(config["path_data"], config["seed"] + \
-                           ".classes.pickle")
-    with open(path_gt, "rb") as pickle_reader:
-        gt_map = pickle.load(pickle_reader)
+                           ".class_map.json")
+    with open(path_gt, "r") as json_reader:
+        gt_map = json.load(json_reader)
     # Create ground truth dataframe
     sample_list = dt_raw.index.tolist()
     gt = [gt_map[sample] for sample in sample_list]
