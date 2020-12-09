@@ -169,7 +169,8 @@ def run_training(model, architecture, config):
     cb_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=15,
                               verbose=1, mode='min', min_delta=0.0001,
                               cooldown=1, min_lr=0.00001)
-    cb_es = ImprovedEarlyStopping(monitor="val_loss", baseline=0.5,
+    cb_es = ImprovedEarlyStopping(monitor="val_loss",
+                                  baseline=config["EarlyStopping_Baseline"],
                                   patience=config["EarlyStopping_Patience"])
     callbacks = [cb_mc, cb_cl, cb_lr, cb_es]
 
