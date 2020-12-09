@@ -235,6 +235,58 @@ def plot_averaged_results(results, dataset, eval_path):
           path=path_eval, width=40, height=25, dpi=200, limitsize=False)
 
 #-----------------------------------------------------#
+#                Fitting Curve Analysis               #
+#-----------------------------------------------------#
+def gather_fitting_data(config):
+    dt_list = []
+    for architecture in config["architecture_list"]:
+        # Get path to fitting logging for current architecture
+        path_arch = os.path.join(config["path_results"], "phase_i" + "." + \
+                                 config["seed"], architecture)
+        path_trainlogs = os.path.join(path_arch, "logs.csv")
+        # Load CSV as dataframe
+        dt_trainlog = pandas.read_csv(path_trainlogs)
+        # Add current architecture to dataframe and add to datatable list
+        dt_trainlog["architecture"] = architecture
+        dt_list.append(dt_trainlog)
+    # Merge to global fitting dataframe
+    dt_fitting = pandas.concat(dt_list, ignore_index=True)
+    # Melt dataframe into correct format
+    dt_fitting_loss = dt_fitting.melt(id_vars=["architecture", "epoch"],
+                                      value_vars=["loss", "val_loss"],
+                                      var_name="Dataset",
+                                      value_name="score")
+    dt_fitting_accuracy = dt_fitting.melt(id_vars=["architecture", "epoch"],
+                                          value_vars=["categorical_accuracy",
+                                                    "val_categorical_accuracy"],
+                                          var_name="Dataset",
+                                          value_name="score")
+    # Return datatable
+    return dt_fitting_loss, dt_fitting_accuracy
+
+def plot_fitting(results, metric, eval_path, config):
+    if metric == "Loss Function":
+        limits = [0, 2]
+    else:
+        limits = [0, 1]
+    # Plot results
+    fig = (ggplot(results, aes("epoch", "score", color="factor(Dataset)"))
+               #+ geom_smooth(method="gpr", size=1)
+               + geom_line(size=1)
+               + ggtitle(config["seed"].upper() + \
+                         ": Fitting Curve during Training")
+               + facet_wrap("architecture", nrow=4, scales="free_x")
+               + xlab("Epoch")
+               + ylab(metric)
+               + scale_y_continuous(limits=limits)
+               + scale_colour_discrete(name="Dataset",
+                                       labels=["Training", "Validation"])
+               + theme_bw(base_size=28))
+    # Store figure to disk
+    fig.save(filename="plot.fitting_course." + metric + ".png",
+          path=path_eval, width=65, height=25, dpi=200, limitsize=False)
+
+#-----------------------------------------------------#
 #                    Run Evaluation                   #
 #-----------------------------------------------------#
 # Create evaluation subdirectory
@@ -252,18 +304,18 @@ for ds in ["val-ensemble", "test"]:
     print("Run evaluation for dataset:", ds)
     for architecture in config["architecture_list"]:
         print("Run evaluation for Architecture:", architecture)
-        # try:
-        # Preprocess ground truth and predictions
-        id, gt, pd, pd_prob = preprocessing(architecture, ds, config)
-        # Compute metrics
-        metrics = compute_metrics(gt, pd, pd_prob, config)
-        # Backup results
-        metrics_df = parse_results(metrics, architecture, ds, config)
-        # Cache dataframe and add architecture to verification list
-        result_set.append(metrics_df)
-        verified_architectures.append(architecture)
-        # except:
-        #     print("Skipping Architecture", architecture, "due to Error.")
+        try:
+            # Preprocess ground truth and predictions
+            id, gt, pd, pd_prob = preprocessing(architecture, ds, config)
+            # Compute metrics
+            metrics = compute_metrics(gt, pd, pd_prob, config)
+            # Backup results
+            metrics_df = parse_results(metrics, architecture, ds, config)
+            # Cache dataframe and add architecture to verification list
+            result_set.append(metrics_df)
+            verified_architectures.append(architecture)
+        except:
+            print("Skipping Architecture", architecture, "due to Error.")
 
     # Collect results
     results_all = collect_results(result_set, verified_architectures, ds,
@@ -274,3 +326,8 @@ for ds in ["val-ensemble", "test"]:
     # Plot result figure
     plot_categorical_results(results_all, ds, path_eval)
     plot_averaged_results(results_averaged, ds, path_eval)
+
+# Analyse fitting curve loggings
+dt_fitting_loss, dt_fitting_accuracy = gather_fitting_data(config)
+plot_fitting(dt_fitting_loss, "Loss_Function", path_eval, config)
+plot_fitting(dt_fitting_accuracy, "Categorical_Accuracy", path_eval, config)
