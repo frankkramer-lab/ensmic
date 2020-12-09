@@ -131,7 +131,7 @@ def collect_results(result_set, architectures, dataset, path_eval, config):
     # Iterate over each architecture results
     for i in range(0, len(architectures)):
         arch_type = architectures[i]
-        arch_df = result_set[i]
+        arch_df = result_set[i].copy()
         arch_df.drop(index="TP-TN-FP-FN", inplace=True)
         arch_df.drop(index="ROC_FPR", inplace=True)
         arch_df.drop(index="ROC_TPR", inplace=True)
@@ -235,6 +235,71 @@ def plot_averaged_results(results, dataset, eval_path):
           path=path_eval, width=40, height=25, dpi=200, limitsize=False)
 
 #-----------------------------------------------------#
+#                     ROC Analysis                    #
+#-----------------------------------------------------#
+def preprocess_roc_data(results):
+    # Initialize result dataframe
+    cols = ["architecture", "class", "FPR", "TPR"]
+    df_results = pandas.DataFrame(data=[], dtype=np.float64, columns=cols)
+    # Iterate over each architecture results
+    for i in range(0, len(architectures)):
+        # Preprocess data into correct format
+        arch_df = result_set[i].copy()
+        arch_df = arch_df.transpose()
+        roc_df = arch_df[["ROC_FPR", "ROC_TPR"]]
+        roc_df = roc_df.apply(pandas.Series.explode)
+        roc_df["architecture"] = architectures[i]
+        # Append to result dataframe
+        roc_df = roc_df.reset_index()
+        roc_df.rename(columns={"index":"class",
+                               "ROC_FPR":"FPR",
+                               "ROC_TPR":"TPR"},
+                      inplace=True)
+        # Reorder columns
+        roc_df = roc_df[cols]
+        # Convert from object to float
+        roc_df["FPR"] = roc_df["FPR"].astype(float)
+        roc_df["TPR"] = roc_df["TPR"].astype(float)
+        # Merge to global result dataframe
+        df_results = df_results.append(roc_df, ignore_index=True)
+    return df_results
+
+def plot_auroc_results(results, dataset, eval_path):
+    # Plot roc results via facet_wrap
+    fig = (ggplot(results, aes("FPR", "TPR", color="class"))
+               + geom_line(size=1.5)
+               + geom_abline(intercept=0, slope=1, color="black",
+                             linetype="dashed")
+               + ggtitle("Architecture Comparisons by ROC")
+               + facet_wrap("architecture", nrow=4)
+               + xlab("False Positive Rate")
+               + ylab("True Positive Rate")
+               + scale_x_continuous(limits=[0, 1])
+               + scale_y_continuous(limits=[0, 1])
+               + scale_color_discrete(name="Classification")
+               + theme_bw(base_size=28))
+    # Store figure to disk
+    fig.save(filename="plot." + dataset + ".ROC.individual.png",
+             path=path_eval, width=40, height=20, dpi=200, limitsize=False)
+
+    # Plot roc results together
+    fig = (ggplot(results, aes("FPR", "TPR", color="architecture"))
+            + geom_smooth(method="loess", se=False, size=1.5)
+            + geom_abline(intercept=0, slope=1, color="black",
+                          linetype="dashed", size=1.5)
+            + ggtitle("Architecture Comparisons by ROC")
+            + xlab("False Positive Rate")
+            + ylab("True Positive Rate")
+            + scale_x_continuous(limits=[0, 1])
+            + scale_y_continuous(limits=[0, 1])
+            + scale_color_discrete(name="Architectures")
+            + theme_bw(base_size=40))
+    # Store figure to disk
+    fig.save(filename="plot." + dataset + ".ROC.together.png",
+          path=path_eval, width=30, height=20, dpi=200, limitsize=False)
+
+
+#-----------------------------------------------------#
 #                Fitting Curve Analysis               #
 #-----------------------------------------------------#
 def gather_fitting_data(config):
@@ -324,10 +389,14 @@ for ds in ["val-ensemble", "test"]:
     results_averaged = macro_averaging(results_all, ds, path_eval)
 
     # Plot result figure
-    plot_categorical_results(results_all, ds, path_eval)
-    plot_averaged_results(results_averaged, ds, path_eval)
+    # plot_categorical_results(results_all, ds, path_eval)
+    # plot_averaged_results(results_averaged, ds, path_eval)
+
+    # Analyse ROC
+    results_roc = preprocess_roc_data(result_set)
+    plot_auroc_results(results_roc, ds, path_eval)
 
 # Analyse fitting curve loggings
-dt_fitting_loss, dt_fitting_accuracy = gather_fitting_data(config)
-plot_fitting(dt_fitting_loss, "Loss_Function", path_eval, config)
-plot_fitting(dt_fitting_accuracy, "Categorical_Accuracy", path_eval, config)
+# dt_fitting_loss, dt_fitting_accuracy = gather_fitting_data(config)
+# plot_fitting(dt_fitting_loss, "Loss_Function", path_eval, config)
+# plot_fitting(dt_fitting_accuracy, "Categorical_Accuracy", path_eval, config)
