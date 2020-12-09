@@ -19,6 +19,8 @@
 #-----------------------------------------------------#
 #                   Library imports                   #
 #-----------------------------------------------------#
+# External libraries
+import numpy as np
 # Internal libraries/scripts
 from ensmic.ensemble.abstract_elm import Abstract_Ensemble
 
@@ -34,11 +36,11 @@ Methods:
     dump:                   Save (fitted) model to disk.
     load:                   Load (fitted) model from disk.
 """
-class ELM_Mean(Abstract_Ensemble):
+class ELM_MeanUnweighted(Abstract_Ensemble):
     #---------------------------------------------#
     #                Initialization               #
     #---------------------------------------------#
-    def __init__(self):
+    def __init__(self, n_classes):
         # No hyperparameter adjustment required for this method, therefore skip
         pass
 
@@ -56,13 +58,9 @@ class ELM_Mean(Abstract_Ensemble):
         # Split data columns into multi level structure based on architecutre
         data.columns = data.columns.str.split('_', expand=True)
         # Compute average class probability (mean) across all architectures
-        data = data.groupby(level=1, axis=1).mean()
-        # Select argmax for each sample
-        pred = data.idxmax(axis=1).tolist()
-        # Transform column argmax into correct class integer
-        pred = [int(p[1]) for p in pred]
-        # Return prediction
-        return pred
+        pred = data.groupby(level=1, axis=1).mean()
+        # Transform prediction to Numpy and return result
+        return pred.to_numpy()
 
     #---------------------------------------------#
     #              Dump Model to Disk             #
