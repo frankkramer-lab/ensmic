@@ -20,12 +20,14 @@
 from ensmic.ensemble.mean_unweighted import ELM_MeanUnweighted
 # Majority Voting Approaches
 from ensmic.ensemble.majorityvote_hard import ELM_MajorityVote_Hard
+from ensmic.ensemble.majorityvote_soft import ELM_MajorityVote_Soft
 # Other Approaches
 from ensmic.ensemble.global_argmax import ELM_GlobalArgmax
 
 # Ensembler Dictionary
 ensembler_dict = {"MeanUnweighted":ELM_MeanUnweighted,
                   "MajorityVoting_Hard":ELM_MajorityVote_Hard,
+                  "MajorityVoting_Soft":ELM_MajorityVote_Soft,
                   "GlobalArgmax":ELM_GlobalArgmax
                   }
 # List of implemented Ensemblers
