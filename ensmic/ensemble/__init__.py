@@ -16,12 +16,16 @@
 #  You should have received a copy of the GNU General Public License           #
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.       #
 #==============================================================================#
-# Simple Approaches
+# Mean Approaches
 from ensmic.ensemble.mean_unweighted import ELM_MeanUnweighted
+# Majority Voting Approaches
+from ensmic.ensemble.majorityvote_hard import ELM_MajorityVote_Hard
+# Other Approaches
 from ensmic.ensemble.global_argmax import ELM_GlobalArgmax
 
 # Ensembler Dictionary
 ensembler_dict = {"MeanUnweighted":ELM_MeanUnweighted,
+                  "MajorityVoting_Hard":ELM_MajorityVote_Hard,
                   "GlobalArgmax":ELM_GlobalArgmax
                   }
 # List of implemented Ensemblers

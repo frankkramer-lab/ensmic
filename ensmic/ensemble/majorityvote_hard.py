@@ -25,9 +25,9 @@ import pandas as pd
 from ensmic.ensemble.abstract_elm import Abstract_Ensemble
 
 #-----------------------------------------------------#
-#                  ELM: Majority Vote                 #
+#              ELM: Majority Vote - Hard              #
 #-----------------------------------------------------#
-""" Ensemble Learning approach via Majority Vote.
+""" Ensemble Learning approach via Hard Majority Vote.
 
 Methods:
     __init__                Initialize Ensemble Learning Method.
@@ -36,11 +36,11 @@ Methods:
     dump:                   Save (fitted) model to disk.
     load:                   Load (fitted) model from disk.
 """
-class ELM_MajorityVote(Abstract_Ensemble):
+class ELM_MajorityVote_Hard(Abstract_Ensemble):
     #---------------------------------------------#
     #                Initialization               #
     #---------------------------------------------#
-    def __init__(self):
+    def __init__(self, n_classes):
         # No hyperparameter adjustment required for this method, therefore skip
         pass
 
@@ -57,17 +57,16 @@ class ELM_MajorityVote(Abstract_Ensemble):
     def prediction(self, data):
         # Split data columns into multi level structure based on architecutre
         data.columns = data.columns.str.split('_', expand=True)
-        # Identify argmax (vote) for each architecutre
+        # Identify argmax (vote) for each architecutre and cache n-architectures
         data = data.groupby(level=0, axis=1).idxmax(axis=1)
+        n_architectures = len(data.columns)
         data = data.apply(lambda entry: [tup[1] for tup in entry])
         # Sum up votes of all architectures
         data = data.apply(pd.Series.value_counts, axis=1).fillna(0)
-        # Select majority vote for each sample
-        pred = data.idxmax(axis=1)
-        # Transform column argmax into correct class integer
-        pred = [int(p[-1]) for p in pred]
+        # Compute Class Probabilities
+        pred = data.divide(n_architectures)
         # Return prediction
-        return pred
+        return pred.to_numpy()
 
     #---------------------------------------------#
     #              Dump Model to Disk             #
