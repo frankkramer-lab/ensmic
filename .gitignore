@@ -20,3 +20,5 @@ debug.py
 data.covid
 data.isic
 data.riadd
+data.mias
+data.chmnist
