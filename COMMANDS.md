@@ -3,7 +3,7 @@
 ```sh
 python ensmic/preprocessing/prepare_fs.covid.py
 python ensmic/preprocessing/prepare_fs.isic.py
-python ensmic/preprocessing/prepare_fs.riadd.py
+python ensmic/preprocessing/prepare_fs.chmnist.py
 ```
 
 # Phase I Analysis
@@ -13,9 +13,9 @@ python ensmic/preprocessing/prepare_fs.riadd.py
 nohup sh -c "python ensmic/phase_i/training.py -m 'covid' --gpu 0" &> log.phase_i.covid.training.txt &
 nohup sh -c "python ensmic/phase_i/inference.py -m 'covid' --gpu 0" &> log.phase_i.covid.inference.txt &
 
-# Dataset: RIADD 2021
-nohup sh -c "python ensmic/phase_i/training.py -m 'riadd' --gpu 1" &> log.phase_i.riadd.training.txt &
-nohup sh -c "python ensmic/phase_i/inference.py -m 'riadd' --gpu 1" &> log.phase_i.riadd.inference.txt &
+# Dataset: CHMNIST
+nohup sh -c "python ensmic/phase_i/training.py -m 'chmnist' --gpu 2" &> log.phase_i.chmnist.training.txt &
+nohup sh -c "python ensmic/phase_i/inference.py -m 'chmnist' --gpu 2" &> log.phase_i.chmnist.inference.txt &
 
 # Dataset: ISIC 2019
 nohup sh -c "python ensmic/phase_i/training.py -m 'isic' --gpu 0" &> log.phase_i.isic.training.txt &

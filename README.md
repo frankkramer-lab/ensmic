@@ -19,7 +19,7 @@ Pre-Sampling:
 
 ## Analysis Phases:
 
-### Phase 1:
+### Phase 1 (Architecture Baseline):
 
 Analyze all architectures with 1x train-model & 1x val-model   
 ->   Predict on 1x val-ensemble and 1x test set
@@ -34,7 +34,7 @@ model complexity vs performance
 
 ![PhaseI_FDR](docs/plot.FDR.png)
 
-### Phase 2:
+### Phase 2 (Stacking):
 
 Analyze all implemented ensemble techniques given all predictions of 1) and validation set -> Testing  
 (can model importance be calculated?)  
@@ -43,17 +43,10 @@ Train each ensemble method on models predictions for 1x val-ensemble set
 
 Run classifier on predictions for 1x test set
 
-### Phase 3:
-Utilizing data augmentation for inference.
+### Phase 3 (Bagging):
 
-One model -> Multiple predictions on data augmentated testing -> ensemble learning -> final prediction
+Bootstrap aggregating (bagging) & Bucket of models
 
-1x train-model & 1x val-model
--> Multiple predictions on 1x val-ensemble & 1x test set
--> Ensemble Learning on 1x val-ensemble
--> Evaluation on 1x test set
-
-### Phase 4:
 Use top-3 models and top-3 ensemble methods:  
 
 Setup:  
@@ -67,8 +60,28 @@ for each top3 architecture:
     train ensembler on 5-CV models predictions for val-ensemble
     predict on test using the 5-CV model predictions
 
-
 Note: 3-CV instead of 5-CV?
+
+### Phase 4:
+Utilizing data augmentation for inference.
+
+-> Analyze Number of Predictions vs Performance Gain
+
+One model -> Multiple predictions on data augmentated testing -> ensemble learning -> final prediction
+
+1x train-model & 1x val-model
+-> Multiple predictions on 1x val-ensemble & 1x test set
+-> Ensemble Learning on 1x val-ensemble
+-> Evaluation on 1x test set
+
+### Phase 5:
+
+Multi level stacking?
+
+
+## Future ...
+
+Boosting (AdaBoost, etc ...) not analyzed.
 
 ## Reproducibility
 
