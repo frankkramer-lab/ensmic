@@ -44,7 +44,9 @@ class ELM_SupportVectorMachine(Abstract_Ensemble):
     #---------------------------------------------#
     def __init__(self, n_classes):
         # Initialize model
-        self.model = SVC(random_state=0, probability=True)
+        self.model = SVC(random_state=0,
+                         probability=True,
+                         gamma="scale")
 
     #---------------------------------------------#
     #                  Training                   #
