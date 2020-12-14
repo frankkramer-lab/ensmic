@@ -31,9 +31,11 @@ from ensmic.ensemble.support_vector_machine import ELM_SupportVectorMachine
 from ensmic.ensemble.gaussian_process import ELM_GaussianProcess
 # Other Approaches
 from ensmic.ensemble.global_argmax import ELM_GlobalArgmax
+from ensmic.ensemble.best_model import ELM_BestModel
 
 # Ensembler Dictionary
-ensembler_dict = {"MeanUnweighted":ELM_MeanUnweighted,
+ensembler_dict = {"BestModel":ELM_BestModel,
+                  "MeanUnweighted":ELM_MeanUnweighted,
                   "MeanWeighted":ELM_MeanWeighted,
                   "MajorityVoting_Hard":ELM_MajorityVote_Hard,
                   "MajorityVoting_Soft":ELM_MajorityVote_Soft,
