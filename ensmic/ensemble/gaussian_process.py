@@ -22,14 +22,14 @@
 # External libraries
 import numpy as np
 import pickle
-from sklearn.tree import DecisionTreeClassifier
+from sklearn.gaussian_process import GaussianProcessClassifier
 # Internal libraries/scripts
 from ensmic.ensemble.abstract_elm import Abstract_Ensemble
 
 #-----------------------------------------------------#
-#                 ELM: Decision Tree                  #
+#                ELM: Gaussian Process                #
 #-----------------------------------------------------#
-""" Ensemble Learning approach via Decision Tree.
+""" Ensemble Learning approach via Gaussian Process.
 
 Methods:
     __init__                Initialize Ensemble Learning Method.
@@ -38,13 +38,14 @@ Methods:
     dump:                   Save (fitted) model to disk.
     load:                   Load (fitted) model from disk.
 """
-class ELM_DecisionTree(Abstract_Ensemble):
+class ELM_GaussianProcess(Abstract_Ensemble):
     #---------------------------------------------#
     #                Initialization               #
     #---------------------------------------------#
     def __init__(self, n_classes):
         # Initialize model
-        self.model = DecisionTreeClassifier(random_state=0)
+        self.model = GaussianProcessClassifier(random_state=0,
+                                               multi_class="one_vs_rest")
 
     #---------------------------------------------#
     #                  Training                   #

@@ -28,6 +28,7 @@ from ensmic.ensemble.logistic_regression import ELM_LogisticRegression
 from ensmic.ensemble.k_neighbors import ELM_kNearestNeighbors
 from ensmic.ensemble.naive_bayes import ELM_NaiveBayes
 from ensmic.ensemble.support_vector_machine import ELM_SupportVectorMachine
+from ensmic.ensemble.gaussian_process import ELM_GaussianProcess
 # Other Approaches
 from ensmic.ensemble.global_argmax import ELM_GlobalArgmax
 
@@ -41,7 +42,8 @@ ensembler_dict = {"MeanUnweighted":ELM_MeanUnweighted,
                   "LogisticRegression":ELM_LogisticRegression,
                   "k-NearestNeighbors":ELM_kNearestNeighbors,
                   "NaiveBayes":ELM_NaiveBayes,
-                  "SupportVectorMachine":ELM_SupportVectorMachine
+                  "SupportVectorMachine":ELM_SupportVectorMachine,
+                  "GaussianProcess":ELM_GaussianProcess,
                   }
 # List of implemented Ensemblers
 ensembler = list(ensembler_dict.keys())
