@@ -23,7 +23,8 @@ from ensmic.ensemble.mean_weighted import ELM_MeanWeighted
 from ensmic.ensemble.majorityvote_hard import ELM_MajorityVote_Hard
 from ensmic.ensemble.majorityvote_soft import ELM_MajorityVote_Soft
 # Machine Learning Approaches
-from ensmic.ensemble.decisiontree import ELM_DecisionTree
+from ensmic.ensemble.decision_tree import ELM_DecisionTree
+from ensmic.ensemble.logistic_regression import ELM_LogisticRegression
 # Other Approaches
 from ensmic.ensemble.global_argmax import ELM_GlobalArgmax
 
@@ -33,7 +34,8 @@ ensembler_dict = {"MeanUnweighted":ELM_MeanUnweighted,
                   "MajorityVoting_Hard":ELM_MajorityVote_Hard,
                   "MajorityVoting_Soft":ELM_MajorityVote_Soft,
                   "GlobalArgmax":ELM_GlobalArgmax,
-                  "DecisionTree":ELM_DecisionTree
+                  "DecisionTree":ELM_DecisionTree,
+                  "LogisticRegression":ELM_LogisticRegression
                   }
 # List of implemented Ensemblers
 ensembler = list(ensembler_dict.keys())
