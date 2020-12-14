@@ -19,6 +19,5 @@ debug.py
 # Datasets links
 data.covid
 data.isic
-data.riadd
-data.mias
 data.chmnist
+data.drd
