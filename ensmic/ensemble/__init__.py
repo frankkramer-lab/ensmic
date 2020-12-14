@@ -25,6 +25,7 @@ from ensmic.ensemble.majorityvote_soft import ELM_MajorityVote_Soft
 # Machine Learning Approaches
 from ensmic.ensemble.decision_tree import ELM_DecisionTree
 from ensmic.ensemble.logistic_regression import ELM_LogisticRegression
+from ensmic.ensemble.k_neighbors import ELM_kNearestNeighbors
 # Other Approaches
 from ensmic.ensemble.global_argmax import ELM_GlobalArgmax
 
@@ -35,7 +36,8 @@ ensembler_dict = {"MeanUnweighted":ELM_MeanUnweighted,
                   "MajorityVoting_Soft":ELM_MajorityVote_Soft,
                   "GlobalArgmax":ELM_GlobalArgmax,
                   "DecisionTree":ELM_DecisionTree,
-                  "LogisticRegression":ELM_LogisticRegression
+                  "LogisticRegression":ELM_LogisticRegression,
+                  "k-NearestNeighbors":ELM_kNearestNeighbors
                   }
 # List of implemented Ensemblers
 ensembler = list(ensembler_dict.keys())

@@ -301,7 +301,7 @@ fig = (ggplot(results_roc, aes("FPR", "TPR", color="class"))
            + geom_abline(intercept=0, slope=1, color="black",
                          linetype="dashed")
            + ggtitle("Ensemble Learning Comparisons by ROC")
-           + facet_wrap("ensembler", nrow=4)
+           + facet_wrap("ensembler", nrow=3)
            + xlab("False Positive Rate")
            + ylab("True Positive Rate")
            + scale_x_continuous(limits=[0, 1])
@@ -313,17 +313,20 @@ fig.save(filename="plot.ROC.individual.png",
          path=path_eval, width=40, height=20, dpi=200, limitsize=False)
 
 # Plot roc results together
-fig = (ggplot(results_roc, aes("FPR", "TPR", color="ensembler"))
-        + geom_smooth(method="loess", se=False, size=1.5)
-        + geom_abline(intercept=0, slope=1, color="black",
-                      linetype="dashed", size=1.5)
-        + ggtitle("Ensemble Learning Comparisons by ROC")
-        + xlab("False Positive Rate")
-        + ylab("True Positive Rate")
-        + scale_x_continuous(limits=[0, 1])
-        + scale_y_continuous(limits=[0, 1])
-        + scale_color_discrete(name="Ensemble LearningTechnique")
-        + theme_bw(base_size=40))
-# Store figure to disk
-fig.save(filename="plot.ROC.together.png",
-      path=path_eval, width=30, height=20, dpi=200, limitsize=False)
+try:
+    fig = (ggplot(results_roc, aes("FPR", "TPR", color="ensembler"))
+            + geom_smooth(method="loess", se=False, size=1.5, span=0.7)
+            + geom_abline(intercept=0, slope=1, color="black",
+                          linetype="dashed", size=1.5)
+            + ggtitle("Ensemble Learning Comparisons by ROC")
+            + xlab("False Positive Rate")
+            + ylab("True Positive Rate")
+            + scale_x_continuous(limits=[0, 1])
+            + scale_y_continuous(limits=[0, 1])
+            + scale_color_discrete(name="Ensemble LearningTechnique")
+            + theme_bw(base_size=40))
+    # Store figure to disk
+    fig.save(filename="plot.ROC.together.png",
+          path=path_eval, width=30, height=20, dpi=200, limitsize=False)
+except:
+    print("ROC-Together plot was not be able to created!")

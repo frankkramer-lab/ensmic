@@ -27,9 +27,9 @@ from sklearn.linear_model import LogisticRegression
 from ensmic.ensemble.abstract_elm import Abstract_Ensemble
 
 #-----------------------------------------------------#
-#         ELM: Stacking - Logistic Regression         #
+#               ELM: Logistic Regression              #
 #-----------------------------------------------------#
-""" Ensemble Learning approach via Stacking - Logistic Regression.
+""" Ensemble Learning approach via Logistic Regression.
 
 Methods:
     __init__                Initialize Ensemble Learning Method.

@@ -22,14 +22,14 @@
 # External libraries
 import numpy as np
 import pickle
-from sklearn.tree import DecisionTreeClassifier
+from sklearn.neighbors import KNeighborsClassifier
 # Internal libraries/scripts
 from ensmic.ensemble.abstract_elm import Abstract_Ensemble
 
 #-----------------------------------------------------#
-#                 ELM: Decision Tree                  #
+#               ELM: k-Nearest Neighbors              #
 #-----------------------------------------------------#
-""" Ensemble Learning approach via Decision Tree.
+""" Ensemble Learning approach via k-Nearest Neighbors.
 
 Methods:
     __init__                Initialize Ensemble Learning Method.
@@ -38,13 +38,13 @@ Methods:
     dump:                   Save (fitted) model to disk.
     load:                   Load (fitted) model from disk.
 """
-class ELM_DecisionTree(Abstract_Ensemble):
+class ELM_kNearestNeighbors(Abstract_Ensemble):
     #---------------------------------------------#
     #                Initialization               #
     #---------------------------------------------#
     def __init__(self, n_classes):
         # Initialize model
-        self.model = DecisionTreeClassifier(random_state=0)
+        self.model = KNeighborsClassifier(n_neighbors=5)
 
     #---------------------------------------------#
     #                  Training                   #
