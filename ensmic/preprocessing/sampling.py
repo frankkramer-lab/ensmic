@@ -38,7 +38,7 @@ def run_sampling(path_data, seed, sampling, n_classes):
         classification = class_dict[index]
         samples_classified[classification].append(index)
     # Apply sampling strategy for each class
-    sample_sets = tuple([[] for x in range(0, len(sampling))])
+    sample_sets = [[] for x in range(0, len(sampling))]
     for i in range(0, len(samples_classified)):
         subset = sampling_strategy(samples_classified[i], sampling=sampling)
         for j in range(0, len(subset)):
@@ -59,6 +59,47 @@ def sampling_strategy(samples_classified, sampling):
     samples_splitted = np.split(samples, split_points)
     # Return splitted samples
     return samples_splitted
+
+#-----------------------------------------------------#
+#               Sample Images into Folds              #
+#-----------------------------------------------------#
+def cv_sampling(sample_sets, sampling_names, k_fold, n_classes,
+                path_data, seed):
+    # Load class map
+    path_classdict = os.path.join(path_data, str(seed) + ".class_map.json")
+    with open(path_classdict, "r") as json_reader:
+        class_dict = json.load(json_reader)
+    # Get sample data for train-model and val-model
+    samples_CV = sample_sets[0] + sample_sets[1]
+    # Obtain classification lists
+    samples_classified = tuple([[] for x in range(0, n_classes)])
+    for index in samples_CV:
+        classification = class_dict[index]
+        samples_classified[classification].append(index)
+    # Split samples into class-folds
+    samples_cv_classes = [[] for x in range(0, n_classes)]
+    samples_cv_all = [[] for x in range(0, n_classes)]
+    for i in range(0, n_classes):
+        samples_cv_all[i] = np.random.permutation(samples_classified[i])
+        samples_cv_classes[i] = np.array_split(samples_cv_all[i], k_fold)
+    # Combine the samples from all class-folds
+    samples_cv_combined = np.concatenate(samples_cv_all, axis=0)
+    # Convert class-fold sample list into NumPy array
+    samples_cv_classes = np.array(samples_cv_classes)
+    # For each fold of the CV -> Create fold sampling
+    for fold in range(0, k_fold):
+        # Create validation set for current fold
+        validation = np.concatenate(samples_cv_classes[:, fold], axis=0)
+        validation = validation.tolist()
+        # Create training set for current fold
+        training = [x for x in samples_cv_combined if x not in validation]
+        # Cache CV fold sampling in sample set result
+        sample_sets.extend([training])
+        sampling_names.append("cv_" + str(fold) + "_train")
+        sample_sets.extend([validation])
+        sampling_names.append("cv_" + str(fold) + "_val")
+    # Return cross-validation sampling
+    return sample_sets, sampling_names
 
 #-----------------------------------------------------#
 #               Store Sampling to disk                #

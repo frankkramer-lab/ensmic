@@ -25,7 +25,8 @@ import os
 import json
 from shutil import copyfile
 # Internal libraries/scripts
-from ensmic.preprocessing.sampling import run_sampling, sampling_to_disk
+from ensmic.preprocessing.sampling import run_sampling, sampling_to_disk, \
+                                          cv_sampling
 
 #-----------------------------------------------------#
 #                    Configurations                   #
@@ -113,6 +114,14 @@ print("Start dataset sampling")
 # Run sampling into train-model / val-model / val-ensemble / test
 sample_sets = run_sampling(path_data=path_target, seed=str(seed),
                            sampling=sampling, n_classes=len(classes))
+
+# Run sampling of train-model & val-model into Cross-Validation folds
+sample_sets, sampling_names = cv_sampling(sample_sets, sampling_names,
+                                          k_fold=5,
+                                          n_classes=len(classes),
+                                          path_data=path_target,
+                                          seed=str(seed))
+
 # Store sample sets to disk
 sampling_to_disk(sample_sets, setnames=sampling_names,
                  path_data=path_target, seed=str(seed))
