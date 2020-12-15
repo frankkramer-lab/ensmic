@@ -29,8 +29,8 @@ from plotnine import *
 # Internal libraries/scripts
 from ensmic.data_loading import IO_Inference
 from ensmic.architectures import architecture_dict, architectures
-from ensmic.evaluation.metrics import compute_metrics
-from ensmic.evaluation.categorical_averaging import macro_averaging
+from ensmic.utils.metrics import compute_metrics
+from ensmic.utils.categorical_averaging import macro_averaging
 # Experimental
 import warnings
 warnings.filterwarnings("ignore")

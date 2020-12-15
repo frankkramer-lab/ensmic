@@ -23,7 +23,7 @@
 import numpy as np
 # Internal libraries/scripts
 from ensmic.ensemble.abstract_elm import Abstract_Ensemble
-from ensmic.evaluation.metrics import safe_division
+from ensmic.utils.metrics import safe_division
 
 #-----------------------------------------------------#
 #                  ELM: Global Argmax                 #
