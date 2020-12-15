@@ -18,4 +18,4 @@
 #==============================================================================#
 from ensmic.data_loading.io_miscnn import IO_MIScnn
 from ensmic.data_loading.io_inference import IO_Inference
-from ensmic.data_loading.sampling_loader import load_sampling
+from ensmic.preprocessing.sampling import load_sampling

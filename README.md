@@ -62,7 +62,7 @@ for each top3 architecture:
 
 Note: 3-CV instead of 5-CV?
 
-### Phase 4:
+### Phase 4 (Single Model based EL):
 Utilizing data augmentation for inference.
 
 -> Analyze Number of Predictions vs Performance Gain

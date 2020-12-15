@@ -76,3 +76,12 @@ def sampling_to_disk(sample_sets, setnames, path_data, seed):
     path_json = os.path.join(path_data, str(seed) + "." + "sampling" + ".json")
     with open(path_json, "w") as jsonfile:
         json.dump(sampling, jsonfile, indent=2)
+
+#-----------------------------------------------------#
+#               Load Sampling from disk               #
+#-----------------------------------------------------#
+def load_sampling(path_data, subset, seed):
+    path_sampling = os.path.join(path_data, str(seed) + ".sampling.json")
+    with open(path_sampling, "r") as jsonfile:
+        sampling = json.load(jsonfile)
+    return sampling[subset]
