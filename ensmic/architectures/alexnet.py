@@ -60,7 +60,8 @@ class Architecture_AlexNet(Abstract_Architecture):
     def create_model_2D(self, input_shape, n_labels=2):
         # Obtain AlexNet as base model
         model = keras.models.Sequential([
-            keras.layers.Conv2D(filters=96, kernel_size=(11,11), strides=(4,4), activation='relu', input_shape=input_shape),
+            keras.layers.Conv2D(filters=96, kernel_size=(11,11), strides=(4,4), activation='relu',
+                                input_shape=self.fixed_input_shape),
             keras.layers.BatchNormalization(),
             keras.layers.MaxPool2D(pool_size=(3,3), strides=(2,2)),
             keras.layers.Conv2D(filters=256, kernel_size=(5,5), strides=(1,1), activation='relu', padding="same"),
