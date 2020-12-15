@@ -303,6 +303,41 @@ def plot_auroc_results(results, dataset, eval_path):
 
 
 #-----------------------------------------------------#
+#               Model Parameter Analysis              #
+#-----------------------------------------------------#
+def preprocess_modelparas(results, path_data):
+    # Load model parameter
+    path_para = os.path.join(path_data, "architecture_params.json")
+    with open(path_para, "r") as jsonfile:
+        modelparams = json.load(jsonfile)
+    # Parse parameter dictionary to Pandas dataframe
+    params = pandas.DataFrame.from_dict(modelparams, orient="index",
+                                        columns=["params"])
+    params.reset_index(drop=False, inplace=True)
+    params.rename(mapper={"index":"architecture"}, axis=1, inplace=True)
+    # Merge dataframes
+    df_results = results.merge(params, how="inner", on="architecture")
+    # Specify on metric: Accuracy
+    df_results = df_results[df_results["metric"] == "Accuracy"]
+    # Return result dataframe
+    return df_results
+
+def plot_modelparas_results(results, dataset, eval_path):
+    # Plot roc results via facet_wrap
+    fig = (ggplot(results, aes("params", "value", color="architecture",
+                                label="architecture"))
+               + geom_point(size=10)
+               + geom_text(aes(label="architecture"), size=30, nudge_y=-0.002)
+               + ggtitle("Architecture Complexity compared to Performance")
+               + xlab("Number of Parameters")
+               + ylab("Accuracy")
+               + scale_color_discrete(name="Architectures")
+               + theme_bw(base_size=28))
+    # Store figure to disk
+    fig.save(filename="plot." + dataset + ".modelparams.png",
+             path=path_eval, width=30, height=20, dpi=200, limitsize=False)
+
+#-----------------------------------------------------#
 #                Fitting Curve Analysis               #
 #-----------------------------------------------------#
 def gather_fitting_data(config):
@@ -391,13 +426,18 @@ for ds in ["val-ensemble", "test"]:
     # Macro Average results
     results_averaged = macro_averaging(results_all, ds, path_eval)
 
-    # Plot result figure
-    plot_categorical_results(results_all, ds, path_eval)
-    plot_averaged_results(results_averaged, ds, path_eval)
+    # # Plot result figure
+    # plot_categorical_results(results_all, ds, path_eval)
+    # plot_averaged_results(results_averaged, ds, path_eval)
+    #
+    # # Analyse ROC
+    # results_roc = preprocess_roc_data(result_set, config["path_results"])
+    # plot_auroc_results(results_roc, ds, path_eval)
 
-    # Analyse ROC
-    results_roc = preprocess_roc_data(result_set)
-    plot_auroc_results(results_roc, ds, path_eval)
+    # Analyse Model Parameters vs Performance
+    results_modelparas = preprocess_modelparas(results_averaged,
+                                               config["path_results"])
+    plot_modelparas_results(results_modelparas, ds, path_eval)
 
 # Analyse fitting curve loggings
 dt_fitting_loss, dt_fitting_accuracy = gather_fitting_data(config)
