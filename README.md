@@ -36,8 +36,9 @@ model complexity vs performance
 
 ### Phase 2 (Stacking):
 
+Multiple ML algorithm, which are combined by e.g. another ML algorithm.
+
 Analyze all implemented ensemble techniques given all predictions of 1) and validation set -> Testing  
-(can model importance be calculated?)  
 
 Train each ensemble method on models predictions for 1x val-ensemble set
 
@@ -45,9 +46,12 @@ Run classifier on predictions for 1x test set
 
 ### Phase 3 (Bagging):
 
-Bootstrap aggregating (bagging) & Bucket of models
+Bootstrap aggregating (bagging) & Bucket of models.  
 
-Use top-3 models and top-3 ensemble methods:  
+Trained with same machine learning algorithm on different subsets of the training data.  
+Normally, combined via mean/majority vote instead of new ML algorithm.  
+
+Use top-3 models:  
 
 Setup:  
 for each top3 architecture:
@@ -59,8 +63,6 @@ for each top3 architecture:
   for each top3 ensembler:
     train ensembler on 5-CV models predictions for val-ensemble
     predict on test using the 5-CV model predictions
-
-Note: 3-CV instead of 5-CV?
 
 ### Phase 4 (Single Model based EL):
 Utilizing data augmentation for inference.
@@ -74,8 +76,11 @@ One model -> Multiple predictions on data augmentated testing -> ensemble learni
 -> Ensemble Learning on 1x val-ensemble
 -> Evaluation on 1x test set
 
+Dotplot: With EL vs Without EL Performance & diagonal line in middle
+
 ### Phase 5:
 
+Bossting?  
 Multi level stacking?
 
 

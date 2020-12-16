@@ -39,7 +39,7 @@ warnings.filterwarnings("ignore")
 #                      Argparser                      #
 #-----------------------------------------------------#
 parser = argparse.ArgumentParser(description="Analysis of COVID-19 Classification via Ensemble Learning")
-parser.add_argument("-m", "--modularity", help="Data modularity selection: ['covid', 'isic', 'riadd']",
+parser.add_argument("-m", "--modularity", help="Data modularity selection: ['covid', 'isic', 'chmnist', 'drd']",
                     required=True, type=str, dest="seed")
 args = parser.parse_args()
 
