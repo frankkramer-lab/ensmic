@@ -80,6 +80,7 @@ config["workers"] = 8
 # Early Stopping Configurations
 config["EarlyStopping_Patience"] = 60
 if config["seed"] == "isic" : config["EarlyStopping_Baseline"] = 1.05
+elif config["seed"] == "drd" : config["EarlyStopping_Baseline"] = 0.95
 else : config["EarlyStopping_Baseline"] = 0.5
 
 # GPU Configurations
