@@ -237,18 +237,18 @@ def plot_averaged_results(results, dataset, eval_path):
 #-----------------------------------------------------#
 #                     ROC Analysis                    #
 #-----------------------------------------------------#
-def preprocess_roc_data(results):
+def preprocess_roc_data(results, valid_architectures):
     # Initialize result dataframe
     cols = ["architecture", "class", "FPR", "TPR"]
     df_results = pandas.DataFrame(data=[], dtype=np.float64, columns=cols)
     # Iterate over each architecture results
-    for i in range(0, len(architectures)):
+    for i in range(0, len(valid_architectures)):
         # Preprocess data into correct format
         arch_df = result_set[i].copy()
         arch_df = arch_df.transpose()
         roc_df = arch_df[["ROC_FPR", "ROC_TPR"]]
         roc_df = roc_df.apply(pandas.Series.explode)
-        roc_df["architecture"] = architectures[i]
+        roc_df["architecture"] = valid_architectures[i]
         # Append to result dataframe
         roc_df = roc_df.reset_index()
         roc_df.rename(columns={"index":"class",
@@ -342,16 +342,20 @@ def plot_modelparas_results(results, dataset, eval_path):
 #-----------------------------------------------------#
 def gather_fitting_data(config):
     dt_list = []
+    # Gather fitting logs from each architecture
     for architecture in config["architecture_list"]:
-        # Get path to fitting logging for current architecture
-        path_arch = os.path.join(config["path_results"], "phase_i" + "." + \
-                                 config["seed"], architecture)
-        path_trainlogs = os.path.join(path_arch, "logs.csv")
-        # Load CSV as dataframe
-        dt_trainlog = pandas.read_csv(path_trainlogs)
-        # Add current architecture to dataframe and add to datatable list
-        dt_trainlog["architecture"] = architecture
-        dt_list.append(dt_trainlog)
+        try:
+            # Get path to fitting logging for current architecture
+            path_arch = os.path.join(config["path_results"], "phase_i" + "." + \
+                                     config["seed"], architecture)
+            path_trainlogs = os.path.join(path_arch, "logs.csv")
+            # Load CSV as dataframe
+            dt_trainlog = pandas.read_csv(path_trainlogs)
+            # Add current architecture to dataframe and add to datatable list
+            dt_trainlog["architecture"] = architecture
+            dt_list.append(dt_trainlog)
+        except:
+            print("Skipping architecture", architecture, "for fitting evaluation")
     # Merge to global fitting dataframe
     dt_fitting = pandas.concat(dt_list, ignore_index=True)
     # Melt dataframe into correct format
@@ -426,13 +430,13 @@ for ds in ["val-ensemble", "test"]:
     # Macro Average results
     results_averaged = macro_averaging(results_all, ds, path_eval)
 
-    # # Plot result figure
-    # plot_categorical_results(results_all, ds, path_eval)
-    # plot_averaged_results(results_averaged, ds, path_eval)
-    #
-    # # Analyse ROC
-    # results_roc = preprocess_roc_data(result_set, config["path_results"])
-    # plot_auroc_results(results_roc, ds, path_eval)
+    # Plot result figure
+    plot_categorical_results(results_all, ds, path_eval)
+    plot_averaged_results(results_averaged, ds, path_eval)
+
+    # Analyse ROC
+    results_roc = preprocess_roc_data(result_set, verified_architectures)
+    plot_auroc_results(results_roc, ds, path_eval)
 
     # Analyse Model Parameters vs Performance
     results_modelparas = preprocess_modelparas(results_averaged,
