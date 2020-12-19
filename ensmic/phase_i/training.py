@@ -67,6 +67,10 @@ path_classdict = os.path.join(config["path_data"],
 with open(path_classdict, "r") as json_reader:
     config["class_dict"] = json.load(json_reader)
 
+# Imaging type
+if config["seed"] == "covid" : config["grayscale"] = True
+else : config["grayscale"] = False
+
 # Architectures for Classification
 config["architecture_list"] = architectures
 
@@ -91,7 +95,8 @@ config["gpu_id"] = int(args.gpu)
 #-----------------------------------------------------#
 def setup_miscnn(architecture, config):
     # Initialize the Image I/O interface based on the ensmic file structure
-    interface = IO_MIScnn(class_dict=config["class_dict"], seed=config["seed"])
+    interface = IO_MIScnn(class_dict=config["class_dict"], seed=config["seed"],
+                          grayscale=config["grayscale"])
 
     # Create the MIScnn Data I/O object
     data_io = Data_IO(interface, config["path_data"], delete_batchDir=False)

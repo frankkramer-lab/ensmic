@@ -48,7 +48,7 @@ class IO_MIScnn(Abstract_IO):
     #---------------------------------------------#
     #                   __init__                  #
     #---------------------------------------------#
-    def __init__(self, class_dict, seed):
+    def __init__(self, class_dict, seed, grayscale=True):
         # Build class variables
         self.channels = 1
         self.class_dict = class_dict
@@ -57,6 +57,7 @@ class IO_MIScnn(Abstract_IO):
         self.three_dim = False
         self.classifications = None
         self.img_type = None
+        self.grayscale = grayscale
 
     #---------------------------------------------#
     #                  initialize                 #
@@ -107,10 +108,11 @@ class IO_MIScnn(Abstract_IO):
             )
         # Load image from file
         img_raw = Image.open(img_path)
-        # Convert image to grayscale
-        img_grayscale = img_raw.convert('LA')
+        # Convert image to grayscale or rgb
+        if self.grayscale : img_converted = img_raw.convert('LA')
+        else : img_converted = img_raw.convert('RGB')
         # Convert Pillow image to numpy matrix
-        img = np.array(img_grayscale)
+        img = np.array(img_converted)
         # Remove maximum value and keep only intensity
         img = img[:,:,0]
         # Return image
