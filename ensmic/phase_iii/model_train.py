@@ -67,6 +67,10 @@ path_classdict = os.path.join(config["path_data"],
 with open(path_classdict, "r") as json_reader:
     config["class_dict"] = json.load(json_reader)
 
+# Imaging type
+if config["seed"] == "covid" : config["grayscale"] = True
+else : config["grayscale"] = False
+
 # Cross-Validation Configurations
 config["k_fold"] = 5
 
@@ -83,7 +87,7 @@ config["workers"] = 8
 # Early Stopping Configurations
 config["EarlyStopping_Patience"] = 60
 if config["seed"] == "isic" : config["EarlyStopping_Baseline"] = 1.05
-elif config["seed"] == "riadd" : config["EarlyStopping_Baseline"] = 0.45
+elif config["seed"] == "drd" : config["EarlyStopping_Baseline"] = 0.95
 else : config["EarlyStopping_Baseline"] = 0.5
 
 # GPU Configurations
@@ -94,7 +98,8 @@ config["gpu_id"] = int(args.gpu)
 #-----------------------------------------------------#
 def setup_miscnn(architecture, config):
     # Initialize the Image I/O interface based on the ensmic file structure
-    interface = IO_MIScnn(class_dict=config["class_dict"], seed=config["seed"])
+    interface = IO_MIScnn(class_dict=config["class_dict"], seed=config["seed"],
+                          grayscale=config["grayscale"])
 
     # Create the MIScnn Data I/O object
     data_io = Data_IO(interface, config["path_data"], delete_batchDir=False)
