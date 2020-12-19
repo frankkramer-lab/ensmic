@@ -19,6 +19,8 @@ Pre-Sampling:
 
 ## Analysis Phases:
 
+![Schema](docs/schema.png)
+
 ### Phase 1 (Architecture Baseline):
 
 Analyze all architectures with 1x train-model & 1x val-model   
