@@ -12,7 +12,7 @@ setup(
    long_description="An analysis on Ensemble Learning optimized Neural Network Classification for COVID-19 CT and X-Ray Imaging",
    long_description_content_type="text/markdown",
    packages=find_packages(),
-   install_requires=['tensorflow==2.3.1',
+   install_requires=['tensorflow==2.4.0',
                      'keras-applications==1.0.8',
                      'miscnn==1.1.2',
                      'pandas',
