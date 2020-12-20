@@ -38,6 +38,7 @@ from ensmic.data_loading import IO_MIScnn, load_sampling
 from ensmic.subfunctions import Resize, SegFix
 from ensmic.architectures import architecture_dict, architectures
 from ensmic.utils.callbacks import ImprovedEarlyStopping
+from ensmic.utils.class_weights import get_class_weights
 
 #-----------------------------------------------------#
 #                      Argparser                      #
@@ -124,6 +125,7 @@ def setup_miscnn(architecture, config):
                       analysis="fullimage",
                       use_multiprocessing=True)
     pp.mp_threads = config["threads"]
+    pp.class_weights = config["class_weights"]
 
     # Create the Neural Network model
     model = Neural_Network(preprocessor=pp, loss=CategoricalCrossentropy(),
@@ -151,15 +153,7 @@ def prepare_rs(architecture, path_results, seed):
 #-----------------------------------------------------#
 #                     Run Training                    #
 #-----------------------------------------------------#
-def run_training(model, architecture, config):
-    # Load sampling
-    samples_train = load_sampling(path_data=config["path_data"],
-                                  subset="train-model",
-                                  seed=config["seed"])
-    samples_val = load_sampling(path_data=config["path_data"],
-                                subset="val-model",
-                                seed=config["seed"])
-
+def run_training(samples_train, samples_val, model, architecture, config):
     # Create result directory
     path_res = prepare_rs(architecture, path_results=config["path_results"],
                           seed=config["seed"])
@@ -195,6 +189,19 @@ def run_training(model, architecture, config):
 # Adjust GPU utilization
 os.environ["CUDA_VISIBLE_DEVICES"] = str(config["gpu_id"])
 
+# Load sampling
+samples_train = load_sampling(path_data=config["path_data"],
+                              subset="train-model",
+                              seed=config["seed"])
+samples_val = load_sampling(path_data=config["path_data"],
+                            subset="val-model",
+                            seed=config["seed"])
+# Compute class weights
+config["class_weights"] = get_class_weights(samples_train + samples_val,
+                                            list(config["class_dict"].values()),
+                                            config["path_data"],
+                                            config["seed"])
+
 # Initialize cache memory to store meta information
 timer_cache = {}
 
@@ -205,7 +212,7 @@ for architecture in config["architecture_list"]:
         # Run Fitting Pipeline
         timer_start = time.time()
         model = setup_miscnn(architecture, config)
-        run_training(model, architecture, config)
+        run_training(samples_train, samples_val, model, architecture, config)
         timer_end = time.time()
         # Store execution time in cache
         timer_time = timer_end - timer_start
