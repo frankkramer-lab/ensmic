@@ -42,8 +42,7 @@ classes = {'Melanoma': 0,
            'Benign keratosis': 4,
            'Dermatofibroma': 5,
            'Vascular lesion': 6,
-           'Squamous cell carcinoma': 7,
-           'Unknown': 8
+           'Squamous cell carcinoma': 7
            }
 
 # Sampling strategy (in percentage)
