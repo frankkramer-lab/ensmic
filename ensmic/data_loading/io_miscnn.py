@@ -48,16 +48,15 @@ class IO_MIScnn(Abstract_IO):
     #---------------------------------------------#
     #                   __init__                  #
     #---------------------------------------------#
-    def __init__(self, class_dict, seed, grayscale=True):
+    def __init__(self, class_dict, seed, channels):
         # Build class variables
-        self.channels = 1
         self.class_dict = class_dict
         self.seed = seed
         self.classes = len(class_dict)
+        self.channels = channels
         self.three_dim = False
         self.classifications = None
         self.img_type = None
-        self.grayscale = grayscale
 
     #---------------------------------------------#
     #                  initialize                 #
@@ -109,12 +108,15 @@ class IO_MIScnn(Abstract_IO):
         # Load image from file
         img_raw = Image.open(img_path)
         # Convert image to grayscale or rgb
-        if self.grayscale : img_converted = img_raw.convert('LA')
-        else : img_converted = img_raw.convert('RGB')
+        if self.channels == 1:
+            img_converted = img_raw.convert('LA')
+        elif self.channels == 3:
+            img_converted = img_raw.convert('RGB')
+        else : raise ValueError("Only images with 1 or 3 channels are supported")
         # Convert Pillow image to numpy matrix
         img = np.array(img_converted)
-        # Remove maximum value and keep only intensity
-        img = img[:,:,0]
+        # Remove maximum value and keep only intensity (only on grayscale)
+        if self.channels == 1 : img = img[:,:,0]
         # Return image
         return img
 

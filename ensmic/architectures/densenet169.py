@@ -49,10 +49,10 @@ class Architecture_DenseNet169(Abstract_Architecture):
     #---------------------------------------------#
     #                Initialization               #
     #---------------------------------------------#
-    def __init__(self, fixed_input_shape=(224, 224, 1),
+    def __init__(self, channels, input_shape=(224, 224),
                  out_activation="softmax"):
         # Parse parameter
-        self.fixed_input_shape = fixed_input_shape
+        self.fixed_input_shape = input_shape + (channels,)
         self.out_activation = out_activation
 
     #---------------------------------------------#

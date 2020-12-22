@@ -69,8 +69,8 @@ with open(path_classdict, "r") as json_reader:
     config["class_dict"] = json.load(json_reader)
 
 # Imaging type
-if config["seed"] == "covid" : config["grayscale"] = True
-else : config["grayscale"] = False
+if config["seed"] == "covid" : config["channels"] = 1
+else : config["channels"] = 3
 
 # Architectures for Classification
 config["architecture_list"] = architectures
@@ -97,7 +97,7 @@ config["gpu_id"] = int(args.gpu)
 def setup_miscnn(architecture, config):
     # Initialize the Image I/O interface based on the ensmic file structure
     interface = IO_MIScnn(class_dict=config["class_dict"], seed=config["seed"],
-                          grayscale=config["grayscale"])
+                          channels=config["channels"])
 
     # Create the MIScnn Data I/O object
     data_io = Data_IO(interface, config["path_data"], delete_batchDir=False)
@@ -110,7 +110,7 @@ def setup_miscnn(architecture, config):
     data_aug.seg_augmentation = False
 
     # Initialize architecture of the neural network
-    nn_architecture = architecture_dict[architecture]()
+    nn_architecture = architecture_dict[architecture](config["channels"])
 
     # Specify subfunctions for preprocessing
     input_shape = nn_architecture.fixed_input_shape
@@ -197,7 +197,7 @@ samples_val = load_sampling(path_data=config["path_data"],
                             subset="val-model",
                             seed=config["seed"])
 # Compute class weights
-config["class_weights"] = get_class_weights(samples_train + samples_val,
+config["class_weights"] = get_class_weights(samples_train,
                                             list(config["class_dict"].values()),
                                             config["path_data"],
                                             config["seed"])
