@@ -83,7 +83,7 @@ config["epochs"] = 1000
 config["iterations"] = None
 config["workers"] = 8
 # Early Stopping Configurations
-config["EarlyStopping_Patience"] = 60
+config["EarlyStopping_Patience"] = 75
 if config["seed"] == "isic" : config["EarlyStopping_Baseline"] = 1.05
 elif config["seed"] == "drd" : config["EarlyStopping_Baseline"] = 0.95
 else : config["EarlyStopping_Baseline"] = 0.5
@@ -164,9 +164,9 @@ def run_training(samples_train, samples_val, model, architecture, config):
                             monitor="val_loss", verbose=1,
                             save_best_only=True, mode="min")
     cb_cl = CSVLogger(os.path.join(path_res, "logs.csv"), separator=',')
-    cb_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=15,
+    cb_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=10,
                               verbose=1, mode='min', min_delta=0.0001,
-                              cooldown=1, min_lr=0.00001)
+                              cooldown=1, min_lr=1e-7)
     cb_es = ImprovedEarlyStopping(monitor="val_loss",
                                   baseline=config["EarlyStopping_Baseline"],
                                   patience=config["EarlyStopping_Patience"])
