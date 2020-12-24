@@ -24,7 +24,7 @@ import argparse
 import os
 import json
 # MIScnn libraries
-from miscnn import Preprocessor, Data_IO, Neural_Network, Data_Augmentation
+from miscnn import Preprocessor, Data_IO, Neural_Network
 from miscnn.processing.subfunctions import Normalization
 # TensorFlow libraries
 from tensorflow.keras.losses import CategoricalCrossentropy
@@ -89,13 +89,6 @@ def setup_miscnn(architecture, config, best_model=True):
     # Create the MIScnn Data I/O object
     data_io = Data_IO(interface, config["path_data"], delete_batchDir=False)
 
-    # Create and configure the Data Augmentation class
-    data_aug = Data_Augmentation(cycles=1, scaling=True, rotations=True,
-                                 elastic_deform=True, mirror=True,
-                                 brightness=True, contrast=True,
-                                 gamma=True, gaussian_noise=True)
-    data_aug.seg_augmentation = False
-
     # Initialize architecture of the neural network
     nn_architecture = architecture_dict[architecture](config["channels"])
 
@@ -104,7 +97,7 @@ def setup_miscnn(architecture, config, best_model=True):
     sf = [SegFix(), Normalization(mode="minmax"), Resize(new_shape=input_shape)]
 
     # Create and configure the MIScnn Preprocessor class
-    pp = Preprocessor(data_io, data_aug=data_aug,
+    pp = Preprocessor(data_io, data_aug=None,
                       batch_size=config["batch_size"],
                       subfunctions=sf,
                       prepare_subfunctions=True,

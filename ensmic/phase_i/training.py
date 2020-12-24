@@ -102,12 +102,19 @@ def setup_miscnn(architecture, config):
     # Create the MIScnn Data I/O object
     data_io = Data_IO(interface, config["path_data"], delete_batchDir=False)
 
-    # Create and configure the Data Augmentation class
+    # Create Data Augmentation class
     data_aug = Data_Augmentation(cycles=1, scaling=True, rotations=True,
-                                 elastic_deform=True, mirror=True,
+                                 elastic_deform=False, mirror=True,
                                  brightness=True, contrast=True,
-                                 gamma=True, gaussian_noise=True)
+                                 gamma=True, gaussian_noise=False)
+    # Configure Data Augmentation
     data_aug.seg_augmentation = False
+    data_aug.config_p_per_sample = 0.10
+    data_aug.config_mirror_axes = (0, 1)
+    data_aug.config_contrast_range = (0.7, 1.3)
+    data_aug.config_brightness_range = (0.7, 1.3)
+    data_aug.config_gamma_range = (0.7, 1.3)
+    data_aug.config_scaling_range = (0.8, 1.2)
 
     # Initialize architecture of the neural network
     nn_architecture = architecture_dict[architecture](config["channels"])
