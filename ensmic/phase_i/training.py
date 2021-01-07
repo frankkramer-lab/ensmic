@@ -27,7 +27,6 @@ import json
 # MIScnn libraries
 from miscnn import Preprocessor, Data_IO, Neural_Network, Data_Augmentation
 from miscnn.utils.plotting import plot_validation
-from miscnn.processing.subfunctions import Normalization
 # TensorFlow libraries
 from tensorflow.keras.callbacks import ModelCheckpoint, CSVLogger, \
                                        ReduceLROnPlateau
@@ -35,7 +34,7 @@ from tensorflow.keras.losses import CategoricalCrossentropy
 from tensorflow.keras.metrics import CategoricalAccuracy
 # Internal libraries/scripts
 from ensmic.data_loading import IO_MIScnn, load_sampling
-from ensmic.subfunctions import Resize, SegFix
+from ensmic.subfunctions import Resize, SegFix, Normalization
 from ensmic.architectures import architecture_dict, architectures
 from ensmic.utils.callbacks import ImprovedEarlyStopping
 from ensmic.utils.class_weights import get_class_weights
@@ -76,7 +75,7 @@ else : config["channels"] = 3
 config["architecture_list"] = architectures
 
 # Preprocessor Configurations
-config["threads"] = 8
+config["threads"] = 16
 config["batch_size"] = 32
 # Neural Network Configurations
 config["epochs"] = 1000
@@ -94,7 +93,7 @@ config["gpu_id"] = int(args.gpu)
 #-----------------------------------------------------#
 #                 MIScnn Data IO Setup                #
 #-----------------------------------------------------#
-def setup_miscnn(architecture, config):
+def setup_miscnn(architecture, sf_normalization, config):
     # Initialize the Image I/O interface based on the ensmic file structure
     interface = IO_MIScnn(class_dict=config["class_dict"], seed=config["seed"],
                           channels=config["channels"])
@@ -121,7 +120,7 @@ def setup_miscnn(architecture, config):
 
     # Specify subfunctions for preprocessing
     input_shape = nn_architecture.fixed_input_shape
-    sf = [SegFix(), Normalization(mode="minmax"), Resize(new_shape=input_shape)]
+    sf = [SegFix(), sf_normalization, Resize(new_shape=input_shape)]
 
     # Create and configure the MIScnn Preprocessor class
     pp = Preprocessor(data_io, data_aug=data_aug,
@@ -209,6 +208,9 @@ config["class_weights"] = get_class_weights(samples_train,
                                             config["path_data"],
                                             config["seed"])
 
+# Initialize Normalization functionality by computing dataset-wide mean & std
+sf_normalization = Normalization(samples_train, config, max_value=255)
+
 # Initialize cache memory to store meta information
 timer_cache = {}
 
@@ -218,7 +220,7 @@ for architecture in config["architecture_list"]:
     try:
         # Run Fitting Pipeline
         timer_start = time.time()
-        model = setup_miscnn(architecture, config)
+        model = setup_miscnn(architecture, sf_normalization, config)
         run_training(samples_train, samples_val, model, architecture, config)
         timer_end = time.time()
         # Store execution time in cache

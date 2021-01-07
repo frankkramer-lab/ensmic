@@ -18,3 +18,4 @@
 #==============================================================================#
 from ensmic.subfunctions.sf_class import SegFix
 from ensmic.subfunctions.sf_resize import Resize
+from ensmic.subfunctions.sf_normalize import Normalization
