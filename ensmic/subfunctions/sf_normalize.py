@@ -23,6 +23,10 @@
 #-----------------------------------------------------#
 # External libraries
 import numpy as np
+from multiprocessing import Pool, Manager
+from functools import partial
+import json
+import os
 # MIScnn libraries
 from miscnn import Data_IO
 from miscnn.processing.subfunctions.abstract_subfunction import Abstract_Subfunction
@@ -50,30 +54,69 @@ class Normalization(Abstract_Subfunction):
                               channels=config["channels"])
 
         # Create the MIScnn Data I/O object
-        data_io = Data_IO(interface, config["path_data"])
+        self.data_io = Data_IO(interface, config["path_data"])
 
-        # Initialize variables
+        # Initialize class variables
         self.channels = config["channels"]
         self.max_value = max_value
-        pixel_num = 0
-        channel_sum = np.zeros(config["channels"])
-        channel_sum_squared = np.zeros(config["channels"])
 
-        # Iterate over complete dataset
-        for index in samples:
-            # Load sample
-            sample = data_io.sample_loader(index, load_seg=False)
-            # Access scaled image data
-            img = sample.img_data / max_value
-            # Compute sum and squared sum
-            pixel_num += (img.size / config["channels"])
-            channel_sum += np.sum(img, axis=(0, 1))
-            channel_sum_squared += np.sum(np.square(img), axis=(0, 1))
+        # Check if already initialized normalization data is available
+        path_norm = os.path.join(config["path_results"], "phase_i" + "." + \
+                                 config["seed"], "normalization.json")
+        # IF normalization data is available -> load from disk
+        if os.path.exists(path_norm):
+            with open(path_norm, "r") as file:
+                data_norm = json.load(file)
+            self.mean = np.array(data_norm["mean"])
+            self.std = np.array(data_norm["std"])
 
-        # Compute mean and std
-        self.mean = channel_sum / pixel_num
-        self.std = np.sqrt(channel_sum_squared / \
-                           pixel_num - np.square(self.mean))
+        # ELSE -> compute normalization data and store to disk
+        else:
+            # Initialize multiprocessing variables
+            mp_manager = Manager()
+            lock = mp_manager.Lock()
+            self.pixel_num = mp_manager.Value("i", 0)
+            self.channel_sum = mp_manager.Array("f", [0]*config["channels"])
+            self.channel_sum_squared = mp_manager.Array("f", [0]*config["channels"])
+
+            # Iterate over complete dataset via multiprocessing
+            with Pool(config["threads"]) as pool:
+                pool.map(partial(self.scan_image, lock), samples)
+            pool.close()
+            pool.join()
+
+            # Convert shared memory variables into normal working variables
+            pixel_num = self.pixel_num.value
+            channel_sum = np.array(self.channel_sum)
+            channel_sum_squared = np.array(self.channel_sum_squared)
+
+            # Compute mean and std
+            self.mean = channel_sum / pixel_num
+            self.std = np.sqrt(channel_sum_squared / \
+                               pixel_num - np.square(self.mean))
+
+            # Store normalization data to disk
+            with open(path_norm, "w") as file:
+                json_norm = {"mean": self.mean.tolist(),
+                             "std": self.std.tolist()}
+                json.dump(json_norm, file, indent=2)
+
+    # Utility function for mean and std estimation over the dataset via MP
+    def scan_image(self, lock, index):
+        # Load sample
+        sample = self.data_io.sample_loader(index, load_seg=False)
+        # Access scaled image data
+        img = sample.img_data / self.max_value
+        # Compute sum and squared sum
+        tmp_cs = np.sum(img, axis=(0, 1))
+        tmp_css = np.sum(np.square(img), axis=(0, 1))
+        # Store results in shared memory variables
+        lock.acquire()
+        self.pixel_num.value += (img.size / self.channels)
+        for i in range(self.channels):
+            self.channel_sum[i] += tmp_cs[i]
+            self.channel_sum_squared[i] += tmp_css[i]
+        lock.release()
 
     #---------------------------------------------#
     #                Preprocessing                #
