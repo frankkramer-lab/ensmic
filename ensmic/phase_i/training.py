@@ -110,9 +110,9 @@ def setup_miscnn(architecture, sf_normalization, config):
     data_aug.seg_augmentation = False
     data_aug.config_p_per_sample = 0.10
     data_aug.config_mirror_axes = (0, 1)
-    data_aug.config_contrast_range = (0.7, 1.3)
-    data_aug.config_brightness_range = (0.7, 1.3)
-    data_aug.config_gamma_range = (0.7, 1.3)
+    data_aug.config_contrast_range = (0.8, 1.2)
+    data_aug.config_brightness_range = (0.8, 1.2)
+    data_aug.config_gamma_range = (0.8, 1.2)
     data_aug.config_scaling_range = (0.8, 1.2)
 
     # Initialize architecture of the neural network
