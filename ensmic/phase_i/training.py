@@ -71,6 +71,9 @@ with open(path_classdict, "r") as json_reader:
 if config["seed"] == "covid" : config["channels"] = 1
 else : config["channels"] = 3
 
+# Transfer Learning
+config["transfer_learning"] = True
+
 # Architectures for Classification
 config["architecture_list"] = architectures
 
@@ -117,8 +120,14 @@ def setup_miscnn(architecture, sf_normalization, config):
     data_aug.coloraug_per_channel = False
     data_aug.config_contrast_preserverange = True
 
+    # Prepare Transfer Learning if required
+    if config["transfer_learning"] and config["channels"] == 3:
+        use_tl = True
+    else : use_tl = False
+
     # Initialize architecture of the neural network
-    nn_architecture = architecture_dict[architecture](config["channels"])
+    nn_architecture = architecture_dict[architecture](config["channels"],
+                                                      pretrained_weights=use_tl)
 
     # Specify subfunctions for preprocessing
     input_shape = nn_architecture.fixed_input_shape
