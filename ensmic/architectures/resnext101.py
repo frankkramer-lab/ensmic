@@ -52,17 +52,19 @@ class Architecture_ResNeXt101(Abstract_Architecture):
     #                Initialization               #
     #---------------------------------------------#
     def __init__(self, channels, input_shape=(224, 224),
-                 out_activation="softmax"):
+                 out_activation="softmax", pretrained_weights=False):
         # Parse parameter
         self.fixed_input_shape = input_shape + (channels,)
         self.out_activation = out_activation
+        if pretrained_weights : self.weights = "imagenet"
+        else : self.weights = None
 
     #---------------------------------------------#
     #               Create 2D Model               #
     #---------------------------------------------#
     def create_model_2D(self, input_shape, n_labels=2):
         # Obtain ResNeXt as base model
-        base_model = ResNeXt101(include_top=False, weights=None,
+        base_model = ResNeXt101(include_top=False, weights=self.weights,
                                 input_tensor=None,
                                 input_shape=self.fixed_input_shape,
                                 pooling=None,

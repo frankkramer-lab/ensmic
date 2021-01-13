@@ -67,7 +67,7 @@ class Architecture_ResNeSt50(Abstract_Architecture):
     #                Initialization               #
     #---------------------------------------------#
     def __init__(self, channels, input_shape=(224, 224), dropout=False,
-                 out_activation="softmax"):
+                 out_activation="softmax", pretrained_weights=False):
         # Parse parameter
         self.fixed_input_shape = input_shape + (channels,)
         self.dropout = dropout

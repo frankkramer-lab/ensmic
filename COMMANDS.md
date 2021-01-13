@@ -11,7 +11,7 @@ nohup sh -c "python ensmic/preprocessing/prepare_fs.drd.py" &> log.prepare_fs.dr
 
 ```sh
 # Dataset: COVID-19
-nohup sh -c "python ensmic/phase_i/training.py -m 'covid' --gpu 0" &> log.phase_i.covid.training.txt &
+nohup sh -c "python ensmic/phase_i/training.py -m 'covid' --gpu 2" &> log.phase_i.covid.training.txt &
 nohup sh -c "python ensmic/phase_i/inference.py -m 'covid' --gpu 0" &> log.phase_i.covid.inference.txt &
 
 # Dataset: CHMNIST

@@ -49,7 +49,7 @@ class Architecture_AlexNet(Abstract_Architecture):
     #                Initialization               #
     #---------------------------------------------#
     def __init__(self, channels, input_shape=(277, 277),
-                 out_activation="softmax"):
+                 out_activation="softmax", pretrained_weights=False):
         # Parse parameter
         self.fixed_input_shape = input_shape + (channels,)
         self.out_activation = out_activation
