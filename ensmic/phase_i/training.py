@@ -142,6 +142,7 @@ def setup_miscnn(architecture, sf_normalization, config):
                       analysis="fullimage",
                       use_multiprocessing=True)
     pp.mp_threads = config["threads"]
+    pp.class_weights = config["class_weights"]
 
     # Create the Neural Network model
     model = Neural_Network(preprocessor=pp, loss=CategoricalCrossentropy(),
@@ -193,8 +194,7 @@ def run_training(samples_train, samples_val, model, architecture, config):
     history = model.evaluate(samples_train, samples_val,
                              epochs=config["epochs"],
                              iterations=config["iterations"],
-                             callbacks=callbacks,
-                             class_weight=config["class_weights"])
+                             callbacks=callbacks)
     # Dump latest model
     model.dump(os.path.join(path_res, "model.latest.hdf5"))
     # Plot visualizations
