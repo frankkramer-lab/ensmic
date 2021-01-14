@@ -68,6 +68,14 @@ def compute_CM(gt, pd, c):
         else : print("ERROR at confusion matrix", i)
     return tp, tn, fp, fn
 
+# Compute raw confusion matrix
+def compute_rawCM(gt, pd, config):
+    class_list = sorted(config["class_dict"].values())
+    rawcm = np.zeros((len(class_list), len(class_list)))
+    for i in range(0, len(gt)):
+        rawcm[gt[i]][pd[i]] += 1
+    return rawcm
+
 # Function for safe division (catch division by zero)
 def safe_division(x, y):
     return x / y if y else 0

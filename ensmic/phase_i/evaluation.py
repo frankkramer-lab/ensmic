@@ -29,7 +29,7 @@ from plotnine import *
 # Internal libraries/scripts
 from ensmic.data_loading import IO_Inference
 from ensmic.architectures import architecture_dict, architectures
-from ensmic.utils.metrics import compute_metrics
+from ensmic.utils.metrics import compute_metrics, compute_rawCM
 from ensmic.utils.categorical_averaging import macro_averaging
 # Experimental
 import warnings
@@ -153,6 +153,47 @@ def collect_results(result_set, architectures, dataset, path_eval, config):
     df_results.to_csv(path_res, index=False)
     # Return merged results
     return df_results
+
+#-----------------------------------------------------#
+#        Compute and Store raw Confusion Matrix       #
+#-----------------------------------------------------#
+def calc_confusion_matrix(gt, pd, architecture, dataset, config):
+    # Compute confusion matrix
+    rawcm_np = compute_rawCM(gt, pd, config)
+    rawcm = pandas.DataFrame(rawcm_np)
+    # Tidy dataframe
+    rawcm.index = config["class_list"]
+    rawcm.columns = config["class_list"]
+    # Backup to disk
+    path_arch = os.path.join(config["path_results"], "phase_i" + "." + \
+                             config["seed"], architecture)
+    path_res = os.path.join(path_arch, "confusion_matrix." + dataset + ".csv")
+    rawcm.to_csv(path_res, index=True, index_label="metric")
+    # Return results
+    return rawcm
+
+def plot_confusion_matrix(rawcm, architecture, dataset, config):
+    # Preprocess dataframe
+    rawcm.reset_index(drop=False, inplace=True)
+    dt = rawcm.melt(id_vars=["index"],
+                    var_name="pd",
+                    value_name="score")
+    dt.rename(columns={"index": "gt"}, inplace=True)
+    # Plot confusion matrix
+    fig = (ggplot(dt, aes("gt", "pd", fill="score"))
+                  + geom_tile()
+                  + geom_text(aes("gt", "pd", label="score"), color="black", size=28)
+                  + ggtitle("Confusion Matrix: " + architecture)
+                  + xlab("Ground Truth")
+                  + ylab("Prediction")
+                  + scale_fill_gradient(low="white", high="red")
+                  + theme_bw(base_size=28)
+                  + theme(axis_text_x = element_text(angle = 45, vjust = 1, hjust = 1)))
+    # Store figure to disk
+    path_arch = os.path.join(config["path_results"], "phase_i" + "." + \
+                             config["seed"], architecture)
+    fig.save(filename="plot." + dataset + ".confusion_matrix." + "png",
+             path=path_arch, width=18, height=14, dpi=200)
 
 #-----------------------------------------------------#
 #                Function: Plot Results               #
@@ -411,18 +452,21 @@ for ds in ["val-ensemble", "test"]:
     print("Run evaluation for dataset:", ds)
     for architecture in config["architecture_list"]:
         print("Run evaluation for Architecture:", architecture)
-        try:
-            # Preprocess ground truth and predictions
-            id, gt, pd, pd_prob = preprocessing(architecture, ds, config)
-            # Compute metrics
-            metrics = compute_metrics(gt, pd, pd_prob, config)
-            # Backup results
-            metrics_df = parse_results(metrics, architecture, ds, config)
-            # Cache dataframe and add architecture to verification list
-            result_set.append(metrics_df)
-            verified_architectures.append(architecture)
-        except:
-            print("Skipping Architecture", architecture, "due to Error.")
+        # try:
+        # Preprocess ground truth and predictions
+        id, gt, pd, pd_prob = preprocessing(architecture, ds, config)
+        # Compute metrics
+        metrics = compute_metrics(gt, pd, pd_prob, config)
+        # Backup results
+        metrics_df = parse_results(metrics, architecture, ds, config)
+        # Cache dataframe and add architecture to verification list
+        result_set.append(metrics_df)
+        verified_architectures.append(architecture)
+        # Compute and store raw Confusion Matrix
+        rawcm = calc_confusion_matrix(gt, pd, architecture, ds, config)
+        plot_confusion_matrix(rawcm, architecture, ds, config)
+        # except:
+        #     print("Skipping Architecture", architecture, "due to Error.")
 
     # Collect results
     results_all = collect_results(result_set, verified_architectures, ds,
