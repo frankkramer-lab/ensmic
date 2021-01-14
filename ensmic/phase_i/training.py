@@ -34,7 +34,7 @@ from tensorflow.keras.losses import CategoricalCrossentropy
 from tensorflow.keras.metrics import CategoricalAccuracy
 # Internal libraries/scripts
 from ensmic.data_loading import IO_MIScnn, load_sampling
-from ensmic.subfunctions import Resize, SegFix, Normalization
+from ensmic.subfunctions import Resize, SegFix, Normalization, Padding
 from ensmic.architectures import architecture_dict, architectures
 from ensmic.utils.callbacks import ImprovedEarlyStopping
 from ensmic.utils.class_weights import get_class_weights
@@ -114,7 +114,7 @@ def setup_miscnn(architecture, sf_normalization, config):
     data_aug.config_p_per_sample = 0.15
     data_aug.config_mirror_axes = (0, 1)
     data_aug.config_scaling_range = (0.8, 1.2)
-    data_aug.config_elastic_deform_alpha = (0.0, 200.0)
+    data_aug.config_elastic_deform_alpha = (0.0, 100.0)
     data_aug.config_elastic_deform_sigma = (9.5, 10.5)
     data_aug.config_contrast_range = (0.9, 1.1)
     data_aug.coloraug_per_channel = False
@@ -131,7 +131,7 @@ def setup_miscnn(architecture, sf_normalization, config):
 
     # Specify subfunctions for preprocessing
     input_shape = nn_architecture.fixed_input_shape
-    sf = [SegFix(), sf_normalization, Resize(new_shape=input_shape)]
+    sf = [SegFix(), Padding(), sf_normalization, Resize(new_shape=input_shape)]
 
     # Create and configure the MIScnn Preprocessor class
     pp = Preprocessor(data_io, data_aug=data_aug,
