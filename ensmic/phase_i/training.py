@@ -142,7 +142,7 @@ def setup_miscnn(architecture, sf_normalization, config):
                       analysis="fullimage",
                       use_multiprocessing=True)
     pp.mp_threads = config["threads"]
-    pp.class_weights = config["class_weights"]
+    pp.sample_weights = config["class_weights"]
 
     # Create the Neural Network model
     model = Neural_Network(preprocessor=pp, loss=CategoricalCrossentropy(),
