@@ -39,7 +39,8 @@ def get_class_weights(data, classes, input_path, seed):
     for index in data:
         class_list.append(class_map[index])
     # Compute Weights based on Frequency
-    class_weights = compute_class_weight("balanced", classes, class_list)
+    class_weights = compute_class_weight("balanced", classes=classes,
+                                         y=class_list)
     # Parse to dictionary
     weight_dict = dict(zip(classes, class_weights))
     # Return class weights
