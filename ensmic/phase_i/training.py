@@ -107,16 +107,16 @@ def setup_miscnn(architecture, sf_normalization, config):
 
     # Create Data Augmentation class
     data_aug = Data_Augmentation(cycles=1, scaling=True, rotations=True,
-                                 elastic_deform=True, mirror=True,
+                                 elastic_deform=False, mirror=True,
                                  brightness=False, contrast=True,
                                  gamma=False, gaussian_noise=True)
     # Configure Data Augmentation
     data_aug.seg_augmentation = False
-    data_aug.config_p_per_sample = 0.15
+    data_aug.config_p_per_sample = 0.35
     data_aug.config_mirror_axes = (0, 1)
     data_aug.config_scaling_range = (0.8, 1.2)
-    data_aug.config_elastic_deform_alpha = (0.0, 100.0)
-    data_aug.config_elastic_deform_sigma = (9.5, 10.5)
+    # data_aug.config_elastic_deform_alpha = (0.0, 100.0)
+    # data_aug.config_elastic_deform_sigma = (9.5, 10.5)
     data_aug.config_contrast_range = (0.9, 1.1)
     data_aug.coloraug_per_channel = False
     data_aug.config_contrast_preserverange = True
