@@ -31,7 +31,7 @@ from tensorflow.keras.losses import CategoricalCrossentropy
 from tensorflow.keras.metrics import CategoricalAccuracy
 # Internal libraries/scripts
 from ensmic.data_loading import IO_MIScnn, IO_Inference, load_sampling
-from ensmic.subfunctions import Resize, SegFix
+from ensmic.subfunctions import Resize, SegFix, Normalization, Padding
 from ensmic.architectures import architecture_dict, architectures
 
 #-----------------------------------------------------#
@@ -81,7 +81,7 @@ config["gpu_id"] = int(args.gpu)
 #-----------------------------------------------------#
 #                 MIScnn Data IO Setup                #
 #-----------------------------------------------------#
-def setup_miscnn(architecture, config, best_model=True):
+def setup_miscnn(architecture, sf_normalization, config, best_model=True):
     # Initialize the Image I/O interface based on the ensmic file structure
     interface = IO_MIScnn(class_dict=config["class_dict"], seed=config["seed"],
                           channels=config["channels"])
@@ -94,7 +94,7 @@ def setup_miscnn(architecture, config, best_model=True):
 
     # Specify subfunctions for preprocessing
     input_shape = nn_architecture.fixed_input_shape
-    sf = [SegFix(), Normalization(mode="minmax"), Resize(new_shape=input_shape)]
+    sf = [SegFix(), Padding(), sf_normalization, Resize(new_shape=input_shape)]
 
     # Create and configure the MIScnn Preprocessor class
     pp = Preprocessor(data_io, data_aug=None,
@@ -152,12 +152,18 @@ def run_inference(dataset, model, architecture, config):
 # Adjust GPU utilization
 os.environ["CUDA_VISIBLE_DEVICES"] = str(config["gpu_id"])
 
+# Initialize Normalization functionality by computing dataset-wide mean & std
+samples_train = load_sampling(path_data=config["path_data"],
+                              subset="train-model",
+                              seed=config["seed"])
+sf_normalization = Normalization(samples_train, config, max_value=255)
+
 # Run Inference for all architectures
 for architecture in config["architecture_list"]:
     print("Run inference for Architecture:", architecture)
     try:
         # Setup pipeline
-        model = setup_miscnn(architecture, config)
+        model = setup_miscnn(architecture, sf_normalization, config)
         # Compute predictions for subset: val-ensemble
         run_inference("val-ensemble", model, architecture, config)
         # Compute predictions for subset: test
