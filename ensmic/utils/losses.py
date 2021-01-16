@@ -51,7 +51,7 @@ def binary_focal_loss(gamma=2., alpha=.25):
     return binary_focal_loss_fixed
 
 
-def categorical_focal_loss(alpha=0.25, gamma=2.):
+def categorical_focal_loss(alpha, gamma=2.):
     """
     Softmax version of focal loss.
     When there is a skew between different categories/labels in your data set, you can try to apply this function as a
@@ -79,7 +79,7 @@ def categorical_focal_loss(alpha=0.25, gamma=2.):
      model.compile(loss=[categorical_focal_loss(alpha=[[.25, .25, .25]], gamma=2)], metrics=["accuracy"], optimizer=adam)
     """
 
-    # alpha = np.array(alpha, dtype=np.float32)
+    alpha = np.array(alpha, dtype=np.float32)
 
     def categorical_focal_loss_fixed(y_true, y_pred):
         """

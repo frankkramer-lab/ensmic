@@ -143,10 +143,17 @@ def setup_miscnn(architecture, sf_normalization, config):
                       analysis="fullimage",
                       use_multiprocessing=True)
     pp.mp_threads = config["threads"]
-    pp.sample_weights = config["class_weights"]
+    # pp.sample_weights = config["class_weights"]
+
+    # Initialize weighted focal loss function
+    weight_classes = sorted(config["class_weights"].keys())
+    weighted_alpha = []
+    for c in weight_classes:
+        weighted_alpha.append(config["class_weights"][c])
+    loss_focal = categorical_focal_loss(alpha=[weighted_alpha], gamma=2.0)
 
     # Create the Neural Network model
-    model = Neural_Network(preprocessor=pp, loss=categorical_focal_loss(),
+    model = Neural_Network(preprocessor=pp, loss=loss_focal,
                            architecture=nn_architecture,
                            metrics=[CategoricalAccuracy()],
                            batch_queue_size=10, workers=config["workers"],
