@@ -38,6 +38,7 @@ from ensmic.subfunctions import Resize, SegFix, Normalization, Padding
 from ensmic.architectures import architecture_dict, architectures
 from ensmic.utils.callbacks import ImprovedEarlyStopping
 from ensmic.utils.class_weights import get_class_weights
+from ensmic.utils.losses import categorical_focal_loss
 
 #-----------------------------------------------------#
 #                      Argparser                      #
@@ -145,7 +146,7 @@ def setup_miscnn(architecture, sf_normalization, config):
     pp.sample_weights = config["class_weights"]
 
     # Create the Neural Network model
-    model = Neural_Network(preprocessor=pp, loss=CategoricalCrossentropy(),
+    model = Neural_Network(preprocessor=pp, loss=categorical_focal_loss(),
                            architecture=nn_architecture,
                            metrics=[CategoricalAccuracy()],
                            batch_queue_size=10, workers=config["workers"],
