@@ -30,11 +30,10 @@ from miscnn.utils.plotting import plot_validation
 # TensorFlow libraries
 from tensorflow.keras.callbacks import ModelCheckpoint, CSVLogger, \
                                        ReduceLROnPlateau
-from tensorflow.keras.losses import CategoricalCrossentropy
 from tensorflow.keras.metrics import CategoricalAccuracy
 # Internal libraries/scripts
 from ensmic.data_loading import IO_MIScnn, load_sampling
-from ensmic.subfunctions import Resize, SegFix, Normalization, Padding
+from ensmic.subfunctions import Resize, SegFix, Normalization, Padding, ColorConstancy
 from ensmic.architectures import architecture_dict, architectures
 from ensmic.utils.callbacks import ImprovedEarlyStopping
 from ensmic.utils.class_weights import get_class_weights
@@ -132,7 +131,8 @@ def setup_miscnn(architecture, sf_normalization, config):
 
     # Specify subfunctions for preprocessing
     input_shape = nn_architecture.fixed_input_shape
-    sf = [SegFix(), Padding(), sf_normalization, Resize(new_shape=input_shape)]
+    sf = [SegFix(), ColorConstancy(), Padding(), sf_normalization,
+          Resize(new_shape=input_shape)]
 
     # Create and configure the MIScnn Preprocessor class
     pp = Preprocessor(data_io, data_aug=data_aug,
@@ -143,7 +143,7 @@ def setup_miscnn(architecture, sf_normalization, config):
                       analysis="fullimage",
                       use_multiprocessing=True)
     pp.mp_threads = config["threads"]
-    # pp.sample_weights = config["class_weights"]
+    pp.sample_weights = config["class_weights"]
 
     # Initialize weighted focal loss function
     weight_classes = sorted(config["class_weights"].keys())

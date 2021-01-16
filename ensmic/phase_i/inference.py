@@ -94,7 +94,8 @@ def setup_miscnn(architecture, sf_normalization, config, best_model=True):
 
     # Specify subfunctions for preprocessing
     input_shape = nn_architecture.fixed_input_shape
-    sf = [SegFix(), Padding(), sf_normalization, Resize(new_shape=input_shape)]
+    sf = [SegFix(), ColorConstancy(), Padding(), sf_normalization,
+          Resize(new_shape=input_shape)]
 
     # Create and configure the MIScnn Preprocessor class
     pp = Preprocessor(data_io, data_aug=None,
