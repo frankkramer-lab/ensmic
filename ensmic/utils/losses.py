@@ -10,7 +10,7 @@ Created on Fri Oct 19 08:20:58 2018
 @author: Aldi Faizal Dimara (Steam ID: phenomos)
 """
 
-import keras.backend as K
+import tensorflow.keras.backend as K
 import tensorflow as tf
 
 def categorical_focal_loss(gamma=2.0, alpha=0.25):
