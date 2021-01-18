@@ -31,7 +31,7 @@ from tensorflow.keras.losses import CategoricalCrossentropy
 from tensorflow.keras.metrics import CategoricalAccuracy
 # Internal libraries/scripts
 from ensmic.data_loading import IO_MIScnn, IO_Inference, load_sampling
-from ensmic.subfunctions import Resize, SegFix, Normalization, Padding
+from ensmic.subfunctions import Resize, SegFix, Normalization, Padding, ColorConstancy
 from ensmic.architectures import architecture_dict, architectures
 
 #-----------------------------------------------------#
