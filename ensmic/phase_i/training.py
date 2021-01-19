@@ -30,6 +30,7 @@ from miscnn.utils.plotting import plot_validation
 # TensorFlow libraries
 from tensorflow.keras.callbacks import ModelCheckpoint, CSVLogger, \
                                        ReduceLROnPlateau
+from tensorflow.keras.losses import CategoricalCrossentropy
 from tensorflow.keras.metrics import CategoricalAccuracy, AUC
 # Internal libraries/scripts
 from ensmic.data_loading import IO_MIScnn, load_sampling
@@ -79,7 +80,7 @@ config["architecture_list"] = architectures
 
 # Preprocessor Configurations
 config["threads"] = 16
-config["batch_size"] = 32
+config["batch_size"] = 48
 # Neural Network Configurations
 config["epochs"] = 1000
 config["iterations"] = None
@@ -146,15 +147,15 @@ def setup_miscnn(architecture, sf_normalization, config):
     pp.mp_threads = config["threads"]
     pp.sample_weights = config["class_weights"]
 
-    # Initialize weighted focal loss function
-    weight_classes = sorted(config["class_weights"].keys())
-    weighted_alpha = []
-    for c in weight_classes:
-        weighted_alpha.append(config["class_weights"][c])
-    loss_focal = categorical_focal_loss(alpha=[weighted_alpha], gamma=2.0)
+    # # Initialize weighted focal loss function
+    # weight_classes = sorted(config["class_weights"].keys())
+    # weighted_alpha = []
+    # for c in weight_classes:
+    #     weighted_alpha.append(config["class_weights"][c])
+    # loss_focal = categorical_focal_loss(alpha=[weighted_alpha], gamma=2.0)
 
     # Create the Neural Network model
-    model = Neural_Network(preprocessor=pp, loss=loss_focal,
+    model = Neural_Network(preprocessor=pp, loss=CategoricalCrossentropy(),
                            architecture=nn_architecture,
                            metrics=[CategoricalAccuracy(), AUC()],
                            batch_queue_size=10, workers=config["workers"],
@@ -238,6 +239,7 @@ timer_cache = {}
 for architecture in config["architecture_list"]:
     print("Run training for Architecture:", architecture)
     try:
+        if architecture == "AlexNet" : continue # DEBUGGING transfer learning
         # Run Fitting Pipeline
         timer_start = time.time()
         model = setup_miscnn(architecture, sf_normalization, config)
