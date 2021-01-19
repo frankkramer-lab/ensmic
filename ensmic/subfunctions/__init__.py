@@ -21,3 +21,4 @@ from ensmic.subfunctions.sf_resize import Resize
 from ensmic.subfunctions.sf_normalize import Normalization
 from ensmic.subfunctions.sf_padding import Padding
 from ensmic.subfunctions.sf_colconstancy import ColorConstancy
+from ensmic.subfunctions.sf_archpreproc import ArchitectureNormalization

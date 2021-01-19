@@ -58,6 +58,8 @@ class Architecture_ResNeXt50(Abstract_Architecture):
         self.out_activation = out_activation
         if pretrained_weights : self.weights = "imagenet"
         else : self.weights = None
+        # Define normalization mode (preprocess_input of keras.applications)
+        self.normalization_mode = "torch"
 
     #---------------------------------------------#
     #               Create 2D Model               #

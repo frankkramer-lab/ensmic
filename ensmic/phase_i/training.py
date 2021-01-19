@@ -30,7 +30,7 @@ from miscnn.utils.plotting import plot_validation
 # TensorFlow libraries
 from tensorflow.keras.callbacks import ModelCheckpoint, CSVLogger, \
                                        ReduceLROnPlateau
-from tensorflow.keras.metrics import CategoricalAccuracy
+from tensorflow.keras.metrics import CategoricalAccuracy, AUC
 # Internal libraries/scripts
 from ensmic.data_loading import IO_MIScnn, load_sampling
 from ensmic.subfunctions import Resize, SegFix, Normalization, Padding, ColorConstancy
@@ -155,7 +155,7 @@ def setup_miscnn(architecture, sf_normalization, config):
     # Create the Neural Network model
     model = Neural_Network(preprocessor=pp, loss=loss_focal,
                            architecture=nn_architecture,
-                           metrics=[CategoricalAccuracy()],
+                           metrics=[CategoricalAccuracy(), AUC()],
                            batch_queue_size=10, workers=config["workers"],
                            learninig_rate=0.001)
     # Return MIScnn model

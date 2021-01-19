@@ -53,6 +53,8 @@ class Architecture_AlexNet(Abstract_Architecture):
         # Parse parameter
         self.fixed_input_shape = input_shape + (channels,)
         self.out_activation = out_activation
+        # Define normalization mode (preprocess_input of keras.applications)
+        self.normalization_mode = None
 
     #---------------------------------------------#
     #               Create 2D Model               #
