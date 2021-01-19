@@ -48,11 +48,12 @@ class Architecture_AlexNet(Abstract_Architecture):
     #---------------------------------------------#
     #                Initialization               #
     #---------------------------------------------#
-    def __init__(self, channels, input_shape=(277, 277),
+    def __init__(self, channels, input_shape=$1, dropout=True,
                  out_activation="softmax", pretrained_weights=False):
         # Parse parameter
         self.fixed_input_shape = input_shape + (channels,)
         self.out_activation = out_activation
+        self.dropout = dropout
         if pretrained_weights : self.weights = None
         else : self.weights = None
         # Define normalization mode (preprocess_input of keras.applications)

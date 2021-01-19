@@ -72,8 +72,9 @@ with open(path_classdict, "r") as json_reader:
 if config["seed"] == "covid" : config["channels"] = 1
 else : config["channels"] = 3
 
-# Transfer Learning
+# Neural network Configurations
 config["transfer_learning"] = False
+config["dropout"] = True
 
 # Architectures for Classification
 config["architecture_list"] = architectures
@@ -128,6 +129,7 @@ def setup_miscnn(architecture, sf_normalization, config):
 
     # Initialize architecture of the neural network
     nn_architecture = architecture_dict[architecture](config["channels"],
+                                                      dropout=config["dropout"],
                                                       pretrained_weights=use_tl)
 
     # Specify subfunctions for preprocessing

@@ -50,11 +50,12 @@ class Architecture_InceptionResNetV2(Abstract_Architecture):
     #---------------------------------------------#
     #                Initialization               #
     #---------------------------------------------#
-    def __init__(self, channels, input_shape=(299, 299),
+    def __init__(self, channels, input_shape=(299, 299), dropout=True,
                  out_activation="softmax", pretrained_weights=False):
         # Parse parameter
         self.fixed_input_shape = input_shape + (channels,)
         self.out_activation = out_activation
+        self.dropout = dropout
         if pretrained_weights : self.weights = "imagenet"
         else : self.weights = None
         # Define normalization mode (preprocess_input of keras.applications)
@@ -77,6 +78,7 @@ class Architecture_InceptionResNetV2(Abstract_Architecture):
 
         # Add classification block as top model
         top_model = layers.GlobalAveragePooling2D(name="avg_pool")(top_model)
+        if self.dropout : top_model = layers.Dropout(0.3)(top_model)
         top_model = layers.Dense(n_labels, activation=self.out_activation,
                                  name="predictions")(top_model)
 
