@@ -33,7 +33,7 @@ from tensorflow.keras.callbacks import ModelCheckpoint, CSVLogger, \
 from tensorflow.keras.metrics import CategoricalAccuracy, AUC
 # Internal libraries/scripts
 from ensmic.data_loading import IO_MIScnn, load_sampling
-from ensmic.subfunctions import Resize, SegFix, Normalization, Padding, ColorConstancy
+from ensmic.subfunctions import Resize, SegFix, Normalization, Padding, ColorConstancy, ArchitectureNormalization
 from ensmic.architectures import architecture_dict, architectures
 from ensmic.utils.callbacks import ImprovedEarlyStopping
 from ensmic.utils.class_weights import get_class_weights
@@ -72,7 +72,7 @@ if config["seed"] == "covid" : config["channels"] = 1
 else : config["channels"] = 3
 
 # Transfer Learning
-config["transfer_learning"] = True
+config["transfer_learning"] = False
 
 # Architectures for Classification
 config["architecture_list"] = architectures
@@ -131,8 +131,9 @@ def setup_miscnn(architecture, sf_normalization, config):
 
     # Specify subfunctions for preprocessing
     input_shape = nn_architecture.fixed_input_shape
-    sf = [SegFix(), ColorConstancy(), Padding(), sf_normalization,
-          Resize(new_shape=input_shape)]
+    sf_norm = ArchitectureNormalization(nn_architecture.normalization_mode)
+    sf = [SegFix(), ColorConstancy(), Padding(),
+          Resize(new_shape=input_shape), sf_norm]
 
     # Create and configure the MIScnn Preprocessor class
     pp = Preprocessor(data_io, data_aug=data_aug,

@@ -74,6 +74,10 @@ class Architecture_ResNeXt101(Abstract_Architecture):
                                 layers=keras.layers,
                                 models=keras.models)
         top_model = base_model.output
+        # Freeze all layers in the base model if using pretrained weights
+        if self.weights is not None:
+            for layer in base_model.layers:
+                layer.trainable = False
 
         # Add classification block as top model
         top_model = layers.GlobalAveragePooling2D(name="avg_pool")(top_model)

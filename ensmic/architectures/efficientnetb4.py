@@ -69,6 +69,10 @@ class Architecture_EfficientNetB4(Abstract_Architecture):
                                     input_shape=self.fixed_input_shape,
                                     pooling=None)
         top_model = base_model.output
+        # Freeze all layers in the base model if using pretrained weights
+        if self.weights is not None:
+            for layer in base_model.layers:
+                layer.trainable = False
 
         # Add classification block as top model
         top_model = layers.GlobalAveragePooling2D(name="avg_pool")(top_model)

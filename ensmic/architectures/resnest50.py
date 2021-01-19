@@ -72,6 +72,8 @@ class Architecture_ResNeSt50(Abstract_Architecture):
         self.fixed_input_shape = input_shape + (channels,)
         self.dropout = dropout
         self.fc_activation = out_activation
+        if pretrained_weights : self.weights = None
+        else : self.weights = None
         # Define normalization mode (preprocess_input of keras.applications)
         self.normalization_mode = None
 
