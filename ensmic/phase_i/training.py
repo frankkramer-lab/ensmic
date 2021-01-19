@@ -164,26 +164,13 @@ def setup_miscnn(architecture, sf_normalization, config):
     return model
 
 #-----------------------------------------------------#
-#            Prepare Result File Structure            #
-#-----------------------------------------------------#
-def prepare_rs(architecture, path_results, seed):
-    # Create results directory
-    if not os.path.exists(path_results) : os.mkdir(path_results)
-    # Create subdirectories for phase & architecture
-    path_phase = os.path.join(path_results, "phase_i" + "." + str(seed))
-    if not os.path.exists(path_phase) : os.mkdir(path_phase)
-    path_arch = os.path.join(path_phase, architecture)
-    if not os.path.exists(path_arch) : os.mkdir(path_arch)
-    # Return path to architecture result directory
-    return path_arch
-
-#-----------------------------------------------------#
 #                     Run Training                    #
 #-----------------------------------------------------#
 def run_training(samples_train, samples_val, model, architecture, config):
-    # Create result directory
-    path_res = prepare_rs(architecture, path_results=config["path_results"],
-                          seed=config["seed"])
+    # Create result directory for architecture
+    path_res = os.path.join(config["path_phase"], architecture)
+    if not os.path.exists(path_res) : os.mkdir(path_res)
+
     # Reset Neural Network model weights
     model.reset_weights()
 
@@ -216,6 +203,13 @@ def run_training(samples_train, samples_val, model, architecture, config):
 # Adjust GPU utilization
 os.environ["CUDA_VISIBLE_DEVICES"] = str(config["gpu_id"])
 
+# Create results directory
+if not os.path.exists(config["path_results"]) : os.mkdir(config["path_results"])
+# Create subdirectories for phase & seed
+config["path_phase"] = os.path.join(config["path_results"], "phase_i" + "." + \
+                          str(config["seed"]))
+if not os.path.exists(config["path_phase"]) : os.mkdir(config["path_phase"])
+
 # Load sampling
 samples_train = load_sampling(path_data=config["path_data"],
                               subset="train-model",
@@ -223,6 +217,7 @@ samples_train = load_sampling(path_data=config["path_data"],
 samples_val = load_sampling(path_data=config["path_data"],
                             subset="val-model",
                             seed=config["seed"])
+
 # Compute class weights
 config["class_weights"] = get_class_weights(samples_train,
                                             list(config["class_dict"].values()),
