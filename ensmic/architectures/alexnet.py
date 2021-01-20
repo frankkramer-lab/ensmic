@@ -48,7 +48,7 @@ class Architecture_AlexNet(Abstract_Architecture):
     #---------------------------------------------#
     #                Initialization               #
     #---------------------------------------------#
-    def __init__(self, channels, input_shape=$1, dropout=True,
+    def __init__(self, channels, input_shape=(256, 256), dropout=True,
                  out_activation="softmax", pretrained_weights=False):
         # Parse parameter
         self.fixed_input_shape = input_shape + (channels,)
@@ -79,10 +79,12 @@ class Architecture_AlexNet(Abstract_Architecture):
             keras.layers.Conv2D(filters=256, kernel_size=(1,1), strides=(1,1), activation='relu', padding="same"),
             keras.layers.BatchNormalization(),
             keras.layers.MaxPool2D(pool_size=(3,3), strides=(2,2)),
-
-            keras.layers.GlobalAveragePooling2D(name="avg_pool"),
-            keras.layers.Dense(n_labels, activation='softmax', name="predictions")
         ])
+
+        # Add classification head
+        model.add(keras.layers.GlobalAveragePooling2D(name="avg_pool"))
+        if self.dropout : model.add(keras.layers.Dropout(0.3))
+        model.add(keras.layers.Dense(n_labels, activation='softmax', name="predictions"))
 
         # Return model
         return model
