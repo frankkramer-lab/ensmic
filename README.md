@@ -80,12 +80,6 @@ One model -> Multiple predictions on data augmentated testing -> ensemble learni
 
 Dotplot: With EL vs Without EL Performance & diagonal line in middle
 
-### Phase 5:
-
-Bossting?  
-Multi level stacking?
-
-
 ## Future ...
 
 Boosting (AdaBoost, etc ...) not analyzed.
