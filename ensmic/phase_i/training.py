@@ -23,27 +23,26 @@
 import argparse
 import os
 import time
+import numpy as np
 import json
-# MIScnn libraries
-from miscnn import Preprocessor, Data_IO, Neural_Network, Data_Augmentation
-from miscnn.utils.plotting import plot_validation
 # TensorFlow libraries
 from tensorflow.keras.callbacks import ModelCheckpoint, CSVLogger, \
-                                       ReduceLROnPlateau
-from tensorflow.keras.losses import CategoricalCrossentropy
+                                       ReduceLROnPlateau, EarlyStopping
 from tensorflow.keras.metrics import CategoricalAccuracy, AUC
-# Internal libraries/scripts
-from ensmic.data_loading import IO_MIScnn, load_sampling
-from ensmic.subfunctions import Resize, SegFix, Normalization, Padding, ColorConstancy, ArchitectureNormalization
-from ensmic.architectures import architecture_dict, architectures
-from ensmic.utils.callbacks import ImprovedEarlyStopping
-from ensmic.utils.class_weights import get_class_weights
-from ensmic.utils.losses import categorical_focal_loss
+# AUCMEDI libraries
+from aucmedi import input_interface, DataGenerator, Neural_Network, Image_Augmentation
+from aucmedi.neural_network.architectures import supported_standardize_mode
+from aucmedi.data_processing.subfunctions import Padding
+from aucmedi.neural_network.architectures import architecture_dict
+from aucmedi.utils.class_weights import compute_class_weights
+from aucmedi.neural_network.loss_functions import categorical_focal_loss
+# ENSMIC libraries
+from ensmic.preprocessing.sampling import load_sampling
 
 #-----------------------------------------------------#
 #                      Argparser                      #
 #-----------------------------------------------------#
-parser = argparse.ArgumentParser(description="Analysis of COVID-19 Classification via Ensemble Learning")
+parser = argparse.ArgumentParser(description="ENSMIC: Phase I - Training")
 parser.add_argument("-m", "--modularity", help="Data modularity selection: ['covid', 'isic', 'chmnist', 'drd']",
                     required=True, type=str, dest="seed")
 parser.add_argument("-g", "--gpu", help="GPU ID selection for multi cluster",
@@ -62,156 +61,108 @@ config["path_results"] = "results"
 # Seed (if training multiple runs)
 config["seed"] = args.seed
 
-# Load possible classes
-path_classdict = os.path.join(config["path_data"],
-                              config["seed"] + ".classes.json")
-with open(path_classdict, "r") as json_reader:
-    config["class_dict"] = json.load(json_reader)
-
 # Imaging type
-if config["seed"] == "covid" : config["channels"] = 1
-else : config["channels"] = 3
+if config["seed"] == "covid" : config["grayscale"] = True
+else : config["grayscale"] = False
 
-# Neural network Configurations
-config["transfer_learning"] = False
-config["dropout"] = True
-
-# Architectures for Classification
-config["architecture_list"] = architectures
+# Obtain DCNN Architectures for Classification
+path_archlist = os.path.join(config["path_data"], "architectures.json")
+with open(path_archlist, "r") as json_reader:
+    config["architecture_list"] = json.load(json_reader)["list"]
 
 # Preprocessor Configurations
 config["threads"] = 16
-config["batch_size"] = 48
+config["batch_size"] = 32
+config["batch_queue_size"] = 16
 # Neural Network Configurations
 config["epochs"] = 1000
-config["iterations"] = None
+config["iterations"] = 250
 config["workers"] = 8
-# Early Stopping Configurations
-config["EarlyStopping_Patience"] = 75
-if config["seed"] == "isic" : config["EarlyStopping_Baseline"] = 1.05
-elif config["seed"] == "drd" : config["EarlyStopping_Baseline"] = 0.95
-else : config["EarlyStopping_Baseline"] = 0.5
 
-# GPU Configurations
+# Adjust GPU configuration
 config["gpu_id"] = int(args.gpu)
+os.environ["CUDA_VISIBLE_DEVICES"] = str(config["gpu_id"])
 
 #-----------------------------------------------------#
-#                 MIScnn Data IO Setup                #
+#                   AUCMEDI Pipeline                  #
 #-----------------------------------------------------#
-def setup_miscnn(architecture, sf_normalization, config):
-    # Initialize the Image I/O interface based on the ensmic file structure
-    interface = IO_MIScnn(class_dict=config["class_dict"], seed=config["seed"],
-                          channels=config["channels"])
-
-    # Create the MIScnn Data I/O object
-    data_io = Data_IO(interface, config["path_data"], delete_batchDir=False)
-
-    # Create Data Augmentation class
-    data_aug = Data_Augmentation(cycles=1, scaling=True, rotations=True,
-                                 elastic_deform=False, mirror=True,
-                                 brightness=False, contrast=True,
-                                 gamma=False, gaussian_noise=True)
-    # Configure Data Augmentation
-    data_aug.seg_augmentation = False
-    data_aug.config_p_per_sample = 0.35
-    data_aug.config_mirror_axes = (0, 1)
-    data_aug.config_scaling_range = (0.8, 1.2)
-    # data_aug.config_elastic_deform_alpha = (0.0, 100.0)
-    # data_aug.config_elastic_deform_sigma = (9.5, 10.5)
-    data_aug.config_contrast_range = (0.9, 1.1)
-    data_aug.coloraug_per_channel = False
-    data_aug.config_contrast_preserverange = True
-
-    # Prepare Transfer Learning if required
-    if config["transfer_learning"] and config["channels"] == 3:
-        use_tl = True
-    else : use_tl = False
-
-    # Initialize architecture of the neural network
-    nn_architecture = architecture_dict[architecture](config["channels"],
-                                                      dropout=config["dropout"],
-                                                      pretrained_weights=use_tl)
-
-    # Specify subfunctions for preprocessing
-    input_shape = nn_architecture.fixed_input_shape
-    sf_norm = ArchitectureNormalization(nn_architecture.normalization_mode)
-    sf = [SegFix(), ColorConstancy(), Padding(),
-          Resize(new_shape=input_shape), sf_norm]
-
-    # Create and configure the MIScnn Preprocessor class
-    pp = Preprocessor(data_io, data_aug=data_aug,
-                      batch_size=config["batch_size"],
-                      subfunctions=sf,
-                      prepare_subfunctions=True,
-                      prepare_batches=False,
-                      analysis="fullimage",
-                      use_multiprocessing=True)
-    pp.mp_threads = config["threads"]
-    pp.sample_weights = config["class_weights"]
-
-    # # Initialize weighted focal loss function
-    # weight_classes = sorted(config["class_weights"].keys())
-    # weighted_alpha = []
-    # for c in weight_classes:
-    #     weighted_alpha.append(config["class_weights"][c])
-    # loss_focal = categorical_focal_loss(alpha=[weighted_alpha], gamma=2.0)
-
-    # Create the Neural Network model
-    model = Neural_Network(preprocessor=pp, loss=CategoricalCrossentropy(),
-                           architecture=nn_architecture,
-                           metrics=[CategoricalAccuracy(), AUC()],
-                           batch_queue_size=10, workers=config["workers"],
-                           learninig_rate=0.001)
-    # Return MIScnn model
-    return model
-
-#-----------------------------------------------------#
-#                     Run Training                    #
-#-----------------------------------------------------#
-def run_training(samples_train, samples_val, model, architecture, config):
+def run_aucmedi(x_train, y_train, x_val, y_val, architecture, config):
     # Create result directory for architecture
     path_res = os.path.join(config["path_phase"], architecture)
     if not os.path.exists(path_res) : os.mkdir(path_res)
 
-    # Reset Neural Network model weights
-    model.reset_weights()
+    # Initialize Image Augmentation
+    aug = Image_Augmentation(flip=True, rotate=True, brightness=True, contrast=True,
+                             saturation=True, hue=True, scale=False, crop=False,
+                             grid_distortion=False, compression=False, gamma=False,
+                             gaussian_noise=False, gaussian_blur=False,
+                             downscaling=False, elastic_transform=False)
+    # Define Subfunctions
+    sf_list = [Padding(mode="square")]
+    # Set activation output to softmax for multi-class classification
+    activation_output = "softmax"
+
+    # Initialize architecture
+    nn_arch = architecture_dict[architecture](channels=3)
+    # Define input shape
+    input_shape = nn_arch.input[:-1]
+
+    # Initialize model
+    model = Neural_Network(config["nclasses"], channels=3, architecture=nn_arch,
+                           workers=config["workers"], multiprocessing=False,
+                           batch_queue_size=config["batch_queue_size"],
+                           activation_output=activation_output,
+                           loss=categorical_focal_loss(config["class_weights"]),
+                           metrics=[CategoricalAccuracy(), AUC(100)],
+                           pretrained_weights=True)
+    # Modify number of transfer learning epochs with frozen model layers
+    model.tf_epochs = 10
+
+    # Obtain standardization mode for current architecture
+    sf_standardize = supported_standardize_mode[architecture]
+
+    # Initialize training and validation Data Generators
+    train_gen = DataGenerator(x_train, config["path_images"], labels=y_train,
+                              batch_size=config["batch_size"], img_aug=aug,
+                              shuffle=True, subfunctions=sf_list,
+                              resize=input_shape, standardize_mode=sf_standardize,
+                              grayscale=False, prepare_images=False,
+                              sample_weights=None, seed=None,
+                              image_format=config["image_format"],
+                              workers=config["threads"])
+    val_gen = DataGenerator(x_val, config["path_images"], labels=y_val,
+                            batch_size=config["batch_size"], img_aug=None,
+                            subfunctions=sf_list, shuffle=False,
+                            standardize_mode=sf_standardize, resize=input_shape,
+                            grayscale=False, prepare_images=False, seed=None,
+                            sample_weights=None, workers=config["threads"],
+                            image_format=config["image_format"])
 
     # Define callbacks
     cb_mc = ModelCheckpoint(os.path.join(path_res, "model.best.hdf5"),
                             monitor="val_loss", verbose=1,
                             save_best_only=True, mode="min")
-    cb_cl = CSVLogger(os.path.join(path_res, "logs.csv"), separator=',')
-    cb_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=10,
-                              verbose=1, mode='min', min_delta=0.0001,
-                              cooldown=1, min_lr=1e-7)
-    cb_es = ImprovedEarlyStopping(monitor="val_loss",
-                                  baseline=config["EarlyStopping_Baseline"],
-                                  patience=config["EarlyStopping_Patience"])
+    cb_cl = CSVLogger(os.path.join(path_res, "logs.csv"), separator=',', append=True)
+    cb_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=8,
+                              verbose=1, mode='min', min_lr=1e-7)
+    cb_es = EarlyStopping(monitor='val_loss', patience=20, verbose=1)
     callbacks = [cb_mc, cb_cl, cb_lr, cb_es]
 
-    # Run validation
-    history = model.evaluate(samples_train, samples_val,
-                             epochs=config["epochs"],
-                             iterations=config["iterations"],
-                             callbacks=callbacks)
+    # Train model
+    model.train(train_gen, val_gen, epochs=500, iterations=250,
+                callbacks=callbacks, transfer_learning=True)
+
     # Dump latest model
-    model.dump(os.path.join(path_res, "model.latest.hdf5"))
-    # Plot visualizations
-    plot_validation(history.history, model.metrics, path_res)
+    model.dump(os.path.join(path_res, "model.last.hdf5"))
+
+    # Garbage collection
+    del train_gen
+    del val_gen
+    del model
 
 #-----------------------------------------------------#
-#                     Main Runner                     #
+#               Setup Data IO Interface               #
 #-----------------------------------------------------#
-# Adjust GPU utilization
-os.environ["CUDA_VISIBLE_DEVICES"] = str(config["gpu_id"])
-
-# Create results directory
-if not os.path.exists(config["path_results"]) : os.mkdir(config["path_results"])
-# Create subdirectories for phase & seed
-config["path_phase"] = os.path.join(config["path_results"], "phase_i" + "." + \
-                          str(config["seed"]))
-if not os.path.exists(config["path_phase"]) : os.mkdir(config["path_phase"])
-
 # Load sampling
 samples_train = load_sampling(path_data=config["path_data"],
                               subset="train-model",
@@ -220,37 +171,61 @@ samples_val = load_sampling(path_data=config["path_data"],
                             subset="val-model",
                             seed=config["seed"])
 
-# Compute class weights
-config["class_weights"] = get_class_weights(samples_train,
-                                            list(config["class_dict"].values()),
-                                            config["path_data"],
-                                            config["seed"])
+# Initialize input data reader
+config["path_images"] = os.path.join(config["path_data"],
+                                     config["seed"] + ".images")
+config["path_json"] = os.path.join(config["path_data"],
+                                   config["seed"] + ".class_map.json")
+ds = input_interface(interface="json", path_imagedir=config["path_images"],
+                     path_data=config["path_json"], training=True, ohe=False)
+(index_list, class_ohe, nclasses, class_names, image_format) = ds
 
-# Initialize Normalization functionality by computing dataset-wide mean & std
-sf_normalization = Normalization(samples_train, config, max_value=255)
+# Parse information to config
+config["nclasses"] = nclasses
+config["image_format"] = image_format
+
+# Split sampling
+x_train, y_train = [], []
+x_val, y_val = [], []
+for i, s in enumerate(index_list):
+    if s in samples_train:
+        x_train.append(s)
+        y_train.append(class_ohe[i])
+    elif s in samples_val:
+        x_val.append(s)
+        y_val.append(class_ohe[i])
+y_train = np.asarray(y_train)
+y_val = np.asarray(y_val)
+
+# Compute classweights
+config["class_weights"], _ = compute_class_weights(y_train)
+
+#-----------------------------------------------------#
+#                     Main Runner                     #
+#-----------------------------------------------------#
+# Create results directory
+if not os.path.exists(config["path_results"]) : os.mkdir(config["path_results"])
+# Create subdirectories for phase & seed
+config["path_phase"] = os.path.join(config["path_results"], "phase_i" + "." + \
+                                    str(config["seed"]))
+if not os.path.exists(config["path_phase"]) : os.mkdir(config["path_phase"])
 
 # Initialize cache memory to store meta information
 timer_cache = {}
 
 # Run Training for all architectures
 for architecture in config["architecture_list"]:
-    print("Run training for Architecture:", architecture)
-    try:
-        if architecture == "AlexNet" : continue # DEBUGGING transfer learning
-        # Run Fitting Pipeline
-        timer_start = time.time()
-        model = setup_miscnn(architecture, sf_normalization, config)
-        run_training(samples_train, samples_val, model, architecture, config)
-        timer_end = time.time()
-        # Store execution time in cache
-        timer_time = timer_end - timer_start
-        timer_cache[architecture] = timer_time
-        print("Finished training for Architecture:", architecture, timer_time)
-    except Exception as e:
-        print(architecture, "-", "An exception occurred:", str(e))
+    print("Run Training for Architecture:", architecture)
+    timer_start = time.time()
+    # Run AUCMEDI pipeline
+    run_aucmedi(x_train, y_train, x_val, y_val, architecture, config)
+    # Store execution time in cache
+    timer_end = time.time()
+    timer_time = timer_end - timer_start
+    timer_cache[architecture] = timer_time
+    print("Finished Training for Architecture:", architecture)
 
 # Store time measurements as JSON to disk
-path_time = os.path.join(config["path_results"], "phase_i" + "." + \
-                         config["seed"], "time_measurements.json")
+path_time = os.path.join(config["path_phase"], "time_measurements.json")
 with open(path_time, "w") as file:
     json.dump(timer_cache, file, indent=2)
