@@ -23,15 +23,13 @@
 import argparse
 import os
 import json
-# MIScnn libraries
-from miscnn import Preprocessor, Data_IO, Neural_Network
-# TensorFlow libraries
-from tensorflow.keras.losses import CategoricalCrossentropy
-from tensorflow.keras.metrics import CategoricalAccuracy
-# Internal libraries/scripts
-from ensmic.data_loading import IO_MIScnn, IO_Inference, load_sampling
-from ensmic.subfunctions import Resize, SegFix, Normalization, Padding, ColorConstancy, ArchitectureNormalization
-from ensmic.architectures import architecture_dict, architectures
+# AUCMEDI libraries
+from aucmedi import input_interface, DataGenerator, Neural_Network, Image_Augmentation
+from aucmedi.neural_network.architectures import supported_standardize_mode
+from aucmedi.data_processing.subfunctions import Padding
+from aucmedi.neural_network.architectures import architecture_dict
+# ENSMIC libraries
+from ensmic.preprocessing.sampling import load_sampling
 
 #-----------------------------------------------------#
 #                      Argparser                      #
@@ -55,95 +53,74 @@ config["path_results"] = "results"
 # Seed (if training multiple runs)
 config["seed"] = args.seed
 
-# Load possible classes
-path_classdict = os.path.join(config["path_data"],
-                              config["seed"] + ".classes.json")
-with open(path_classdict, "r") as json_reader:
-    config["class_dict"] = json.load(json_reader)
-
 # Imaging type
-if config["seed"] == "covid" : config["channels"] = 1
-else : config["channels"] = 3
+if config["seed"] == "covid" : config["grayscale"] = True
+else : config["grayscale"] = False
 
-# Neural network Configurations
-config["transfer_learning"] = False
-config["dropout"] = True
-
-# Architectures for Classification
-config["architecture_list"] = architectures
+# Obtain DCNN Architectures for Classification
+path_archlist = os.path.join(config["path_data"], "architectures.json")
+with open(path_archlist, "r") as json_reader:
+    config["architecture_list"] = json.load(json_reader)["list"]
 
 # Preprocessor Configurations
-config["threads"] = 8
+config["threads"] = 16
 config["batch_size"] = 32
+config["batch_queue_size"] = 16
 # Neural Network Configurations
 config["workers"] = 8
 
-# GPU Configurations
+# Adjust GPU configuration
 config["gpu_id"] = int(args.gpu)
+os.environ["CUDA_VISIBLE_DEVICES"] = str(config["gpu_id"])
 
 #-----------------------------------------------------#
-#                 MIScnn Data IO Setup                #
+#                   AUCMEDI Pipeline                  #
 #-----------------------------------------------------#
-def setup_miscnn(architecture, sf_normalization, config, best_model=True):
-    # Initialize the Image I/O interface based on the ensmic file structure
-    interface = IO_MIScnn(class_dict=config["class_dict"], seed=config["seed"],
-                          channels=config["channels"])
+def run_aucmedi(dataset, architecture, config, best_model=True):
+    # Load sampling
+    samples = load_sampling(path_data=config["path_data"],
+                            subset=dataset,
+                            seed=config["seed"])
 
-    # Create the MIScnn Data I/O object
-    data_io = Data_IO(interface, config["path_data"], delete_batchDir=False)
+    # Define Subfunctions
+    sf_list = [Padding(mode="square")]
+    # Set activation output to softmax for multi-class classification
+    activation_output = "softmax"
 
-    # Prepare Transfer Learning if required
-    if config["transfer_learning"] and config["channels"] == 3:
-        use_tl = True
-    else : use_tl = False
+    # Initialize architecture
+    nn_arch = architecture_dict[architecture](channels=3)
+    # Define input shape
+    input_shape = nn_arch.input[:-1]
 
-    # Initialize architecture of the neural network
-    nn_architecture = architecture_dict[architecture](config["channels"],
-                                                      dropout=config["dropout"],
-                                                      pretrained_weights=use_tl)
+    # Initialize model
+    model = Neural_Network(config["nclasses"], channels=3, architecture=nn_arch,
+                           workers=config["workers"], multiprocessing=False,
+                           batch_queue_size=config["batch_queue_size"],
+                           activation_output=activation_output,
+                           pretrained_weights=True)
 
-    # Specify subfunctions for preprocessing
-    input_shape = nn_architecture.fixed_input_shape
-    sf_norm = ArchitectureNormalization(nn_architecture.normalization_mode)
-    sf = [SegFix(), ColorConstancy(), Padding(),
-          Resize(new_shape=input_shape), sf_norm]
+    # Obtain standardization mode for current architecture
+    sf_standardize = supported_standardize_mode[architecture]
 
-    # Create and configure the MIScnn Preprocessor class
-    pp = Preprocessor(data_io, data_aug=None,
-                      batch_size=config["batch_size"],
-                      subfunctions=sf,
-                      prepare_subfunctions=True,
-                      prepare_batches=False,
-                      analysis="fullimage",
-                      use_multiprocessing=True)
-    pp.mp_threads = config["threads"]
+    # Initialize Data Generator for prediction
+    pred_gen = DataGenerator(samples, config["path_images"], labels=None,
+                             batch_size=config["batch_size"], img_aug=None,
+                             shuffle=False, subfunctions=sf_list,
+                             resize=input_shape, standardize_mode=sf_standardize,
+                             grayscale=False, prepare_images=False,
+                             sample_weights=None, seed=None,
+                             image_format=config["image_format"],
+                             workers=config["threads"])
 
-    # Create the Neural Network model
-    model = Neural_Network(preprocessor=pp, loss=CategoricalCrossentropy(),
-                           architecture=nn_architecture,
-                           metrics=[CategoricalAccuracy()],
-                           batch_queue_size=10, workers=config["workers"],
-                           learninig_rate=0.001)
 
     # Obtain trained model file
     path_arch = os.path.join(config["path_results"], "phase_i" + "." + \
                              config["seed"], architecture)
     if best_model : path_model = os.path.join(path_arch, "model.best.hdf5")
-    else : path_model = os.path.join(path_arch, "model.latest.hdf5")
+    else : path_model = os.path.join(path_arch, "model.last.hdf5")
     # Load trained model from disk
     model.load(path_model)
 
-    # Return MIScnn model
-    return model
-
-#-----------------------------------------------------#
-#                    Run Inference                    #
-#-----------------------------------------------------#
-def run_inference(dataset, model, architecture, config):
-    # Load sampling
-    samples = load_sampling(path_data=config["path_data"],
-                            subset=dataset,
-                            seed=config["seed"])
     # Get result subdirectory for current architecture
     path_arch = os.path.join(config["path_results"], "phase_i" + "." + \
                              config["seed"], architecture)
@@ -153,33 +130,43 @@ def run_inference(dataset, model, architecture, config):
     infIO = IO_Inference(config["class_dict"], path=path_inf)
 
     # Compute prediction for each sample
-    for index in samples:
-        pred = model.predict([index], return_output=True,
-                             activation_output=True)
-        infIO.store_inference(index, pred[0])
+    preds = model.predict(samples)
+    for i, pred in enumerate(preds):
+        infIO.store_inference(samples[i], pred)
+
+#-----------------------------------------------------#
+#               Setup Data IO Interface               #
+#-----------------------------------------------------#
+# Initialize input data reader
+config["path_images"] = os.path.join(config["path_data"],
+                                     config["seed"] + ".images")
+config["path_json"] = os.path.join(config["path_data"],
+                                   config["seed"] + ".class_map.json")
+ds = input_interface(interface="json", path_imagedir=config["path_images"],
+                     path_data=config["path_json"], training=True, ohe=False)
+(index_list, class_ohe, nclasses, class_names, image_format) = ds
+
+# Parse information to config
+config["nclasses"] = nclasses
+config["image_format"] = image_format
+
+# Load possible classes
+path_classdict = os.path.join(config["path_data"],
+                              config["seed"] + ".classes.json")
+with open(path_classdict, "r") as json_reader:
+    config["class_dict"] = json.load(json_reader)
 
 #-----------------------------------------------------#
 #                     Main Runner                     #
 #-----------------------------------------------------#
-# Adjust GPU utilization
-os.environ["CUDA_VISIBLE_DEVICES"] = str(config["gpu_id"])
-
-# Initialize Normalization functionality by computing dataset-wide mean & std
-samples_train = load_sampling(path_data=config["path_data"],
-                              subset="train-model",
-                              seed=config["seed"])
-sf_normalization = Normalization(samples_train, config, max_value=255)
-
 # Run Inference for all architectures
 for architecture in config["architecture_list"]:
     print("Run inference for Architecture:", architecture)
     try:
-        # Setup pipeline
-        model = setup_miscnn(architecture, sf_normalization, config)
-        # Compute predictions for subset: val-ensemble
-        run_inference("val-ensemble", model, architecture, config)
-        # Compute predictions for subset: test
-        run_inference("test", model, architecture, config)
+        # Run AUCMEDI pipeline for validation set
+        run_aucmedi("val-ensemble", architecture, config, best_model=True)
+        # Run AUCMEDI pipeline for testing set
+        run_aucmedi("test", architecture, config, best_model=True)
         print("Finished inference for Architecture:", architecture)
     except Exception as e:
         print(architecture, "-", "An exception occurred:", str(e))

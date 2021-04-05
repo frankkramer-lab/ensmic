@@ -61,9 +61,9 @@ config["path_results"] = "results"
 # Seed (if training multiple runs)
 config["seed"] = args.seed
 
-# Imaging type
-if config["seed"] == "covid" : config["grayscale"] = True
-else : config["grayscale"] = False
+# # Imaging type
+# if config["seed"] == "covid" : config["grayscale"] = True
+# else : config["grayscale"] = False
 
 # Obtain DCNN Architectures for Classification
 path_archlist = os.path.join(config["path_data"], "architectures.json")
