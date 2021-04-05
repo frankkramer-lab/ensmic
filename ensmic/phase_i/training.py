@@ -37,7 +37,7 @@ from aucmedi.neural_network.architectures import architecture_dict
 from aucmedi.utils.class_weights import compute_class_weights
 from aucmedi.neural_network.loss_functions import categorical_focal_loss
 # ENSMIC libraries
-from ensmic.preprocessing.sampling import load_sampling
+from ensmic.data_loading import load_sampling
 
 #-----------------------------------------------------#
 #                      Argparser                      #

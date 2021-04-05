@@ -29,7 +29,7 @@ from aucmedi.neural_network.architectures import supported_standardize_mode
 from aucmedi.data_processing.subfunctions import Padding
 from aucmedi.neural_network.architectures import architecture_dict
 # ENSMIC libraries
-from ensmic.preprocessing.sampling import load_sampling
+from ensmic.data_loading import IO_Inference, load_sampling
 
 #-----------------------------------------------------#
 #                      Argparser                      #
