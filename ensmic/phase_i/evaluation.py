@@ -28,7 +28,6 @@ import numpy as np
 from plotnine import *
 # Internal libraries/scripts
 from ensmic.data_loading import IO_Inference
-from ensmic.architectures import architecture_dict, architectures
 from ensmic.utils.metrics import compute_metrics, compute_rawCM
 from ensmic.utils.categorical_averaging import macro_averaging
 # Experimental
@@ -63,8 +62,10 @@ with open(path_classdict, "r") as json_reader:
 config["class_list"] = sorted(config["class_dict"],
                               key=config["class_dict"].get)
 
-# Architectures for Classification
-config["architecture_list"] = architectures
+# Obtain DCNN Architectures for Classification
+path_archlist = os.path.join(config["path_data"], "architectures.json")
+with open(path_archlist, "r") as json_reader:
+    config["architecture_list"] = json.load(json_reader)["list"]
 
 #-----------------------------------------------------#
 #          Function: Identify Classification          #
@@ -186,7 +187,7 @@ def plot_confusion_matrix(rawcm, architecture, dataset, config):
                   + ggtitle("Confusion Matrix: " + architecture)
                   + xlab("Prediction")
                   + ylab("Ground Truth")
-                  + scale_fill_gradient(low="white", high="red")
+                  + scale_fill_gradient(low="white", high="royalblue")
                   + theme_bw(base_size=28)
                   + theme(axis_text_x = element_text(angle = 45, vjust = 1, hjust = 1)))
     # Store figure to disk
