@@ -112,7 +112,6 @@ def run_aucmedi(dataset, architecture, config, best_model=True):
                              image_format=config["image_format"],
                              workers=config["threads"])
 
-
     # Obtain trained model file
     path_arch = os.path.join(config["path_results"], "phase_i" + "." + \
                              config["seed"], architecture)
@@ -130,7 +129,7 @@ def run_aucmedi(dataset, architecture, config, best_model=True):
     infIO = IO_Inference(config["class_dict"], path=path_inf)
 
     # Compute prediction for each sample
-    preds = model.predict(samples)
+    preds = model.predict(pred_gen)
     for i, pred in enumerate(preds):
         infIO.store_inference(samples[i], pred)
 
