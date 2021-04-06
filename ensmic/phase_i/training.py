@@ -72,7 +72,7 @@ with open(path_archlist, "r") as json_reader:
 
 # Preprocessor Configurations
 config["threads"] = 16
-config["batch_size"] = 32
+config["batch_size"] = 24
 config["batch_queue_size"] = 16
 # Neural Network Configurations
 config["epochs"] = 1000
