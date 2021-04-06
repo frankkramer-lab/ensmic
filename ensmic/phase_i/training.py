@@ -112,7 +112,7 @@ def run_aucmedi(x_train, y_train, x_val, y_val, architecture, config):
                            workers=config["workers"], multiprocessing=False,
                            batch_queue_size=config["batch_queue_size"],
                            activation_output=activation_output,
-                           loss=categorical_focal_loss(config["class_weights"]),
+                           loss="categorical_crossentropy",
                            metrics=[CategoricalAccuracy(), AUC(100)],
                            pretrained_weights=True)
     # Modify number of transfer learning epochs with frozen model layers
@@ -199,7 +199,7 @@ y_train = np.asarray(y_train)
 y_val = np.asarray(y_val)
 
 # Compute classweights
-config["class_weights"], config["class_weights_dict"] = compute_class_weights(y_train)
+_, config["class_weights_dict"] = compute_class_weights(y_train)
 
 #-----------------------------------------------------#
 #                     Main Runner                     #
