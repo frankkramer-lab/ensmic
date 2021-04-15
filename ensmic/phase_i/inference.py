@@ -67,7 +67,7 @@ os.environ["CUDA_VISIBLE_DEVICES"] = str(config["gpu_id"])
 #-----------------------------------------------------#
 #                   AUCMEDI Pipeline                  #
 #-----------------------------------------------------#
-def run_aucmedi(samples, architecture, config, best_model=True):
+def run_aucmedi(samples, dataset, architecture, config, best_model=True):
     # Define Subfunctions
     sf_list = [Padding(mode="square")]
     # Set activation output to softmax for multi-class classification
@@ -147,9 +147,9 @@ for architecture in architecture_list:
     print("Run inference for Architecture:", architecture)
     try:
         # Run AUCMEDI pipeline for validation set
-        run_aucmedi(x_val, architecture, config, best_model=True)
+        run_aucmedi(x_val, "val-ensemble", architecture, config, best_model=True)
         # Run AUCMEDI pipeline for testing set
-        run_aucmedi(x_test, architecture, config, best_model=True)
+        run_aucmedi(x_test, "test", architecture, config, best_model=True)
         print("Finished inference for Architecture:", architecture)
     except Exception as e:
         print(architecture, "-", "An exception occurred:", str(e))
