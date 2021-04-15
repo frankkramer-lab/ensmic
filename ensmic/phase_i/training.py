@@ -23,7 +23,6 @@
 import argparse
 import os
 import time
-import numpy as np
 import json
 # TensorFlow libraries
 from tensorflow.keras.callbacks import ModelCheckpoint, CSVLogger, \
@@ -31,11 +30,10 @@ from tensorflow.keras.callbacks import ModelCheckpoint, CSVLogger, \
 from tensorflow.keras.metrics import CategoricalAccuracy, AUC
 # AUCMEDI libraries
 from aucmedi import DataGenerator, Neural_Network, Image_Augmentation
-from aucmedi.neural_network.architectures import supported_standardize_mode
+from aucmedi.neural_network.architectures import supported_standardize_mode, \
+                                                 architecture_dict
 from aucmedi.data_processing.subfunctions import Padding
-from aucmedi.neural_network.architectures import architecture_dict
 from aucmedi.utils.class_weights import compute_class_weights
-from aucmedi.neural_network.loss_functions import categorical_focal_loss
 # ENSMIC libraries
 from ensmic.data_loading import load_sampling, architecture_list
 
