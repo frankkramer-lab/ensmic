@@ -1,6 +1,6 @@
 #==============================================================================#
 #  Author:       Dominik Müller                                                #
-#  Copyright:    2020 IT-Infrastructure for Translational Medical Research,    #
+#  Copyright:    2021 IT-Infrastructure for Translational Medical Research,    #
 #                University of Augsburg                                        #
 #                                                                              #
 #  This program is free software: you can redistribute it and/or modify        #
@@ -24,12 +24,12 @@ import pandas as pd
 import os
 import json
 from shutil import copyfile
+from tqdm import tqdm
 # AUCMEDI libraries
 from aucmedi.sampling import sampling_split
 from aucmedi import input_interface
 # Internal libraries/scripts
-# from ensmic.preprocessing.sampling import run_sampling, sampling_to_disk, \
-#                                           cv_sampling
+from ensmic.data_loading import sampling_to_disk
 
 #-----------------------------------------------------#
 #                    Configurations                   #
@@ -66,40 +66,24 @@ ds = input_interface(interface="csv", path_imagedir=path_images, path_data=path_
                      ohe=True, col_sample="image", ohe_range=["MEL", "NV", "BCC", "AK", "BKL", "DF", "VASC", "SCC"])
 (index_list, class_ohe, nclasses, class_names, image_format) = ds
 
-# Initialize class dictionary, index and class legend
-class_dict = {}
-class_dict["legend"] = class_names
-
 # Iterate over each image
-for i, index in enumerate(index_list):
+sample_list = []
+for i, index in enumerate(tqdm(index_list)):
     # Pseudonymization
     pseudonym = str(seed) + "." + "img_" + str(i)
     # Store image in file structure
     path_img_in = os.path.join(path_images, index + "." + image_format)
     path_img_out = os.path.join(img_dir, pseudonym + "." + image_format)
     copyfile(path_img_in, path_img_out)
-    class_dict[pseudonym] = class_ohe[i]
-
-# Store class dictionary as JSON to disk
-path_dict = os.path.join(path_target, str(seed) + ".classes.json")
-with open(path_dict, "w") as json_writer:
-    json.dump(class_dict, json_writer, indent=2)
+    sample_list.append(pseudonym)
 
 #-----------------------------------------------------#
 #               Create Dataset Sampling               #
 #-----------------------------------------------------#
 print("Start dataset sampling")
-# Run sampling into train-model / val-model / val-ensemble / test
-sample_sets = run_sampling(path_data=path_target, seed=str(seed),
-                           sampling=sampling, n_classes=len(classes))
-
-# Run sampling of train-model & val-model into Cross-Validation folds
-sample_sets, sampling_names = cv_sampling(sample_sets, sampling_names,
-                                          k_fold=5,
-                                          n_classes=len(classes),
-                                          path_data=path_target,
-                                          seed=str(seed))
+sampling = sampling_split(sample_list, class_ohe, sampling=sampling_splits,
+                          stratified=True, iterative=False, seed=0)
 
 # Store sample sets to disk
-sampling_to_disk(sample_sets, setnames=sampling_names,
+sampling_to_disk(sampling, setnames=sampling_names, class_names=class_names,
                  path_data=path_target, seed=str(seed))
