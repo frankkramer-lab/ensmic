@@ -30,14 +30,14 @@ from tensorflow.keras.callbacks import ModelCheckpoint, CSVLogger, \
                                        ReduceLROnPlateau, EarlyStopping
 from tensorflow.keras.metrics import CategoricalAccuracy, AUC
 # AUCMEDI libraries
-from aucmedi import input_interface, DataGenerator, Neural_Network, Image_Augmentation
+from aucmedi import DataGenerator, Neural_Network, Image_Augmentation
 from aucmedi.neural_network.architectures import supported_standardize_mode
 from aucmedi.data_processing.subfunctions import Padding
 from aucmedi.neural_network.architectures import architecture_dict
 from aucmedi.utils.class_weights import compute_class_weights
 from aucmedi.neural_network.loss_functions import categorical_focal_loss
 # ENSMIC libraries
-from ensmic.data_loading import load_sampling
+from ensmic.data_loading import load_sampling, architecture_list
 
 #-----------------------------------------------------#
 #                      Argparser                      #
@@ -61,15 +61,6 @@ config["path_results"] = "results"
 # Seed (if training multiple runs)
 config["seed"] = args.seed
 
-# # Imaging type
-# if config["seed"] == "covid" : config["grayscale"] = True
-# else : config["grayscale"] = False
-
-# Obtain DCNN Architectures for Classification
-path_archlist = os.path.join(config["path_data"], "architectures.json")
-with open(path_archlist, "r") as json_reader:
-    config["architecture_list"] = json.load(json_reader)["list"]
-
 # Preprocessor Configurations
 config["threads"] = 16
 config["batch_size"] = 24
@@ -77,7 +68,7 @@ config["batch_queue_size"] = 16
 # Neural Network Configurations
 config["epochs"] = 1000
 config["iterations"] = 250
-config["workers"] = 8
+config["workers"] = 16
 
 # Adjust GPU configuration
 config["gpu_id"] = int(args.gpu)
@@ -164,39 +155,21 @@ def run_aucmedi(x_train, y_train, x_val, y_val, architecture, config):
 #-----------------------------------------------------#
 #               Setup Data IO Interface               #
 #-----------------------------------------------------#
-# Load sampling
-samples_train = load_sampling(path_data=config["path_data"],
-                              subset="train-model",
-                              seed=config["seed"])
-samples_val = load_sampling(path_data=config["path_data"],
-                            subset="val-model",
-                            seed=config["seed"])
-
-# Initialize input data reader
-config["path_images"] = os.path.join(config["path_data"],
-                                     config["seed"] + ".images")
-config["path_json"] = os.path.join(config["path_data"],
-                                   config["seed"] + ".class_map.json")
-ds = input_interface(interface="json", path_imagedir=config["path_images"],
-                     path_data=config["path_json"], training=True, ohe=False)
-(index_list, class_ohe, nclasses, class_names, image_format) = ds
+# Load sampling from disk
+sampling_train = load_sampling(path_input=config["path_data"],
+                               subset="train-model",
+                               seed=config["seed"])
+(x_train, y_train, nclasses, _, image_format) = sampling_train
+sampling_val = load_sampling(path_input=config["path_data"],
+                             subset="val-model",
+                             seed=config["seed"])
+(x_val, y_val, _, _, _) = sampling_val
 
 # Parse information to config
 config["nclasses"] = nclasses
 config["image_format"] = image_format
-
-# Split sampling
-x_train, y_train = [], []
-x_val, y_val = [], []
-for i, s in enumerate(index_list):
-    if s in samples_train:
-        x_train.append(s)
-        y_train.append(class_ohe[i])
-    elif s in samples_val:
-        x_val.append(s)
-        y_val.append(class_ohe[i])
-y_train = np.asarray(y_train)
-y_val = np.asarray(y_val)
+config["path_images"] = os.path.join(config["path_data"],
+                                     config["seed"] + ".images")
 
 # Compute classweights
 _, config["class_weights_dict"] = compute_class_weights(y_train)
@@ -215,7 +188,7 @@ if not os.path.exists(config["path_phase"]) : os.mkdir(config["path_phase"])
 timer_cache = {}
 
 # Run Training for all architectures
-for architecture in config["architecture_list"]:
+for architecture in architecture_list:
     print("Run Training for Architecture:", architecture)
     timer_start = time.time()
     # Run AUCMEDI pipeline
