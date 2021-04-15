@@ -27,7 +27,7 @@ import pandas
 import numpy as np
 from plotnine import *
 # Internal libraries/scripts
-from ensmic.data_loading import IO_Inference, architecture_list
+from ensmic.data_loading import IO_Inference, architecture_list, architecture_params
 from ensmic.utils.metrics import compute_metrics, compute_rawCM
 from ensmic.utils.categorical_averaging import macro_averaging
 # Experimental
@@ -142,7 +142,7 @@ def collect_results(result_set, architectures, dataset, path_eval, config):
 #-----------------------------------------------------#
 def calc_confusion_matrix(gt, pd, architecture, dataset, config):
     # Compute confusion matrix
-    rawcm_np = compute_rawCM(gt, pd, config)
+    rawcm_np = compute_rawCM(gt, pd, config["class_list"])
     rawcm = pandas.DataFrame(rawcm_np)
     # Tidy dataframe
     rawcm.index = config["class_list"]
@@ -330,12 +330,8 @@ def plot_auroc_results(results, dataset, eval_path):
 #               Model Parameter Analysis              #
 #-----------------------------------------------------#
 def preprocess_modelparas(results, path_data):
-    # Load model parameter
-    path_para = os.path.join(path_data, "architecture_params.json")
-    with open(path_para, "r") as jsonfile:
-        modelparams = json.load(jsonfile)
     # Parse parameter dictionary to Pandas dataframe
-    params = pandas.DataFrame.from_dict(modelparams, orient="index",
+    params = pandas.DataFrame.from_dict(architecture_params, orient="index",
                                         columns=["params"])
     params.reset_index(drop=False, inplace=True)
     params.rename(mapper={"index":"architecture"}, axis=1, inplace=True)
@@ -439,7 +435,7 @@ for ds in ["val-ensemble", "test"]:
             # Preprocess ground truth and predictions
             id, gt, pd, pd_prob = preprocessing(architecture, ds, config)
             # Compute metrics
-            metrics = compute_metrics(gt, pd, pd_prob, config)
+            metrics = compute_metrics(gt, pd, pd_prob, config["class_list"])
             # Backup results
             metrics_df = parse_results(metrics, architecture, ds, config)
             # Cache dataframe and add architecture to verification list

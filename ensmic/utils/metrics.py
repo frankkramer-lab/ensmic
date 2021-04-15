@@ -27,10 +27,10 @@ import numpy as np
 #-----------------------------------------------------#
 #             Function: Metric Computation            #
 #-----------------------------------------------------#
-def compute_metrics(truth, pred, pd_prob, config):
+def compute_metrics(truth, pred, pd_prob, classes):
     # Iterate over each class
     metrics = []
-    for c in sorted(config["class_dict"].values()):
+    for c in range(0, len(classes)):
         mc = {}
         # Compute the confusion matrix
         tp, tn, fp, fn = compute_CM(truth, pred, c)
@@ -69,9 +69,8 @@ def compute_CM(gt, pd, c):
     return tp, tn, fp, fn
 
 # Compute raw confusion matrix
-def compute_rawCM(gt, pd, config):
-    class_list = sorted(config["class_dict"].values())
-    rawcm = np.zeros((len(class_list), len(class_list)))
+def compute_rawCM(gt, pd, classes):
+    rawcm = np.zeros((len(classes), len(classes)))
     for i in range(0, len(gt)):
         rawcm[gt[i]][pd[i]] += 1
     return rawcm

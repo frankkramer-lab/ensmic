@@ -17,5 +17,5 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.       #
 #==============================================================================#
 from ensmic.data_loading.io_inference import IO_Inference
-from ensmic.data_loading.architectures import architecture_list
+from ensmic.data_loading.architectures import architecture_list, architecture_params
 from ensmic.data_loading.sampling import sampling_to_disk, load_sampling
