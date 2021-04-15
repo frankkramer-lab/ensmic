@@ -22,6 +22,7 @@
 # External libraries
 import os
 import json
+# AUCMEDI libraries
 from aucmedi import input_interface
 
 #-----------------------------------------------------#
