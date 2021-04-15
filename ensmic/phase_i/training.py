@@ -65,8 +65,8 @@ config["batch_size"] = 24
 config["batch_queue_size"] = 16
 # Neural Network Configurations
 config["epochs"] = 1000
-config["iterations"] = 300
-config["workers"] = 16
+config["iterations"] = None
+config["workers"] = 32
 
 # Adjust GPU configuration
 config["gpu_id"] = int(args.gpu)
