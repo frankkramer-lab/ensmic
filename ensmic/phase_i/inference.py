@@ -143,7 +143,7 @@ config["path_images"] = os.path.join(config["path_data"],
 #                     Main Runner                     #
 #-----------------------------------------------------#
 # Run Inference for all architectures
-for architecture in config["architecture_list"]:
+for architecture in architecture_list:
     print("Run inference for Architecture:", architecture)
     try:
         # Run AUCMEDI pipeline for validation set
