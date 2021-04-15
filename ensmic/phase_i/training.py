@@ -65,7 +65,7 @@ config["batch_size"] = 24
 config["batch_queue_size"] = 16
 # Neural Network Configurations
 config["epochs"] = 1000
-config["iterations"] = 250
+config["iterations"] = 300
 config["workers"] = 16
 
 # Adjust GPU configuration
