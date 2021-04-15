@@ -38,11 +38,11 @@ class IO_Inference():
     #---------------------------------------------#
     #                Initialization               #
     #---------------------------------------------#
-    def __init__(self, class_dict, path):
+    def __init__(self, class_names, path):
         # Create output directory
         self.path_inf = path
         # Store class dictionary
-        self.class_list = sorted(class_dict, key=class_dict.get)
+        self.class_list = class_names
 
     #---------------------------------------------#
     #              Inference Loading              #
@@ -60,18 +60,11 @@ class IO_Inference():
     #---------------------------------------------#
     #              Inference Storage              #
     #---------------------------------------------#
-    def store_inference(self, index, pred):
-        # check if inference JSON already exist
-        if os.path.exists(self.path_inf):
-            # Load already stored inference data
-            data = self.load_inference(with_legend=True)
-        else:
-            # Create a new inference JSON object
-            data = {}
-            data["legend"] = self.class_list
-        # Append prediction to inference JSON
-        if type(pred) is np.ndarray : pred = pred.tolist()
-        data[index] = pred
+    def store_inference(self, samples, preds):
+        # Create a new inference JSON object
+        data = {"legend": self.class_list}
+        # Append predictions to inference JSON
+        data.update(dict(zip(samples, preds.tolist())))
         # Store inference JSON to disk
         with open(self.path_inf, "w") as file:
             json.dump(data, file, indent=2)

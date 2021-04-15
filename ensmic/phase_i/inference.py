@@ -24,12 +24,12 @@ import argparse
 import os
 import json
 # AUCMEDI libraries
-from aucmedi import input_interface, DataGenerator, Neural_Network, Image_Augmentation
-from aucmedi.neural_network.architectures import supported_standardize_mode
+from aucmedi import DataGenerator, Neural_Network, Image_Augmentation
 from aucmedi.data_processing.subfunctions import Padding
-from aucmedi.neural_network.architectures import architecture_dict
+from aucmedi.neural_network.architectures import supported_standardize_mode, \
+                                                 architecture_dict
 # ENSMIC libraries
-from ensmic.data_loading import IO_Inference, load_sampling
+from ensmic.data_loading import IO_Inference, load_sampling, architecture_list
 
 #-----------------------------------------------------#
 #                      Argparser                      #
@@ -53,21 +53,12 @@ config["path_results"] = "results"
 # Seed (if training multiple runs)
 config["seed"] = args.seed
 
-# Imaging type
-if config["seed"] == "covid" : config["grayscale"] = True
-else : config["grayscale"] = False
-
-# Obtain DCNN Architectures for Classification
-path_archlist = os.path.join(config["path_data"], "architectures.json")
-with open(path_archlist, "r") as json_reader:
-    config["architecture_list"] = json.load(json_reader)["list"]
-
 # Preprocessor Configurations
 config["threads"] = 16
-config["batch_size"] = 32
+config["batch_size"] = 24
 config["batch_queue_size"] = 16
 # Neural Network Configurations
-config["workers"] = 8
+config["workers"] = 16
 
 # Adjust GPU configuration
 config["gpu_id"] = int(args.gpu)
@@ -76,12 +67,7 @@ os.environ["CUDA_VISIBLE_DEVICES"] = str(config["gpu_id"])
 #-----------------------------------------------------#
 #                   AUCMEDI Pipeline                  #
 #-----------------------------------------------------#
-def run_aucmedi(dataset, architecture, config, best_model=True):
-    # Load sampling
-    samples = load_sampling(path_data=config["path_data"],
-                            subset=dataset,
-                            seed=config["seed"])
-
+def run_aucmedi(samples, architecture, config, best_model=True):
     # Define Subfunctions
     sf_list = [Padding(mode="square")]
     # Set activation output to softmax for multi-class classification
@@ -97,6 +83,7 @@ def run_aucmedi(dataset, architecture, config, best_model=True):
                            workers=config["workers"], multiprocessing=False,
                            batch_queue_size=config["batch_queue_size"],
                            activation_output=activation_output,
+                           loss="categorical_crossentropy",
                            pretrained_weights=True)
 
     # Obtain standardization mode for current architecture
@@ -126,34 +113,31 @@ def run_aucmedi(dataset, architecture, config, best_model=True):
 
     # Create an Inference IO Interface
     path_inf = os.path.join(path_arch, "inference" + "." + dataset + ".json")
-    infIO = IO_Inference(config["class_dict"], path=path_inf)
+    infIO = IO_Inference(config["class_names"], path=path_inf)
 
-    # Compute prediction for each sample
+    # Compute predictions & store them to disk
     preds = model.predict(pred_gen)
-    for i, pred in enumerate(preds):
-        infIO.store_inference(samples[i], pred)
+    infIO.store_inference(samples, preds)
 
 #-----------------------------------------------------#
 #               Setup Data IO Interface               #
 #-----------------------------------------------------#
-# Initialize input data reader
-config["path_images"] = os.path.join(config["path_data"],
-                                     config["seed"] + ".images")
-config["path_json"] = os.path.join(config["path_data"],
-                                   config["seed"] + ".class_map.json")
-ds = input_interface(interface="json", path_imagedir=config["path_images"],
-                     path_data=config["path_json"], training=True, ohe=False)
-(index_list, class_ohe, nclasses, class_names, image_format) = ds
+# Load sampling from disk
+sampling_val = load_sampling(path_input=config["path_data"],
+                             subset="val-ensemble",
+                             seed=config["seed"])
+(x_val, _, nclasses, class_names, image_format) = sampling_val
+sampling_test = load_sampling(path_input=config["path_data"],
+                              subset="test",
+                              seed=config["seed"])
+(x_test, _, _, _, _) = sampling_test
 
 # Parse information to config
 config["nclasses"] = nclasses
+config["class_names"] = class_names
 config["image_format"] = image_format
-
-# Load possible classes
-path_classdict = os.path.join(config["path_data"],
-                              config["seed"] + ".classes.json")
-with open(path_classdict, "r") as json_reader:
-    config["class_dict"] = json.load(json_reader)
+config["path_images"] = os.path.join(config["path_data"],
+                                     config["seed"] + ".images")
 
 #-----------------------------------------------------#
 #                     Main Runner                     #
@@ -163,9 +147,9 @@ for architecture in config["architecture_list"]:
     print("Run inference for Architecture:", architecture)
     try:
         # Run AUCMEDI pipeline for validation set
-        run_aucmedi("val-ensemble", architecture, config, best_model=True)
+        run_aucmedi(x_val, architecture, config, best_model=True)
         # Run AUCMEDI pipeline for testing set
-        run_aucmedi("test", architecture, config, best_model=True)
+        run_aucmedi(x_test, architecture, config, best_model=True)
         print("Finished inference for Architecture:", architecture)
     except Exception as e:
         print(architecture, "-", "An exception occurred:", str(e))
