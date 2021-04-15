@@ -138,9 +138,9 @@ def run_aucmedi(x_train, y_train, x_val, y_val, architecture, config):
     callbacks = [cb_mc, cb_cl, cb_lr, cb_es]
 
     # Train model
-    model.train(train_gen, val_gen, epochs=500, iterations=250,
-                callbacks=callbacks, transfer_learning=True,
-                class_weights=config["class_weights_dict"])
+    model.train(train_gen, val_gen, class_weights=config["class_weights_dict"],
+                epochs=config["epochs"], iterations=config["iterations"],
+                callbacks=callbacks, transfer_learning=True)
 
     # Dump latest model
     model.dump(os.path.join(path_res, "model.last.hdf5"))
