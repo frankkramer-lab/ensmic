@@ -27,7 +27,7 @@ import pandas
 import numpy as np
 from plotnine import *
 # Internal libraries/scripts
-from ensmic.data_loading import IO_Inference
+from ensmic.data_loading import IO_Inference, architecture_list
 from ensmic.utils.metrics import compute_metrics, compute_rawCM
 from ensmic.utils.categorical_averaging import macro_averaging
 # Experimental
@@ -54,33 +54,13 @@ config["path_results"] = "results"
 # Seed (if training multiple runs)
 config["seed"] = args.seed
 
-# Load possible classes
-path_classdict = os.path.join(config["path_data"],
-                              config["seed"] + ".classes.json")
-with open(path_classdict, "r") as json_reader:
-    config["class_dict"] = json.load(json_reader)
-config["class_list"] = sorted(config["class_dict"],
-                              key=config["class_dict"].get)
-
-# Obtain DCNN Architectures for Classification
-path_archlist = os.path.join(config["path_data"], "architectures.json")
-with open(path_archlist, "r") as json_reader:
-    config["architecture_list"] = json.load(json_reader)["list"]
-
-#-----------------------------------------------------#
-#          Function: Identify Classification          #
-#-----------------------------------------------------#
-def identify_class(pred, method="argmax"):
-    if method == "argmax":
-        return np.argmax(pred)
-
 #-----------------------------------------------------#
 #               Function: Preprocessing               #
 #-----------------------------------------------------#
 def preprocessing(architecture, dataset, config):
     # Load ground truth dictionary
     path_gt = os.path.join(config["path_data"], config["seed"] + \
-                           ".class_map.json")
+                           "." + dataset + ".json")
     with open(path_gt, "r") as json_reader:
         gt_map = json.load(json_reader)
     # Get result subdirectory for current architecture
@@ -88,9 +68,11 @@ def preprocessing(architecture, dataset, config):
                              config["seed"], architecture)
     # Create an Inference IO Interface
     path_inf = os.path.join(path_arch, "inference" + "." + dataset + ".json")
-    infIO = IO_Inference(config["class_dict"], path=path_inf)
+    infIO = IO_Inference(None, path=path_inf)
     # Load predictions for samples
     inference = infIO.load_inference()
+    # Load class names
+    config["class_list"] = infIO.load_inference(index="legend")
 
     # Initialize lists for predictions and ground truth
     id = []
@@ -101,10 +83,10 @@ def preprocessing(architecture, dataset, config):
     sample_list = inference.keys()
     for sample in sample_list:
         # Obtain ground truth and predictions
-        prediction = inference[sample]
         id.append(sample)
-        gt.append(gt_map[sample])
-        pd_class.append(identify_class(prediction))
+        gt.append(np.argmax(gt_map[sample]))
+        prediction = inference[sample]
+        pd_class.append(np.argmax(prediction))
         pd_prob.append(prediction)
     # Return parsed information
     return id, gt, pd_class, pd_prob
@@ -385,7 +367,7 @@ def plot_modelparas_results(results, dataset, eval_path):
 def gather_fitting_data(config):
     dt_list = []
     # Gather fitting logs from each architecture
-    for architecture in config["architecture_list"]:
+    for architecture in architecture_list:
         try:
             # Get path to fitting logging for current architecture
             path_arch = os.path.join(config["path_results"], "phase_i" + "." + \
@@ -451,7 +433,7 @@ for ds in ["val-ensemble", "test"]:
 
     # Run Evaluation for all architectures
     print("Run evaluation for dataset:", ds)
-    for architecture in config["architecture_list"]:
+    for architecture in architecture_list:
         print("Run evaluation for Architecture:", architecture)
         try:
             # Preprocess ground truth and predictions
