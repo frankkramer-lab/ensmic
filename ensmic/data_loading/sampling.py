@@ -1,6 +1,6 @@
 #==============================================================================#
 #  Author:       Dominik Müller                                                #
-#  Copyright:    2020 IT-Infrastructure for Translational Medical Research,    #
+#  Copyright:    2021 IT-Infrastructure for Translational Medical Research,    #
 #                University of Augsburg                                        #
 #                                                                              #
 #  This program is free software: you can redistribute it and/or modify        #
@@ -22,29 +22,32 @@
 # External libraries
 import os
 import json
+from aucmedi import input_interface
 
 #-----------------------------------------------------#
 #               Store Sampling to disk                #
 #-----------------------------------------------------#
-def sampling_to_disk(sample_sets, setnames, path_data, seed):
-    # Parse sampling to JSON
-    sampling = {}
-    for i in range(0, len(sample_sets)):
-        # Access variables
-        set = sample_sets[i]
-        name = setnames[i]
-        # Store into dictionary
-        sampling[name] = set
-    # Write JSON to disk
-    path_json = os.path.join(path_data, str(seed) + "." + "sampling" + ".json")
-    with open(path_json, "w") as jsonfile:
-        json.dump(sampling, jsonfile, indent=2)
+def sampling_to_disk(sample_sets, setnames, class_names, path_data, seed):
+    # Create each subset
+    for i, set in enumerate(setnames):
+        # Parse sampling to JSON
+        sampling = {"legend": class_names}
+        sampling.update(dict(zip(sample_sets[i][0].tolist(),
+                                 sample_sets[i][1].tolist())))
+        # Write JSON to disk
+        path_json = os.path.join(path_data, str(seed) + "." + set + ".json")
+        with open(path_json, "w") as jsonfile:
+            json.dump(sampling, jsonfile, indent=2)
 
 #-----------------------------------------------------#
 #               Load Sampling from disk               #
 #-----------------------------------------------------#
-def load_sampling(path_data, subset, seed):
-    path_sampling = os.path.join(path_data, str(seed) + ".sampling.json")
-    with open(path_sampling, "r") as jsonfile:
-        sampling = json.load(jsonfile)
-    return sampling[subset]
+def load_sampling(path_input, subset, seed):
+    # Initialize pathes
+    path_images = os.path.join(path_input, seed + ".images")
+    path_json = os.path.join(path_input, seed + "." + subset + ".json")
+    # Run AUCMEDI JSON loader
+    ds = input_interface(interface="json", path_imagedir=path_images,
+                         path_data=path_json, training=True, ohe=True)
+    # Return dataset
+    return ds
