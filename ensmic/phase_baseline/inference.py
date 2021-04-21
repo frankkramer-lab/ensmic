@@ -100,7 +100,7 @@ def run_aucmedi(samples, dataset, architecture, config, best_model=True):
                              workers=config["threads"])
 
     # Obtain trained model file
-    path_arch = os.path.join(config["path_results"], "phase_i" + "." + \
+    path_arch = os.path.join(config["path_results"], "phase_baseline" + "." + \
                              config["seed"], architecture)
     if best_model : path_model = os.path.join(path_arch, "model.best.hdf5")
     else : path_model = os.path.join(path_arch, "model.last.hdf5")
@@ -108,7 +108,7 @@ def run_aucmedi(samples, dataset, architecture, config, best_model=True):
     model.load(path_model)
 
     # Get result subdirectory for current architecture
-    path_arch = os.path.join(config["path_results"], "phase_i" + "." + \
+    path_arch = os.path.join(config["path_results"], "phase_baseline" + "." + \
                              config["seed"], architecture)
 
     # Create an Inference IO Interface

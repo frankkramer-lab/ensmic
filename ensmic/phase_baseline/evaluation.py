@@ -64,7 +64,7 @@ def preprocessing(architecture, dataset, config):
     with open(path_gt, "r") as json_reader:
         gt_map = json.load(json_reader)
     # Get result subdirectory for current architecture
-    path_arch = os.path.join(config["path_results"], "phase_i" + "." + \
+    path_arch = os.path.join(config["path_results"], "phase_baseline" + "." + \
                              config["seed"], architecture)
     # Create an Inference IO Interface
     path_inf = os.path.join(path_arch, "inference" + "." + dataset + ".json")
@@ -100,7 +100,7 @@ def parse_results(metrics, architecture, dataset, config):
     results = results.transpose()
     results.columns = config["class_list"]
     # Backup to disk
-    path_arch = os.path.join(config["path_results"], "phase_i" + "." + \
+    path_arch = os.path.join(config["path_results"], "phase_baseline" + "." + \
                              config["seed"], architecture)
     path_res = os.path.join(path_arch, "metrics." + dataset + ".csv")
     results.to_csv(path_res, index=True, index_label="metric")
@@ -148,7 +148,7 @@ def calc_confusion_matrix(gt, pd, architecture, dataset, config):
     rawcm.index = config["class_list"]
     rawcm.columns = config["class_list"]
     # Backup to disk
-    path_arch = os.path.join(config["path_results"], "phase_i" + "." + \
+    path_arch = os.path.join(config["path_results"], "phase_baseline" + "." + \
                              config["seed"], architecture)
     path_res = os.path.join(path_arch, "confusion_matrix." + dataset + ".csv")
     rawcm.to_csv(path_res, index=True, index_label="metric")
@@ -173,7 +173,7 @@ def plot_confusion_matrix(rawcm, architecture, dataset, config):
                   + theme_bw(base_size=28)
                   + theme(axis_text_x = element_text(angle = 45, vjust = 1, hjust = 1)))
     # Store figure to disk
-    path_arch = os.path.join(config["path_results"], "phase_i" + "." + \
+    path_arch = os.path.join(config["path_results"], "phase_baseline" + "." + \
                              config["seed"], architecture)
     fig.save(filename="plot." + dataset + ".confusion_matrix." + "png",
              path=path_arch, width=18, height=14, dpi=200)
@@ -366,7 +366,7 @@ def gather_fitting_data(config):
     for architecture in architecture_list:
         try:
             # Get path to fitting logging for current architecture
-            path_arch = os.path.join(config["path_results"], "phase_i" + "." + \
+            path_arch = os.path.join(config["path_results"], "phase_baseline" + "." + \
                                      config["seed"], architecture)
             path_trainlogs = os.path.join(path_arch, "logs.csv")
             # Load CSV as dataframe
@@ -417,7 +417,7 @@ def plot_fitting(results, metric, eval_path, config):
 #                    Run Evaluation                   #
 #-----------------------------------------------------#
 # Create evaluation subdirectory
-path_eval = os.path.join(config["path_results"], "phase_i" + "." + \
+path_eval = os.path.join(config["path_results"], "phase_baseline" + "." + \
                          config["seed"], "evaluation")
 if not os.path.exists(path_eval) : os.mkdir(path_eval)
 

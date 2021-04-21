@@ -178,7 +178,7 @@ _, config["class_weights_dict"] = compute_class_weights(y_train)
 # Create results directory
 if not os.path.exists(config["path_results"]) : os.mkdir(config["path_results"])
 # Create subdirectories for phase & seed
-config["path_phase"] = os.path.join(config["path_results"], "phase_i" + "." + \
+config["path_phase"] = os.path.join(config["path_results"], "phase_baseline" + "." + \
                                     str(config["seed"]))
 if not os.path.exists(config["path_phase"]) : os.mkdir(config["path_phase"])
 
