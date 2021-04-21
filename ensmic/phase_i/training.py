@@ -132,9 +132,9 @@ def run_aucmedi(x_train, y_train, x_val, y_val, architecture, config):
                             monitor="val_loss", verbose=1,
                             save_best_only=True, mode="min")
     cb_cl = CSVLogger(os.path.join(path_res, "logs.csv"), separator=',', append=True)
-    cb_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=8,
+    cb_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=5,
                               verbose=1, mode='min', min_lr=1e-7)
-    cb_es = EarlyStopping(monitor='val_loss', patience=20, verbose=1)
+    cb_es = EarlyStopping(monitor='val_loss', patience=15, verbose=1)
     callbacks = [cb_mc, cb_cl, cb_lr, cb_es]
 
     # Train model
