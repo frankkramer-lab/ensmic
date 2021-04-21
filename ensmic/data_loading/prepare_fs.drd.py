@@ -66,6 +66,9 @@ ds = input_interface(interface="csv", path_imagedir=path_images, path_data=path_
                      ohe=False, col_sample="image", col_class="level")
 (index_list, class_ohe, nclasses, class_names, image_format) = ds
 
+# Modify class names
+class_names = ['No DR', 'Mild', 'Moderate', 'Severe', 'Proliferative DR']
+
 # Iterate over each image
 sample_list = []
 for i, index in enumerate(tqdm(index_list)):
