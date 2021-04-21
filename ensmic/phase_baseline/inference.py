@@ -99,17 +99,15 @@ def run_aucmedi(samples, dataset, architecture, config, best_model=True):
                              image_format=config["image_format"],
                              workers=config["threads"])
 
-    # Obtain trained model file
+    # Get result subdirectory for current architecture
     path_arch = os.path.join(config["path_results"], "phase_baseline" + "." + \
                              config["seed"], architecture)
+
+    # Obtain trained model file
     if best_model : path_model = os.path.join(path_arch, "model.best.hdf5")
     else : path_model = os.path.join(path_arch, "model.last.hdf5")
     # Load trained model from disk
     model.load(path_model)
-
-    # Get result subdirectory for current architecture
-    path_arch = os.path.join(config["path_results"], "phase_baseline" + "." + \
-                             config["seed"], architecture)
 
     # Create an Inference IO Interface
     path_inf = os.path.join(path_arch, "inference" + "." + dataset + ".json")
