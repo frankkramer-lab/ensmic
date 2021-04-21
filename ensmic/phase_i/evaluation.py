@@ -166,10 +166,10 @@ def plot_confusion_matrix(rawcm, architecture, dataset, config):
     fig = (ggplot(dt, aes("pd", "gt", fill="score"))
                   + geom_tile()
                   + geom_text(aes("pd", "gt", label="score"), color="black", size=28)
-                  + ggtitle("Confusion Matrix: " + architecture)
+                  + ggtitle(dataset + "- Confusion Matrix: " + architecture)
                   + xlab("Prediction")
                   + ylab("Ground Truth")
-                  + scale_fill_gradient(low="white", high="royalblue")
+                  + scale_fill_gradient(low="white", high="royalblue", limits=[0, 100])
                   + theme_bw(base_size=28)
                   + theme(axis_text_x = element_text(angle = 45, vjust = 1, hjust = 1)))
     # Store figure to disk
