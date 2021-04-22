@@ -28,6 +28,7 @@ from aucmedi import DataGenerator, Neural_Network, Image_Augmentation
 from aucmedi.data_processing.subfunctions import Padding
 from aucmedi.neural_network.architectures import supported_standardize_mode, \
                                                  architecture_dict
+from aucmedi.ensembler import predict_augmenting
 # ENSMIC libraries
 from ensmic.data_loading import IO_Inference, load_sampling, architecture_list
 
