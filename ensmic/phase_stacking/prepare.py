@@ -23,12 +23,13 @@
 import argparse
 import os
 import pandas as pd
+import numpy as np
 import json
 from sklearn.utils import shuffle
 # Internal libraries/scripts
 from ensmic.data_loading import IO_Inference
 from ensmic.ensemble import ensembler_dict, ensembler
-from ensmic.architectures import architectures
+from ensmic.data_loading import architecture_list
 
 #-----------------------------------------------------#
 #                      Argparser                      #
@@ -54,13 +55,7 @@ config["seed"] = args.seed
 # List of ensemble learning techniques
 config["ensembler_list"] = ensembler
 # List of architectures which inferences should be included into ensembling
-config["architecture_list"] = architectures # all architectures
-
-# Load possible classes
-path_classdict = os.path.join(config["path_data"],
-                              config["seed"] + ".classes.json")
-with open(path_classdict, "r") as json_reader:
-    config["class_dict"] = json.load(json_reader)
+config["architecture_list"] = architecture_list
 
 #-----------------------------------------------------#
 #            Prepare Result File Structure            #
@@ -70,7 +65,7 @@ if not os.path.exists(config["path_results"]):
     os.mkdir(config["path_results"])
 # Create subdirectories for phase
 path_phase = os.path.join(config["path_results"],
-                          "phase_ii" + "." + str(config["seed"]))
+                          "phase_stacking" + "." + str(config["seed"]))
 if not os.path.exists(path_phase) : os.mkdir(path_phase)
 # Create subdirectories for ensemble learning methods
 for elm in config["ensembler_list"]:
@@ -85,19 +80,20 @@ inf_test = {}
 for arch in config["architecture_list"]:
     # Identify pathes
     path_arch = os.path.join(config["path_results"],
-                             "phase_i" + "." + str(config["seed"]),
+                             "phase_baseline" + "." + str(config["seed"]),
                              arch)
     path_arch_val = os.path.join(path_arch, "inference." + \
                                  "val-ensemble" + ".json")
     path_arch_test = os.path.join(path_arch, "inference." + \
                                   "test" + ".json")
     try:
-        # Load predictions on samples for val-ensemble subset
-        infIO = IO_Inference(config["class_dict"], path=path_arch_val)
+        infIO = IO_Inference(None, path=path_arch_val)
         inf_val[arch] = infIO.load_inference()
         # Load predictions on samples for test subset
-        infIO = IO_Inference(config["class_dict"], path=path_arch_test)
+        infIO = IO_Inference(None, path=path_arch_test)
         inf_test[arch] = infIO.load_inference()
+        # Load class names
+        config["class_list"] = infIO.load_inference(index="legend")
         # Cache architecture with available inference
         arch_list.append(arch)
     except Exception as e:
@@ -114,8 +110,7 @@ def create_dataset(dt, label):
     # Split inference tuple (for each class) into separate dataframes
     dt_arch_list = []
     for name, arch_dt in dt_raw.items():
-        class_list = [str(c) for c in range(0, len(config["class_dict"]))]
-        colnames = [name + "_C" + c for c in class_list]
+        colnames = [name + "_" + c for c in config["class_list"]]
         dt_split = pd.DataFrame(arch_dt.values.tolist(), columns=colnames)
         dt_arch_list.append(dt_split)
     # Concat inference dataframes of all architecture
@@ -123,24 +118,27 @@ def create_dataset(dt, label):
     # Add sample names to dataframe
     dt_x.set_index(dt_raw.index, inplace=True)
 
+
     # Load ground truth dictionary
     path_gt = os.path.join(config["path_data"], config["seed"] + \
-                           ".class_map.json")
+                           "." + label + ".json")
     with open(path_gt, "r") as json_reader:
         gt_map = json.load(json_reader)
+
     # Create ground truth dataframe
     sample_list = dt_raw.index.tolist()
     gt = [gt_map[sample] for sample in sample_list]
+    gt = np.argmax(np.asarray(gt), axis=-1)
     dt_y = pd.DataFrame(gt, index=dt_raw.index, columns=["Ground_Truth"])
 
     # Shuffle rows
     dt_x, dt_y = shuffle(dt_x, dt_y, random_state=0)
 
     # Store dataset to disk as CSV
-    path_dsX = os.path.join(path_phase, "phase_i.inference." + \
-                            label + "." + "data" + ".csv")
-    path_dsY = os.path.join(path_phase, "phase_i.inference." + \
-                            label + "." + "class" + ".csv")
+    path_dsX = os.path.join(path_phase, "phase_baseline.inference." + \
+                            label + "." + "set_x" + ".csv")
+    path_dsY = os.path.join(path_phase, "phase_baseline.inference." + \
+                            label + "." + "set_y" + ".csv")
     dt_x.to_csv(path_dsX, sep=",", header=True, index=True, index_label="index")
     dt_y.to_csv(path_dsY, sep=",", header=True, index=True, index_label="index")
 
