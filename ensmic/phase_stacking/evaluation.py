@@ -55,13 +55,12 @@ config["path_results"] = "results"
 # Seed (if training multiple runs)
 config["seed"] = args.seed
 
-# Load possible classes
-path_classdict = os.path.join(config["path_data"],
-                              config["seed"] + ".classes.json")
-with open(path_classdict, "r") as json_reader:
-    config["class_dict"] = json.load(json_reader)
-config["class_list"] = sorted(config["class_dict"],
-                              key=config["class_dict"].get)
+# Load class list
+path_gt = os.path.join(config["path_data"], config["seed"] + \
+                       "." + "test" + ".json")
+with open(path_gt, "r") as json_reader:
+    gt_map = json.load(json_reader)
+config["class_list"] = gt_map["legend"]
 
 # Ensemble Learning Techniques
 config["ensembler_list"] = ensembler
@@ -78,16 +77,16 @@ def identify_class(pred, method="argmax"):
 #-----------------------------------------------------#
 def preprocessing(ensembler, config):
     # Get path to phase for correct dataset
-    path_phase = os.path.join(config["path_results"], "phase_ii" + "." + \
+    path_phase = os.path.join(config["path_results"], "phase_stacking" + "." + \
                               config["seed"])
     # Load ground truth for testing set
-    path_gt = os.path.join(path_phase, "phase_i.inference.test.class.csv")
+    path_gt = os.path.join(path_phase, "phase_baseline.inference.test.set_y.csv")
     gt_map = pandas.read_csv(path_gt, header=0, index_col="index").to_dict()
     gt_map = gt_map["Ground_Truth"]
 
     # Create Inference IO Interface
     path_inf = os.path.join(path_phase, ensembler, "inference.test.json")
-    infIO = IO_Inference(config["class_dict"], path=path_inf)
+    infIO = IO_Inference(None, path=path_inf)
     # Load predictions for samples
     inference = infIO.load_inference()
 
@@ -117,7 +116,7 @@ def parse_results(metrics, ensembler, config):
     results = results.transpose()
     results.columns = config["class_list"]
     # Backup to disk
-    path_ensembler = os.path.join(config["path_results"], "phase_ii" + "." + \
+    path_ensembler = os.path.join(config["path_results"], "phase_stacking" + "." + \
                                   config["seed"], ensembler)
     path_res = os.path.join(path_ensembler, "metrics.csv")
     results.to_csv(path_res, index=True, index_label="metric")
@@ -158,7 +157,7 @@ def collect_results(result_set, verified_ensembler, path_eval, config):
 #                    Run Evaluation                   #
 #-----------------------------------------------------#
 # Create evaluation subdirectory
-path_eval = os.path.join(config["path_results"], "phase_ii" + "." + \
+path_eval = os.path.join(config["path_results"], "phase_stacking" + "." + \
                          config["seed"], "evaluation")
 if not os.path.exists(path_eval) : os.mkdir(path_eval)
 
@@ -169,18 +168,18 @@ verified_ensembler = []
 # Run Evaluation for all ensemble learning techniques
 for ensembler in config["ensembler_list"]:
     print("Run evaluation for Ensembler:", ensembler)
-    try:
-        # Preprocess ground truth and predictions
-        id, gt, pd, pd_prob = preprocessing(ensembler, config)
-        # Compute metrics
-        metrics = compute_metrics(gt, pd, pd_prob, config)
-        # Backup results
-        metrics_df = parse_results(metrics, ensembler, config)
-        # Cache dataframe and add ensembler to verification list
-        result_set.append(metrics_df)
-        verified_ensembler.append(ensembler)
-    except Exception as e:
-        print("Skipping Ensembler", ensembler, "due to Error:", e)
+    # try:
+    # Preprocess ground truth and predictions
+    id, gt, pd, pd_prob = preprocessing(ensembler, config)
+    # Compute metrics
+    metrics = compute_metrics(gt, pd, pd_prob, config["class_list"])
+    # Backup results
+    metrics_df = parse_results(metrics, ensembler, config)
+    # Cache dataframe and add ensembler to verification list
+    result_set.append(metrics_df)
+    verified_ensembler.append(ensembler)
+    # except Exception as e:
+    #     print("Skipping Ensembler", ensembler, "due to Error:", e)
 
 # Combine results
 results_all = collect_results(result_set, verified_ensembler, path_eval, config)

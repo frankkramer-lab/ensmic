@@ -110,7 +110,8 @@ def create_dataset(dt, label):
     # Split inference tuple (for each class) into separate dataframes
     dt_arch_list = []
     for name, arch_dt in dt_raw.items():
-        colnames = [name + "_" + c for c in config["class_list"]]
+        class_list = [str(c) for c in range(0, len(config["class_list"]))]
+        colnames = [name + "_C" + c for c in class_list]
         dt_split = pd.DataFrame(arch_dt.values.tolist(), columns=colnames)
         dt_arch_list.append(dt_split)
     # Concat inference dataframes of all architecture

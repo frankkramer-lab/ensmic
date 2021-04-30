@@ -53,18 +53,12 @@ config["seed"] = args.seed
 # List of ensemble learning techniques
 config["ensembler_list"] = ensembler
 
-# Load possible classes
-path_classdict = os.path.join(config["path_data"],
-                              config["seed"] + ".classes.json")
-with open(path_classdict, "r") as json_reader:
-    config["class_dict"] = json.load(json_reader)
-
 #-----------------------------------------------------#
 #                     Run Training                    #
 #-----------------------------------------------------#
 def run_training(ds_x, ds_y, ensembler, path_elm, config):
     # Obtain initialization variables for Ensemble Learning model
-    n_classes = len(config["class_dict"].keys())
+    n_classes = len(config["class_list"])
     # Create Ensemble Learning model
     model = ensembler_dict[ensembler](n_classes=n_classes)
     # Fit model on data
@@ -84,29 +78,35 @@ def run_inference(test_x, model, path_elm, config):
 
     # Create an Inference IO Interface
     path_inf = os.path.join(path_elm, "inference" + "." + "test" + ".json")
-    infIO = IO_Inference(config["class_dict"], path=path_inf)
-
+    infIO = IO_Inference(config["class_list"], path=path_inf)
     # Store prediction for each sample
-    for i, sample in enumerate(test_x.index.values.tolist()):
-        infIO.store_inference(sample, predictions[i])
+    samples = test_x.index.values.tolist()
+    infIO.store_inference(samples, predictions)
 
 #-----------------------------------------------------#
 #                     Main Runner                     #
 #-----------------------------------------------------#
 # Identify phase results directory
 path_phase = os.path.join(config["path_results"],
-                          "phase_ii" + "." + str(config["seed"]))
+                          "phase_stacking" + "." + str(config["seed"]))
 # Load dataset for training
-train_x = pd.read_csv(os.path.join(path_phase, "phase_i.inference." + \
-                                   "val-ensemble." + "data" + ".csv"),
+train_x = pd.read_csv(os.path.join(path_phase, "phase_baseline.inference." + \
+                                   "val-ensemble." + "set_x" + ".csv"),
                       header=0, index_col="index")
-train_y = pd.read_csv(os.path.join(path_phase, "phase_i.inference." + \
-                                   "val-ensemble." + "class" + ".csv"),
+train_y = pd.read_csv(os.path.join(path_phase, "phase_baseline.inference." + \
+                                   "val-ensemble." + "set_y" + ".csv"),
                       header=0, index_col="index")
 # Load dataset for testing
-test_x = pd.read_csv(os.path.join(path_phase, "phase_i.inference." + \
-                                  "test." + "data" + ".csv"),
+test_x = pd.read_csv(os.path.join(path_phase, "phase_baseline.inference." + \
+                                  "test." + "set_x" + ".csv"),
                      header=0, index_col="index")
+
+# Load class list
+path_gt = os.path.join(config["path_data"], config["seed"] + \
+                       "." + "val-ensemble" + ".json")
+with open(path_gt, "r") as json_reader:
+    gt_map = json.load(json_reader)
+config["class_list"] = gt_map["legend"]
 
 # Initialize cache memory to store meta information
 timer_cache = {}
@@ -130,7 +130,7 @@ for ensembler in config["ensembler_list"]:
         print(ensembler, "-", "An exception occurred:", str(e))
 
 # Store time measurements as JSON to disk
-path_time = os.path.join(config["path_results"], "phase_ii" + "." + \
+path_time = os.path.join(config["path_results"], "phase_stacking" + "." + \
                          config["seed"], "time_measurements.json")
 with open(path_time, "w") as file:
     json.dump(timer_cache, file, indent=2)
