@@ -30,7 +30,7 @@ from plotnine import *
 from ensmic.data_loading import IO_Inference
 from ensmic.ensemble import ensembler
 from ensmic.utils.metrics import compute_metrics
-from ensmic.utils.categorical_averaging import macro_averaging
+from ensmic.utils.categorical_averaging import macro_averaging, macro_average_roc
 # Experimental
 import warnings
 warnings.filterwarnings("ignore")
@@ -310,6 +310,9 @@ fig = (ggplot(results_roc, aes("FPR", "TPR", color="class"))
 # Store figure to disk
 fig.save(filename="plot.ROC.individual.png",
          path=path_eval, width=40, height=20, dpi=200, limitsize=False)
+
+results_roc = results_roc.groupby(["architecture"]).apply(macro_average_roc)
+results_roc.reset_index(inplace=True, level=[0])
 
 # Plot roc results together
 try:

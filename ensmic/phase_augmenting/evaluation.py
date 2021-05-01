@@ -29,7 +29,7 @@ from plotnine import *
 # Internal libraries/scripts
 from ensmic.data_loading import IO_Inference, architecture_list, architecture_params
 from ensmic.utils.metrics import compute_metrics, compute_rawCM
-from ensmic.utils.categorical_averaging import macro_averaging
+from ensmic.utils.categorical_averaging import macro_averaging, macro_average_roc
 # Experimental
 import warnings
 warnings.filterwarnings("ignore")
@@ -305,6 +305,9 @@ def plot_auroc_results(results, dataset, eval_path):
     # Store figure to disk
     fig.save(filename="plot." + dataset + ".ROC.individual.png",
              path=path_eval, width=40, height=20, dpi=200, limitsize=False)
+
+    results = results.groupby(["architecture"]).apply(macro_average_roc)
+    results.reset_index(inplace=True, level=[0])
 
     try:
         # Plot roc results together
