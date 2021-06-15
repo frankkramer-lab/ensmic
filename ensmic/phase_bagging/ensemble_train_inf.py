@@ -74,6 +74,9 @@ def prepare(architecture, label, config):
     # Identify path to result architecture
     path_arch = os.path.join(config["path_results"], "phase_bagging" + "." + \
                              str(config["seed"]), architecture)
+    if not os.path.exists(os.path.join(path_arch, "ensemble")):
+        os.mkdir(os.path.join(path_arch, "ensemble"))
+
     # Iterate over all folds
     inf_cache = {}
     for fold in range(0, config["k_fold"]):
@@ -137,9 +140,13 @@ def run_training(ensembler, architecture, config):
 #                    Run Inference                    #
 #-----------------------------------------------------#
 def run_inference(model, ensembler, architecture, config):
-    # Load dataset for testing
+    # Identify path to result architecture
     path_arch = os.path.join(config["path_results"], "phase_bagging" + "." + \
                              str(config["seed"]), architecture)
+    if not os.path.exists(os.path.join(path_arch, "inference")):
+        os.mkdir(os.path.join(path_arch, "inference"))
+
+    # Load dataset for testing
     test_x = pd.read_csv(os.path.join(path_arch, "inference." + "test." + "set_x" + ".csv"),
                          header=0, index_col="index")
 
@@ -147,7 +154,7 @@ def run_inference(model, ensembler, architecture, config):
     predictions = model.prediction(test_x)
 
     # Create an Inference IO Interface
-    path_inf = os.path.join(path_arch, "inference.test.pred.json")
+    path_inf = os.path.join(path_arch, "inference", "inference." + ensembler + ".pred.json")
     infIO = IO_Inference(config["class_list"], path=path_inf)
     # Store prediction for each sample
     samples = test_x.index.values.tolist()
@@ -158,18 +165,14 @@ def run_inference(model, ensembler, architecture, config):
 #-----------------------------------------------------#
 # Iterate over all architectures
 for architecture in architecture_list:
-    # Initialize cache memory to store meta information
-    timer_cache = {}
-    path_arch = os.path.join(config["path_results"], "phase_bagging" +  "." + str(config["seed"]),
-                             architecture)
-    if not os.path.exists(os.path.join(path_arch, "ensemble")):
-        os.mkdir(os.path.join(path_arch, "ensemble"))
+    if architecture != "VGG16" : continue
 
     # Prepare dataset
     prepare(architecture, "val-ensemble", config)
     prepare(architecture, "test", config)
 
     # Run Training and Inference for all ensemble learning techniques
+    timer_cache = {}
     for ensembler in config["ensembler_list"]:
         print(architecture, "- Start running Ensembler:", ensembler)
         try:
@@ -186,6 +189,8 @@ for architecture in architecture_list:
             print(architecture, ensembler, "-", "An exception occurred:", str(e))
 
     # Store time measurements as JSON to disk
+    path_arch = os.path.join(config["path_results"], "phase_bagging" +  "." + str(config["seed"]),
+                             architecture)
     path_time = os.path.join(path_arch, "time_measurements.ensembler.json")
     with open(path_time, "w") as file:
         json.dump(timer_cache, file, indent=2)
