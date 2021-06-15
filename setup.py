@@ -13,7 +13,7 @@ setup(
    long_description_content_type="text/markdown",
    packages=find_packages(),
    install_requires=['tensorflow==2.4.0',
-                     'aucmedi==0.2.0',
+                     'aucmedi==0.3.0',
                      'pandas==1.1.4',
                      'pillow==7.2.0',
                      'plotnine==0.7.1',

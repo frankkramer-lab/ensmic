@@ -36,7 +36,7 @@ from aucmedi.neural_network.architectures import supported_standardize_mode, \
 from aucmedi.data_processing.subfunctions import Padding
 from aucmedi.utils.class_weights import compute_class_weights
 # ENSMIC libraries
-from ensmic.data_loading import load_sampling, architecture_list
+from ensmic.data_loading import load_sampling
 
 #-----------------------------------------------------#
 #                      Argparser                      #
@@ -44,6 +44,8 @@ from ensmic.data_loading import load_sampling, architecture_list
 parser = argparse.ArgumentParser(description="ENSMIC: Phase I - Training")
 parser.add_argument("-m", "--modularity", help="Data modularity selection: ['covid', 'isic', 'chmnist', 'drd']",
                     required=True, type=str, dest="seed")
+parser.add_argument("-a", "--architecture", help="Architecture on which CV/bagging is performed",
+                    required=True, type=str, dest="architecture")
 parser.add_argument("-g", "--gpu", help="GPU ID selection for multi cluster",
                     required=False, type=int, dest="gpu", default=0)
 args = parser.parse_args()
@@ -68,6 +70,7 @@ config["batch_queue_size"] = 16
 config["epochs"] = 1000
 config["iterations"] = None
 config["workers"] = 32
+config["architecture"] = args.architecture
 
 # Cross-Validation Configurations
 config["k_fold"] = 5
@@ -186,20 +189,21 @@ config["path_images"] = os.path.join(config["path_data"],
 # Initialize cache memory to store meta information
 timer_cache = {}
 
-# Run Training for all architectures
-for architecture in architecture_list:
-    print("Run Training for Architecture:", architecture)
-    # Run Fitting Pipeline for each fold in the CV
-    for fold in range(0, config["k_fold"]):
-        timer_start = time.time()
-        run_aucmedi(fold, architecture, config)
-        timer_end = time.time()
-        # Store execution time in cache
-        timer_time = timer_end - timer_start
-        timer_cache[architecture + ".cv_" + str(fold)] = timer_time
-    print("Finished Training for Architecture:", architecture)
+# Access architecture
+architecture = config["architecture"]
+
+# Run Fitting Pipeline for each fold in the CV
+for fold in range(0, config["k_fold"]):
+    print("Run Training for Architecture:", architecture, " - Fold " + str(fold))
+    timer_start = time.time()
+    run_aucmedi(fold, architecture, config)
+    timer_end = time.time()
+    # Store execution time in cache
+    timer_time = timer_end - timer_start
+    timer_cache[architecture + ".cv_" + str(fold)] = timer_time
+    print("Finished Training for Architecture:", architecture, " - Fold " + str(fold))
 
 # Store time measurements as JSON to disk
-path_time = os.path.join(config["path_phase"], "time_measurements.json")
+path_time = os.path.join(config["path_phase"], "time_measurements." + "architecture_" + str(architecture) + .json")
 with open(path_time, "w") as file:
     json.dump(timer_cache, file, indent=2)
