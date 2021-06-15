@@ -37,6 +37,8 @@ from ensmic.data_loading import IO_Inference, load_sampling, architecture_list
 parser = argparse.ArgumentParser(description="Analysis of COVID-19 Classification via Ensemble Learning")
 parser.add_argument("-m", "--modularity", help="Data modularity selection: ['covid', 'isic', 'chmnist', 'drd']",
                     required=True, type=str, dest="seed")
+parser.add_argument("-a", "--architecture", help="Architecture on which CV/bagging is performed",
+                    required=True, type=str, dest="architecture")
 parser.add_argument("-g", "--gpu", help="GPU ID selection for multi cluster",
                     required=False, type=int, dest="gpu", default=0)
 args = parser.parse_args()
@@ -58,7 +60,8 @@ config["threads"] = 16
 config["batch_size"] = 28
 config["batch_queue_size"] = 16
 # Neural Network Configurations
-config["workers"] = 16
+config["workers"] = 32
+config["architecture"] = args.architecture
 
 # Cross-Validation Configurations
 config["k_fold"] = 5
@@ -103,8 +106,8 @@ def run_aucmedi(samples, dataset, fold, architecture, config, best_model=True):
                              workers=config["threads"])
 
     # Get result subdirectory for current architecture
-    path_arch = os.path.join(config["path_results"], "phase_baseline" + "." + \
-                             config["seed"], architecture)
+    path_arch = os.path.join(config["path_results"], "phase_bagging" + "." + \
+                             config["seed"], architecture, "cv_" + str(fold))
 
     # Obtain trained model file
     if best_model : path_model = os.path.join(path_arch, "model.best.hdf5")
@@ -143,13 +146,11 @@ config["path_images"] = os.path.join(config["path_data"],
 #-----------------------------------------------------#
 #                     Main Runner                     #
 #-----------------------------------------------------#
-# Run Inference for all architectures
-for architecture in architecture_list:
-    print("Run inference for Architecture:", architecture)
-    # Run Inference Pipeline for each fold in the CV
-    for fold in range(0, config["k_fold"]):
-        # Run AUCMEDI pipeline for validation set
-        run_aucmedi(x_val, "val-ensemble", fold, architecture, config, best_model=True)
-        # Run AUCMEDI pipeline for testing set
-        run_aucmedi(x_test, "test", fold, architecture, config, best_model=True)
-    print("Finished inference for Architecture:", architecture)
+# Run Inference Pipeline for each fold in the CV
+print("Run inference for Architecture:", architecture, " - Fold " + str(fold))
+for fold in range(0, config["k_fold"]):
+    # Run AUCMEDI pipeline for validation set
+    run_aucmedi(x_val, "val-ensemble", fold, architecture, config, best_model=True)
+    # Run AUCMEDI pipeline for testing set
+    run_aucmedi(x_test, "test", fold, architecture, config, best_model=True)
+print("Finished inference for Architecture:", architecture, " - Fold " + str(fold))
