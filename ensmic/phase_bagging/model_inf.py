@@ -147,10 +147,10 @@ config["path_images"] = os.path.join(config["path_data"],
 #                     Main Runner                     #
 #-----------------------------------------------------#
 # Run Inference Pipeline for each fold in the CV
-print("Run inference for Architecture:", config["architecture"], " - Fold " + str(fold))
 for fold in range(0, config["k_fold"]):
+    print("Run inference for Architecture:", config["architecture"], " - Fold " + str(fold))
     # Run AUCMEDI pipeline for validation set
     run_aucmedi(x_val, "val-ensemble", fold, config["architecture"], config, best_model=True)
     # Run AUCMEDI pipeline for testing set
     run_aucmedi(x_test, "test", fold, config["architecture"], config, best_model=True)
-print("Finished inference for Architecture:", config["architecture"], " - Fold " + str(fold))
+    print("Finished inference for Architecture:", config["architecture"], " - Fold " + str(fold))
