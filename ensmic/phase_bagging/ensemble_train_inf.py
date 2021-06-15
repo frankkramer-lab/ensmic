@@ -165,8 +165,6 @@ def run_inference(model, ensembler, architecture, config):
 #-----------------------------------------------------#
 # Iterate over all architectures
 for architecture in architecture_list:
-    if architecture != "VGG16" : continue
-
     # Prepare dataset
     prepare(architecture, "val-ensemble", config)
     prepare(architecture, "test", config)
