@@ -204,6 +204,6 @@ for fold in range(0, config["k_fold"]):
     print("Finished Training for Architecture:", architecture, " - Fold " + str(fold))
 
 # Store time measurements as JSON to disk
-path_time = os.path.join(config["path_phase"], "time_measurements." + "architecture_" + str(architecture) + .json")
+path_time = os.path.join(config["path_phase"], "time_measurements." + "architecture_" + str(architecture) + ".json")
 with open(path_time, "w") as file:
     json.dump(timer_cache, file, indent=2)
