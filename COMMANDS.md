@@ -100,6 +100,12 @@ nohup sh -c "python ensmic/phase_bagging/model_inf.py -m 'covid' -a 'DenseNet121
 nohup sh -c "python ensmic/phase_bagging/model_inf.py -m 'covid' -a 'InceptionResNetV2' --gpu 2" &> log.phase_bagging.covid.model_inf.InceptionResNetV2.txt &
 nohup sh -c "python ensmic/phase_bagging/model_inf.py -m 'covid' -a 'VGG16' --gpu 3" &> log.phase_bagging.covid.model_inf.VGG16.txt &
 nohup sh -c "python ensmic/phase_bagging/model_inf.py -m 'covid' -a 'Xception' --gpu 3" &> log.phase_bagging.covid.model_inf.Xception.txt &
+# Dataset: COVID-19 - Ensemble
+nohup sh -c "python ensmic/phase_bagging/ensemble_train_inf.py -m 'covid' --gpu 0" &> log.phase_bagging.covid.ensemble_train_inf.txt &
+# Dataset: COVID-19 - Evaluation
+nohup sh -c "python ensmic/phase_bagging/evaluation.py -m 'covid'" &> log.phase_bagging.covid.evaluation.txt &
+
+#------------------------------------------------------------------------------#
 
 # Dataset: CHMNIST - Setup
 nohup sh -c "python ensmic/phase_bagging/prepare.py -m 'chmnist'" &> log.phase_bagging.chmnist.prepare.txt &
@@ -113,6 +119,24 @@ nohup sh -c "python ensmic/phase_bagging/model_train.py -m 'chmnist' -a 'DenseNe
 nohup sh -c "python ensmic/phase_bagging/model_train.py -m 'chmnist' -a 'InceptionResNetV2' --gpu 2" &> log.phase_bagging.chmnist.model_train.InceptionResNetV2.txt &
 nohup sh -c "python ensmic/phase_bagging/model_train.py -m 'chmnist' -a 'VGG16' --gpu 3" &> log.phase_bagging.chmnist.model_train.VGG16.txt &
 nohup sh -c "python ensmic/phase_bagging/model_train.py -m 'chmnist' -a 'Xception' --gpu 3" &> log.phase_bagging.chmnist.model_train.Xception.txt &
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # Dataset: CHMNIST - Inference
 nohup sh -c "python ensmic/phase_bagging/model_inf.py -m 'chmnist' -a 'Vanilla' --gpu 0" &> log.phase_bagging.chmnist.model_inf.Vanilla.txt &
 nohup sh -c "python ensmic/phase_bagging/model_inf.py -m 'chmnist' -a 'EfficientNetB4' --gpu 0" &> log.phase_bagging.chmnist.model_inf.EfficientNetB4.txt &
@@ -123,6 +147,12 @@ nohup sh -c "python ensmic/phase_bagging/model_inf.py -m 'chmnist' -a 'DenseNet1
 nohup sh -c "python ensmic/phase_bagging/model_inf.py -m 'chmnist' -a 'InceptionResNetV2' --gpu 2" &> log.phase_bagging.chmnist.model_inf.InceptionResNetV2.txt &
 nohup sh -c "python ensmic/phase_bagging/model_inf.py -m 'chmnist' -a 'VGG16' --gpu 3" &> log.phase_bagging.chmnist.model_inf.VGG16.txt &
 nohup sh -c "python ensmic/phase_bagging/model_inf.py -m 'chmnist' -a 'Xception' --gpu 3" &> log.phase_bagging.chmnist.model_inf.Xception.txt &
+# Dataset: CHMNIST - Ensemble
+nohup sh -c "python ensmic/phase_bagging/ensemble_train_inf.py -m 'chmnist' --gpu 0" &> log.phase_bagging.chmnist.ensemble_train_inf.txt &
+# Dataset: CHMNIST - Evaluation
+nohup sh -c "python ensmic/phase_bagging/evaluation.py -m 'chmnist'" &> log.phase_bagging.chmnist.evaluation.txt &
+
+#------------------------------------------------------------------------------#
 
 # Dataset: Diabetic Retinopathy Detection - Setup
 nohup sh -c "python ensmic/phase_bagging/prepare.py -m 'drd'" &> log.phase_bagging.drd.prepare.txt &
@@ -146,6 +176,12 @@ nohup sh -c "python ensmic/phase_bagging/model_inf.py -m 'drd' -a 'DenseNet121' 
 nohup sh -c "python ensmic/phase_bagging/model_inf.py -m 'drd' -a 'InceptionResNetV2' --gpu 2" &> log.phase_bagging.drd.model_inf.InceptionResNetV2.txt &
 nohup sh -c "python ensmic/phase_bagging/model_inf.py -m 'drd' -a 'VGG16' --gpu 3" &> log.phase_bagging.drd.model_inf.VGG16.txt &
 nohup sh -c "python ensmic/phase_bagging/model_inf.py -m 'drd' -a 'Xception' --gpu 3" &> log.phase_bagging.drd.model_inf.Xception.txt &
+# Dataset: Diabetic Retinopathy Detection - Ensemble
+nohup sh -c "python ensmic/phase_bagging/ensemble_train_inf.py -m 'drd' --gpu 0" &> log.phase_bagging.drd.ensemble_train_inf.txt &
+# Dataset: Diabetic Retinopathy Detection - Evaluation
+nohup sh -c "python ensmic/phase_bagging/evaluation.py -m 'drd'" &> log.phase_bagging.drd.evaluation.txt &
+
+#------------------------------------------------------------------------------#
 
 # Dataset: ISIC 2019 - Setup
 nohup sh -c "python ensmic/phase_bagging/prepare.py -m 'isic'" &> log.phase_bagging.isic.prepare.txt &
@@ -169,5 +205,9 @@ nohup sh -c "python ensmic/phase_bagging/model_inf.py -m 'isic' -a 'DenseNet121'
 nohup sh -c "python ensmic/phase_bagging/model_inf.py -m 'isic' -a 'InceptionResNetV2' --gpu 2" &> log.phase_bagging.isic.model_inf.InceptionResNetV2.txt &
 nohup sh -c "python ensmic/phase_bagging/model_inf.py -m 'isic' -a 'VGG16' --gpu 3" &> log.phase_bagging.isic.model_inf.VGG16.txt &
 nohup sh -c "python ensmic/phase_bagging/model_inf.py -m 'isic' -a 'Xception' --gpu 3" &> log.phase_bagging.isic.model_inf.Xception.txt &
+# Dataset: ISIC 2019 - Ensemble
+nohup sh -c "python ensmic/phase_bagging/ensemble_train_inf.py -m 'isic' --gpu 0" &> log.phase_bagging.isic.ensemble_train_inf.txt &
+# Dataset: ISIC 2019 - Evaluation
+nohup sh -c "python ensmic/phase_bagging/evaluation.py -m 'isic'" &> log.phase_bagging.isic.evaluation.txt &
 
 ```
