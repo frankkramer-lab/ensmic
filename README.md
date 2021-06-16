@@ -138,7 +138,7 @@ We utilized the multi-class 2019 variant in order to obtain a more difficult tas
 
 #### Diabetic Retinopathy Detection Dataset
 
-**Classes:** 5 - "No DR", "Mild", "Moderate", "Severe", "Proliferative DR"
+**Classes:** 5 - "No DR", "Mild", "Moderate", "Severe", "Proliferative DR"  
 **Size:** 35.126 images  
 **Source:** https://www.kaggle.com/c/diabetic-retinopathy-detection/overview  
 
@@ -151,7 +151,7 @@ https://www.kaggle.com/c/diabetic-retinopathy-detection/overview
 
 #### Colorectal Histology MNIST
 
-**Classes:** 8 - EMPTY, COMPLEX, MUCOSA, DEBRIS, ADIPOSE, STROMA, LYMPHO, TUMOR
+**Classes:** 8 - EMPTY, COMPLEX, MUCOSA, DEBRIS, ADIPOSE, STROMA, LYMPHO, TUMOR  
 **Size:** 5.000 images  
 **Source:** https://www.kaggle.com/kmader/colorectal-histology-mnist
 
