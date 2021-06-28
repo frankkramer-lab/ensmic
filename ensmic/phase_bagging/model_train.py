@@ -196,11 +196,6 @@ timer_cache = {}
 # Access architecture
 architecture = config["architecture"]
 
-# Load time measurement JSON if available
-if os.path.exists(path_time):
-    with open(path_time, "r") as file:
-        timer_cache = json.load(file)
-
 # Run Fitting Pipeline for each fold in the CV
 for fold in range(0, config["k_fold"]):
     print("Run Training for Architecture:", architecture, " - Fold " + str(fold))
