@@ -89,6 +89,10 @@ def run_aucmedi(fold, architecture, config):
     path_cv = os.path.join(path_arch, "cv_" + str(fold))
     if not os.path.exists(path_cv) : os.mkdir(path_cv)
 
+    # If latest model for current fold already exist -> skip
+    if os.path.exists(os.path.join(path_cv, "model.last.hdf5")):
+        return
+
     # Load sampling from disk
     sampling_train = load_sampling(path_input=config["path_data"],
                                    subset="cv" + str(fold) + "_train",
@@ -191,6 +195,11 @@ timer_cache = {}
 
 # Access architecture
 architecture = config["architecture"]
+
+# Load time measurement JSON if available
+if os.path.exists(path_time):
+    with open(path_time, "r") as file:
+        timer_cache = json.load(file)
 
 # Run Fitting Pipeline for each fold in the CV
 for fold in range(0, config["k_fold"]):
