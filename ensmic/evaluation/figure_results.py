@@ -43,7 +43,6 @@ datasets = ["chmnist", "covid", "isic", "drd"]
 #-----------------------------------------------------#
 # Iterate over phases
 for phase in phases:
-    if phase != "bagging" : continue
     result_set = []
     result_method = []
     result_all = []
