@@ -20,8 +20,7 @@ for (ds in datasets){
 # Identify best methods & merge
 dt$dataset <- sapply(dt$dataset, toupper)
 dt$phase <- sapply(dt$phase, str_to_title)
-dt_proc <- dt[, .(min=min(F1), max=max(F1)), by=list(phase, dataset)]
-dt_all <- merge(dt, dt_proc, by=c("phase", "dataset"))
+dt_proc <- dt[, .(min=min(Accuracy), max=max(Accuracy)), by=list(phase, dataset)]
 
 # Order labels
 dt_proc$phase <- factor(dt_proc$phase, levels=c("Baseline", "Augmenting", "Bagging", "Stacking"))
@@ -41,13 +40,13 @@ plot_comparison <- ggplot(dt_proc, aes(x=dataset, y=max, fill=phase)) +
   theme_bw() +
   theme(legend.position = "none") +
   xlab("") +
-  ylab("F1 Score") +
+  ylab("Score (Accuracy / F1)") +
   ggtitle("Comparison of Ensemble Learning Performance Influence on multiple datasets")
 png(file.path(path_eval, "figure.comparison.png"), width=2000, height=800, res=180)
 plot_comparison
 dev.off()
 
-# Compute performance gain
+# Compute performance gain for Accuracy
 r_datasets <- dt_proc$dataset[1:4]
 r_stacking <- ((dt_proc[phase=="Stacking"]$max / dt_proc[phase=="Baseline"]$max)-1) * 100
 r_bagging <- ((dt_proc[phase=="Bagging"]$max / dt_proc[phase=="Baseline"]$max)-1) * 100
@@ -57,8 +56,35 @@ dt_gain <- data.table(dataset=r_datasets, augmenting=r_augmenting, bagging=r_bag
 dt_gain <- melt(dt_gain, id.vars="dataset", measure.vars=c("augmenting", "bagging", "stacking"), 
                 variable.name="phase", value.name="gain")
 
-# Plot gain
-plot_gain <- ggplot(dt_gain, aes(x=dataset, y=gain, fill=phase)) +
+# Plot gain for Accuracy
+plot_gain_acc <- ggplot(dt_gain, aes(x=dataset, y=gain, fill=phase)) +
+  geom_bar(stat="identity", position="dodge", color="black", width=0.4, alpha=0.4) +
+  scale_y_continuous(breaks=seq(-10, 10, 1), limits=c(-10, +10)) +
+  scale_fill_manual(values=c("#377EB8", "#4DAF4A", "#984EA3")) + 
+  coord_flip() +
+  theme_bw() +
+  theme(legend.position = "none") +
+  xlab("") +
+  ylab("Performance Gain in %") +
+  ggtitle("Accuracy Gain compared to Baseline")
+
+# Compute performance gain for F1
+dt_proc <- dt[, .(min=min(F1), max=max(F1)), by=list(phase, dataset)]
+dt_proc$phase <- factor(dt_proc$phase, levels=c("Baseline", "Augmenting", "Bagging", "Stacking"))
+dt$phase <- factor(dt$phase, levels=c("Baseline", "Augmenting", "Bagging", "Stacking"))
+dt_proc$dataset <- factor(dt_proc$dataset, levels=c("CHMNIST", "COVID", "ISIC", "DRD"))
+dt$dataset <- factor(dt$dataset, levels=c("CHMNIST", "COVID", "ISIC", "DRD"))
+r_datasets <- dt_proc$dataset[1:4]
+r_stacking <- ((dt_proc[phase=="Stacking"]$max / dt_proc[phase=="Baseline"]$max)-1) * 100
+r_bagging <- ((dt_proc[phase=="Bagging"]$max / dt_proc[phase=="Baseline"]$max)-1) * 100
+r_augmenting <- ((dt_proc[phase=="Augmenting"]$max / dt_proc[phase=="Baseline"]$max)-1) * 100
+
+dt_gain <- data.table(dataset=r_datasets, augmenting=r_augmenting, bagging=r_bagging, stacking=r_stacking)
+dt_gain <- melt(dt_gain, id.vars="dataset", measure.vars=c("augmenting", "bagging", "stacking"), 
+                variable.name="phase", value.name="gain")
+
+# Plot gain for F1
+plot_gain_f1 <- ggplot(dt_gain, aes(x=dataset, y=gain, fill=phase)) +
   geom_bar(stat="identity", position="dodge", color="black", width=0.4, alpha=0.4) +
   scale_y_continuous(breaks=seq(-10, 10, 1), limits=c(-10, +10)) +
   scale_fill_manual(values=c("#377EB8", "#4DAF4A", "#984EA3")) + 
@@ -110,5 +136,19 @@ multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
 ###########################################################################################
 
 png(file.path(path_eval, "figure.comparison.big.png"), width=2000, height=800, res=170)
-multiplot(plot_comparison, plot_gain, layout=matrix(c(1,1,2), nrow=1, ncol=3, byrow=TRUE))
+multiplot(plot_comparison, plot_gain_f1, layout=matrix(c(1,1,2), nrow=1, ncol=3, byrow=TRUE))
 dev.off()
+
+
+png(file.path(path_eval, "figure.comparison.final.png"), width=2200, height=1000, res=170)
+multiplot(plot_comparison, plot_gain_f1, plot_gain_acc, layout=matrix(c(1,1,2,1,1,3), nrow=2, ncol=3, byrow=TRUE))
+dev.off()
+
+
+
+
+
+
+
+
+
