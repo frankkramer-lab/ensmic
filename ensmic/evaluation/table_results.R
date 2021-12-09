@@ -33,7 +33,7 @@ for (i in seq(1,3)){
     dt <- rbind(dt, dt_tmp)
   }
   dt <- dcast(dt, dataset + model ~ metric)
-  dt <- dt %>% mutate_if(is.numeric, round, 3)
+  dt <- dt %>% mutate_if(is.numeric, round, 2)
   path_out <- file.path(path_eval, paste("table.results.", phases[i], ".csv", sep=""))
   fwrite(dt, path_out)
 }
@@ -62,6 +62,6 @@ for (j in seq(1,4)){
 dt <- dt[metric %in% c("Accuracy", "F1", "Sensitivity", "Specificity")]
 setnames(dt, "ensembler", "model")
 dt <- dcast(dt, dataset + model ~ metric)
-dt <- dt %>% mutate_if(is.numeric, round, 3)
+dt <- dt %>% mutate_if(is.numeric, round, 2)
 path_out <- file.path(path_eval, paste("table.results.", phases[4], ".csv", sep=""))
 fwrite(dt, path_out)
