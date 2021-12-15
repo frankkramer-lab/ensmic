@@ -1,91 +1,35 @@
-# An analysis on Ensemble Learning optimized Medical Image Classification with Deep Convolutional Neural Networks
+# An Analysis on Ensemble Learning optimized Medical Image Classification with Deep Convolutional Neural Networks
 
-Project Description etc
+Novel and high-performance medical image classification pipelines are heavily utilizing ensemble learning strategies. The idea of ensemble learning is to assemble diverse models or multiple predictions and, thus, boost prediction performance. However, it is still an open question to what extend as well as which ensemble learning strategies are beneficial in deep learning based medical image classification pipelines.  
 
-https://towardsdatascience.com/ensembles-the-almost-free-lunch-in-machine-learning-91af7ebe5090
-
---------------------------------------------
-
-ensmeble learning output
-class & probability/confidence (for ROC)
-
---------------------------------------------
-
-Pre-Sampling:
-- 65% train-model
-- 10% val-model
-- 10% val-ensemble
-- 15% test
-
-## Analysis Phases:
+In this work, we proposed a reproducible medical image classification pipeline (ensmic) for analyzing the performance impact of the following ensemble learning techniques: Augmenting, Stacking, and Bagging. The pipeline consists of state-of-the-art preprocessing and image augmentation methods as well as 9 deep convolution neural network architectures. It was applied on four popular medical imaging datasets with varying complexity. Furthermore, 12 pooling functions for combining multiple predictions were analyzed, ranging from simple statistical functions like unweighted averaging up to more complex learning-based functions like support vector machines.  
 
 ![Schema](docs/schema.png)
 
-### Phase 1 (Architecture Baseline):
+We concluded that the integration of Stacking and Augmentation ensemble learning techniques is a powerful method for any medical image classification pipeline to improve robustness and boost performance.
 
-Analyze all architectures with 1x train-model & 1x val-model   
-->   Predict on 1x val-ensemble and 1x test set
+The sampling, results, figures and meta data is available under the following link:  
+Coming soon
 
-Additional:  
-memory vs performance  
-model complexity vs performance  
+--------------------------------------------
 
-#### First Results
+## Results
 
-![PhaseI_F1](docs/plot.F1.png)
+![Showcase](docs/figure.showcase.jpg)
 
-![PhaseI_FDR](docs/plot.FDR.png)
+Our results revealed that Stacking was able to achieve the largest performance gain of up to 13% F1-score increase. Augmenting showed consistent improvement capabilities by up to 4% and is also appliable to single model based pipelines. Cross-validation based Bagging demonstrated to be the most complex ensemble learning method, which resulted in an F1-score decrease in all analyzed datasets (up to -10%). Furthermore, we demonstrated that simple statistical pooling functions are equal or often even better than more complex pooling functions.
 
-### Phase 2 (Stacking):
+![Results](docs/figure.comparison.final.png)
 
-Multiple ML algorithm, which are combined by e.g. another ML algorithm.
-
-Analyze all implemented ensemble techniques given all predictions of 1) and validation set -> Testing  
-
-Train each ensemble method on models predictions for 1x val-ensemble set
-
-Run classifier on predictions for 1x test set
-
-### Phase 3 (Bagging):
-
-Bootstrap aggregating (bagging) & Bucket of models.  
-
-Trained with same machine learning algorithm on different subsets of the training data.  
-Normally, combined via mean/majority vote instead of new ML algorithm.  
-
-Use top-3 models:  
-
-Setup:  
-for each top3 architecture:
-  model-set = train-model + val-model
-  perform 5-CV on model-set
-  for each fold:
-    predict on val-ensemble
-    predict on test
-  for each top3 ensembler:
-    train ensembler on 5-CV models predictions for val-ensemble
-    predict on test using the 5-CV model predictions
-
-### Phase 4 (Single Model based EL):
-Utilizing data augmentation for inference.
-
--> Analyze Number of Predictions vs Performance Gain
-
-One model -> Multiple predictions on data augmentated testing -> ensemble learning -> final prediction
-
-1x train-model & 1x val-model
--> Multiple predictions on 1x val-ensemble & 1x test set
--> Ensemble Learning on 1x val-ensemble
--> Evaluation on 1x test set
-
-Dotplot: With EL vs Without EL Performance & diagonal line in middle
-
+Summary of all experiments to identify performance impact of ensemble learning techniques on medical image classification.  
+LEFT: Bar plots showing the maximum achieved Accuracy across all methods for each ensemble learning technique and dataset: Baseline (red), Augmenting (blue), Bagging (green) and Stacking (purple). Additionally, the distribution of achieved F1-scores by the various methods is illustrated with box plots.  
+RIGHT: Computed performance impact between the best scoring method of the Baseline and the best scoring method of the applied ensemble learning technique for each dataset. The performance impact is represented as performance gain in % between F1-scores (RIGHT TOP) as well as Accuracies (RIGHT BOTTOM). The color mapping of the ensemble learning techniques are equal to Figure 7 LEFT (Augmenting: Blue; Bagging: Green; Stacking: Purple).
 
 ## Reproducibility
 
 **Requirements:**
 - Ubuntu 18.04
-- Python 3.6
+- Python 3.7
 - NVIDIA QUADRO RTX 6000 or a GPU with equivalent performance
 
 **Step-by-Step workflow:**
@@ -103,6 +47,8 @@ python setup.py install
 
 Run the scripts for the desired phases.  
 Please check out the following protocol on script execution: https://github.com/frankkramer-lab/ensmic/blob/master/COMMANDS.md
+
+---------------------------
 
 ## Datasets
 
@@ -160,6 +106,8 @@ Automatic recognition of different tissue types in histological images is an ess
 
 **Reference:**  
 Kather JN, Weis CA, Bianconi F, Melchers SM, Schad LR, Gaiser T, Marx A, Zöllner FG. Multi-class texture analysis in colorectal cancer histology. Sci Rep. 2016 Jun 16;6:27988. doi: 10.1038/srep27988. PMID: 27306927; PMCID: PMC4910082.
+
+---------------------------
 
 ## Author
 
