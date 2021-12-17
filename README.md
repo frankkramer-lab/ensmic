@@ -9,7 +9,7 @@ In this work, we proposed a reproducible medical image classification pipeline (
 We concluded that the integration of Stacking and Augmentation ensemble learning techniques is a powerful method for any medical image classification pipeline to improve robustness and boost performance.
 
 The sampling, results, figures and meta data is available under the following link:  
-Coming soon
+https://doi.org/10.5281/zenodo.5783473
 
 --------------------------------------------
 
@@ -46,7 +46,8 @@ python setup.py install
 ```
 
 Run the scripts for the desired phases.  
-Please check out the following protocol on script execution: https://github.com/frankkramer-lab/ensmic/blob/master/COMMANDS.md
+Please check out the following protocol on script execution:  
+https://github.com/frankkramer-lab/ensmic/blob/master/COMMANDS.md
 
 ---------------------------
 
