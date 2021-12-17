@@ -4,7 +4,7 @@ Novel and high-performance medical image classification pipelines are heavily ut
 
 In this work, we proposed a reproducible medical image classification pipeline (ensmic) for analyzing the performance impact of the following ensemble learning techniques: Augmenting, Stacking, and Bagging. The pipeline consists of state-of-the-art preprocessing and image augmentation methods as well as 9 deep convolution neural network architectures. It was applied on four popular medical imaging datasets with varying complexity. Furthermore, 12 pooling functions for combining multiple predictions were analyzed, ranging from simple statistical functions like unweighted averaging up to more complex learning-based functions like support vector machines.  
 
-![Schema](docs/schema.png)
+![theory](docs/figure.theory.png)
 
 We concluded that the integration of Stacking and Augmentation ensemble learning techniques is a powerful method for any medical image classification pipeline to improve robustness and boost performance.
 
