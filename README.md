@@ -15,7 +15,7 @@ Coming soon
 
 ## Results
 
-![Showcase](docs/figure.showcase.jpg)
+![Showcase](docs/figure.showcase.final.drawio.png)
 
 Our results revealed that Stacking was able to achieve the largest performance gain of up to 13% F1-score increase. Augmenting showed consistent improvement capabilities by up to 4% and is also appliable to single model based pipelines. Cross-validation based Bagging demonstrated to be the most complex ensemble learning method, which resulted in an F1-score decrease in all analyzed datasets (up to -10%). Furthermore, we demonstrated that simple statistical pooling functions are equal or often even better than more complex pooling functions.
 
