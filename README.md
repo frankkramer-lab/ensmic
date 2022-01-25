@@ -1,5 +1,8 @@
 # An Analysis on Ensemble Learning optimized Medical Image Classification with Deep Convolutional Neural Networks
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5783473.svg)](https://doi.org/10.5281/zenodo.5783473)
+[![shield_license](https://img.shields.io/github/license/frankkramer-lab/ensmic)](https://www.gnu.org/licenses/gpl-3.0.en.html)
+
 Novel and high-performance medical image classification pipelines are heavily utilizing ensemble learning strategies. The idea of ensemble learning is to assemble diverse models or multiple predictions and, thus, boost prediction performance. However, it is still an open question to what extend as well as which ensemble learning strategies are beneficial in deep learning based medical image classification pipelines.  
 
 In this work, we proposed a reproducible medical image classification pipeline (ensmic) for analyzing the performance impact of the following ensemble learning techniques: Augmenting, Stacking, and Bagging. The pipeline consists of state-of-the-art preprocessing and image augmentation methods as well as 9 deep convolution neural network architectures. It was applied on four popular medical imaging datasets with varying complexity. Furthermore, 12 pooling functions for combining multiple predictions were analyzed, ranging from simple statistical functions like unweighted averaging up to more complex learning-based functions like support vector machines.  
