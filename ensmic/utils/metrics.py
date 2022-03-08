@@ -20,7 +20,7 @@
 #                   Library imports                   #
 #-----------------------------------------------------#
 # External libraries
-from sklearn.metrics import roc_curve, auc
+from sklearn.metrics import roc_curve, auc, top_k_accuracy_score
 import numpy as np
 # Internal libraries/scripts
 
@@ -49,6 +49,11 @@ def compute_metrics(truth, pred, pd_prob, classes):
         pdprob_class = np.asarray(pd_prob)[:, c]
         mc["ROC_FPR"], mc["ROC_TPR"], _ = roc_curve(truth_class, pdprob_class)
         mc["ROC_AUC"] = auc(mc["ROC_FPR"], mc["ROC_TPR"])
+        # Compute top k accuracy
+        mc["top_1_error"] = top_k_accuracy_score(truth, pd_prob, k=1,
+                                                 normalize=True)
+        mc["top_3_error"] = top_k_accuracy_score(truth, pd_prob, k=3,
+                                                 normalize=True)
         # Append dictionary to metric list
         metrics.append(mc)
     # Return results
