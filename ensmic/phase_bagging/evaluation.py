@@ -156,12 +156,12 @@ def collect_results(result_set, verified_ensembler, path_eval, config):
 #-----------------------------------------------------#
 #                    Run Evaluation                   #
 #-----------------------------------------------------#
-# Initialize result dataframe
-result_set = []
-verified_ensembler = []
-
 # Iterate over all architectures
 for architecture in architecture_list:
+    # Initialize result dataframe
+    result_set = []
+    verified_ensembler = []
+
     # Create evaluation subdirectory
     path_eval = os.path.join(config["path_results"], "phase_bagging" + "." + \
                              config["seed"], architecture, "evaluation")
