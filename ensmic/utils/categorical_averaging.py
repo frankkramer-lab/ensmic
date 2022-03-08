@@ -37,6 +37,13 @@ def macro_averaging(results, dataset, path_eval, index_col="architecture"):
     # Store averaged results to disk
     path_res = os.path.join(path_eval, "results." + dataset + ".averaged.csv")
     macro_averaged.to_csv(path_res, index=False)
+    # Compute standard deviation
+    macro_std = mag.std()
+    # Reset index of grouped dataframe to normal dataframe back
+    macro_std = macro_std.reset_index()
+    # Store std results to disk
+    path_res = os.path.join(path_eval, "results." + dataset + ".std.csv")
+    macro_std.to_csv(path_res, index=False)
     return macro_averaged
 
 # Macro-Average AUROC scores
