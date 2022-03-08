@@ -432,7 +432,7 @@ for ds in ["val-ensemble", "test"]:
     results_roc = preprocess_roc_data(result_set, verified_architectures)
     plot_auroc_results(results_roc, ds, path_eval)
 
-# Analyse fitting curve loggings
-dt_fitting_loss, dt_fitting_accuracy = gather_fitting_data(config)
-plot_fitting(dt_fitting_loss, "Loss_Function", path_eval, config)
-plot_fitting(dt_fitting_accuracy, "Categorical_Accuracy", path_eval, config)
+# # Analyse fitting curve loggings
+# dt_fitting_loss, dt_fitting_accuracy = gather_fitting_data(config)
+# plot_fitting(dt_fitting_loss, "Loss_Function", path_eval, config)
+# plot_fitting(dt_fitting_accuracy, "Categorical_Accuracy", path_eval, config)
