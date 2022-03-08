@@ -29,7 +29,7 @@ for (i in seq(1,3)){
     {
       setnames(dt_tmp, "architecture", "model")
     }
-    dt_tmp <- dt_tmp[metric %in% c("Accuracy", "F1", "Sensitivity", "Specificity")]
+    dt_tmp <- dt_tmp[metric %in% c("Accuracy", "F1", "Sensitivity", "Specificity", "ROC_AUC")]
     dt <- rbind(dt, dt_tmp)
   }
   dt <- dcast(dt, dataset + model ~ metric)
@@ -58,8 +58,11 @@ for (j in seq(1,4)){
   dt_tmp <- fread(file.path(path_arch, "evaluation", "results.test.averaged.csv"))
   dt_tmp[, dataset:=datasets[j]]
   dt <- rbind(dt, dt_tmp)
+  
+  print(max_arch)
+  print(max_value)
 }
-dt <- dt[metric %in% c("Accuracy", "F1", "Sensitivity", "Specificity")]
+dt <- dt[metric %in% c("Accuracy", "F1", "Sensitivity", "Specificity", "ROC_AUC")]
 setnames(dt, "ensembler", "model")
 dt <- dcast(dt, dataset + model ~ metric)
 dt <- dt %>% mutate_if(is.numeric, round, 2)
