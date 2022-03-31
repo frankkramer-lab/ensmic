@@ -28,6 +28,7 @@ for (i in seq(1,4)){
   # Plot figure A
   plot_a <- ggplot(dt_score[metric=="F1"], aes(method, value, fill=dataset)) +
     geom_bar(stat="identity", position="dodge", col="black", width=0.7) +
+    geom_errorbar(aes(x=method, ymin=value-std, ymax=value+std), width=0.4, alpha=0.6) +
     scale_y_continuous(breaks=seq(0, 1, 0.1), limits=c(0, 1)) +
     facet_wrap(. ~ dataset) + 
     coord_flip() +
@@ -86,5 +87,3 @@ for (i in seq(1,4)){
   grid.arrange(plot_a,g1,g2,g3,g4, layout_matrix=layout, top=textGrob(title, gp=gpar(fontsize=20,font=1)))
   dev.off()
 }
-
-

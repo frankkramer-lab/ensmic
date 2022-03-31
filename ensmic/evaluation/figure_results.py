@@ -69,6 +69,9 @@ for phase in phases:
                 data_std.rename(columns={"architecture": "method"}, inplace=True)
             data_std.rename(columns={"value": "std"}, inplace=True)
             data = pd.merge(data, data_std, on=["method", "metric"])
+            data["std"] = np.where(data["std"] >= data["value"],
+                                   data["value"],
+                                   data["std"])
             data_f1 = data[data["metric"] == "F1"]
             best_dt = data_f1.iloc[data_f1["value"].argmax()]
             best_method = best_dt["method"]
@@ -88,6 +91,9 @@ for phase in phases:
                 data_std.rename(columns={"ensembler": "method"}, inplace=True)
                 data_std.rename(columns={"value": "std"}, inplace=True)
                 data = pd.merge(data, data_std, on=["method", "metric"])
+                data["std"] = np.where(data["std"] >= data["value"],
+                                       data["value"],
+                                       data["std"])
                 data_f1 = data[data["metric"] == "F1"]
                 curr_dt = data_f1.iloc[data_f1["value"].argmax()]
                 score = curr_dt["value"]
