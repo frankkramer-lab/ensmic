@@ -59,9 +59,16 @@ for phase in phases:
         if phase != "bagging":
             data = pd.read_csv(os.path.join(path_current, "evaluation",
                                             "results.test.averaged.csv"))
+            data_std = pd.read_csv(os.path.join(path_current, "evaluation",
+                                                "results.test.std.csv"))
             if phase == "stacking":
                 data.rename(columns={"ensembler": "method"}, inplace=True)
-            else : data.rename(columns={"architecture": "method"}, inplace=True)
+                data_std.rename(columns={"ensembler": "method"}, inplace=True)
+            else:
+                data.rename(columns={"architecture": "method"}, inplace=True)
+                data_std.rename(columns={"architecture": "method"}, inplace=True)
+            data_std.rename(columns={"value": "std"}, inplace=True)
+            data = pd.merge(data, data_std, on=["method", "metric"])
             data_f1 = data[data["metric"] == "F1"]
             best_dt = data_f1.iloc[data_f1["value"].argmax()]
             best_method = best_dt["method"]
@@ -74,8 +81,13 @@ for phase in phases:
                 # Load results
                 data = pd.read_csv(os.path.join(path_current, walk, "evaluation",
                                                 "results.test.averaged.csv"))
+                data_std = pd.read_csv(os.path.join(path_current, walk, "evaluation",
+                                                    "results.test.std.csv"))
                 # Obtain best
                 data.rename(columns={"ensembler": "method"}, inplace=True)
+                data_std.rename(columns={"ensembler": "method"}, inplace=True)
+                data_std.rename(columns={"value": "std"}, inplace=True)
+                data = pd.merge(data, data_std, on=["method", "metric"])
                 data_f1 = data[data["metric"] == "F1"]
                 curr_dt = data_f1.iloc[data_f1["value"].argmax()]
                 score = curr_dt["value"]
