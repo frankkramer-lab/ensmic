@@ -75,6 +75,7 @@ for phase in phases:
             data_f1 = data[data["metric"] == "F1"]
             best_dt = data_f1.iloc[data_f1["value"].argmax()]
             best_method = best_dt["method"]
+            cached_data = data
         # For bagging: Identify best architecture & best method
         else:
             # iterate over all architectures
@@ -102,6 +103,8 @@ for phase in phases:
                     best_score = score
                     best_architecture = walk
                     best_method = curr_dt["method"]
+                    cached_data = data
+            print(best_architecture, best_method, best_score)
             # update path_current with best architecture
             path_current = os.path.join(path_current, best_architecture)
 
@@ -144,8 +147,8 @@ for phase in phases:
         # Cache dataframe
         result_set.append(metrics_tidy)
         result_method.append(best_method)
-        data["dataset"] = ds
-        result_all.append(data)
+        cached_data["dataset"] = ds
+        result_all.append(cached_data)
 
     cols = ["dataset", "method", "class", "FPR", "TPR"]
     df_results = pd.DataFrame(data=[], dtype=np.float64, columns=cols)
