@@ -54,6 +54,12 @@ https://github.com/frankkramer-lab/ensmic/blob/master/COMMANDS.md
 
 ---------------------------
 
+## Image Classifier Configuration
+
+![overview](docs/configuration.png)
+
+---------------------------
+
 ## Datasets
 
 #### X-Ray COVID19
@@ -123,10 +129,19 @@ Bavaria, Germany
 
 ## How to cite / More information
 
-Coming soon
+Dominik Müller, Iñaki Soto-Rey, Frank Kramer. (2022)   
+An Analysis on Ensemble Learning optimized Medical Image Classification with Deep Convolutional Neural Networks.  
+arXiv e-print: https://arxiv.org/abs/2201.11440
 
 ```
-Coming soon
+@inproceedings{ensmicMUELLER2022,
+  title={An Analysis on Ensemble Learning optimized Medical Image Classification with Deep Convolutional Neural Networks},
+  author={Dominik Müller, Iñaki Soto-Rey, Frank Kramer},
+  year={2022}
+  eprint={2201.11440},
+  archivePrefix={arXiv},
+  primaryClass={cs.CV}
+}
 ```
 
 Thank you for citing our work.
