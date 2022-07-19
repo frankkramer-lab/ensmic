@@ -139,6 +139,7 @@ Bavaria, Germany
 
 Dominik Müller, Iñaki Soto-Rey, Frank Kramer. (2022)   
 An Analysis on Ensemble Learning optimized Medical Image Classification with Deep Convolutional Neural Networks.  
+IEEE Access: https://ieeexplore.ieee.org/document/9794729  
 PubMed: https://pubmed.ncbi.nlm.nih.gov/34545816/
 
 ```
@@ -146,10 +147,11 @@ PubMed: https://pubmed.ncbi.nlm.nih.gov/34545816/
   title={An Analysis on Ensemble Learning optimized Medical Image Classification with Deep Convolutional Neural Networks},
   author={Dominik Müller, Iñaki Soto-Rey, Frank Kramer},
   year={2022}
-  journal={Studies in Health Technology and Informatics},
-  volume={283},
-  url={https://doi.org/10.3233/shti210537},
-  doi={10.3233/shti210537},
+  journal={IEEE Access}, 
+  volume={10},
+  number={},
+  pages={66467-66480},
+  doi={10.1109/ACCESS.2022.3182399},
   eprint={2201.11440},
   archivePrefix={arXiv},
   primaryClass={cs.CV}
