@@ -52,6 +52,14 @@ Run the scripts for the desired phases.
 Please check out the following protocol on script execution:  
 https://github.com/frankkramer-lab/ensmic/blob/master/COMMANDS.md
 
+### Based on Framework: AUCMEDI
+
+![AUCMEDI_LOGO](https://github.com/frankkramer-lab/aucmedi/raw/master/docs/images/aucmedi.logo.description.png)
+
+The open-source software AUCMEDI allows fast setup of medical image classification pipelines with state-of-the-art methods via an intuitive, high-level Python API or via an AutoML deployment through Docker/CLI.
+
+[https://github.com/frankkramer-lab/aucmedi](https://github.com/frankkramer-lab/aucmedi)
+
 ---------------------------
 
 ## Image Classifier Configuration
@@ -131,13 +139,17 @@ Bavaria, Germany
 
 Dominik Müller, Iñaki Soto-Rey, Frank Kramer. (2022)   
 An Analysis on Ensemble Learning optimized Medical Image Classification with Deep Convolutional Neural Networks.  
-arXiv e-print: https://arxiv.org/abs/2201.11440
+PubMed: https://pubmed.ncbi.nlm.nih.gov/34545816/
 
 ```
-@inproceedings{ensmicMUELLER2022,
+@Article{ensmicMUELLER2022,
   title={An Analysis on Ensemble Learning optimized Medical Image Classification with Deep Convolutional Neural Networks},
   author={Dominik Müller, Iñaki Soto-Rey, Frank Kramer},
   year={2022}
+  journal={Studies in Health Technology and Informatics},
+  volume={283},
+  url={https://doi.org/10.3233/shti210537},
+  doi={10.3233/shti210537},
   eprint={2201.11440},
   archivePrefix={arXiv},
   primaryClass={cs.CV}
